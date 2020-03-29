@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+source alfred.sh
+
 : 'fdisk -l  # Cheque qual o disco primário (primeiro)
 
 # dd: alocar uma parte do seu disco gravando-o em um arquivo.
@@ -19,17 +21,8 @@ Ao reiniciar, o swapfile vai ser perdido, a não ser que:
 # systemctl list-unit-files --type service -all
 # escreva "${c[VERMELHO]}=======================================================" 1
 
-if [[ 4 -eq 3 ]]; then
-
-    echo ":)"
-
-else
-
-    [[ ! $(apt-key list 2> /dev/null | grep "postgre") ]] \
-        && echo exists || echo not exists
-
-fi
-
+[[ ! $(sudo apt-key list 2> "${f[null]}" | grep --no-messages "PostgreSQL") ]] \
+    && echo not exists || echo exists
 
 : ' aumenta_valor() {
     if [[ ${1} -eq 1 ]]; then

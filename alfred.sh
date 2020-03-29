@@ -1585,7 +1585,7 @@ postgres_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && escreva "${c[VERDE]}\n       I${c[BRANCO]}NSTALLING ${c[VERDE]}${m[33]^^}${c[BRANCO]} AND ${c[VERDE]}DEPENDENCIES${c[BRANCO]}!" 1
 
-		[[ ! $(apt-key list 2> "${f[null]}" | grep postgre) ]] \
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep "PostgreSQL") ]] \
             && sudo wget --quiet --output-document - "${l[14]}" | sudo apt-key add - > "${f[null]}"
 
         # Apontando o host do postgres no sources.list
@@ -1792,7 +1792,7 @@ sublime_stuffs() {
             && escreva "${c[VERDE]}\n       I${c[BRANCO]}NSTALLING ${c[VERDE]}${m[5]^^}${c[BRANCO]} AND ${c[VERDE]}DEPENDENCIES${c[BRANCO]}!" 1
 
 		# Verifica certificado de segurança (apt-key list)
-		[[ ! $(apt-key list 2> "${f[null]}" | grep "Sublime") ]] \
+		[[ ! $(sudo apt-key list 2> "${f[null]}" | grep "Sublime") ]] \
             && sudo wget --quiet --output-document - "${l[10]}" | sudo apt-key add - > "${f[null]}"
 
         # Dependências
@@ -2334,7 +2334,7 @@ application/x-subrip=sublime_text.desktop;'
 
         encerra_menu ;;
 
-        *) echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[BRANCO]}\n\t     PLEASE, ONLY NUMBERS!\n"${c[FIM]}
+        *) echo -ne ${c[VERMELHO]}"\n   ${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[BRANCO]}\n\t\t  PLEASE, ONLY NUMBERS!\n"${c[FIM]}
         retorna_menu ;;
         # take_a_break &&
 
@@ -2395,4 +2395,4 @@ menu() {
 }
 #======================#
 
-# checar_source
+menu
