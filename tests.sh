@@ -16,13 +16,9 @@ Ao reiniciar, o swapfile vai ser perdido, a não ser que:
 /etc/fstab
 /swapfile swap swap defaults 0 0'
 
-
-# https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
-
 # systemctl list-unit-files --type service -all
 
-sudo rm --recursive --force ~/Downloads/rafa
-
+[[ grep -L ]]
 
 : ' aumenta_valor() {
     if [[ ${1} -eq 1 ]]; then
