@@ -203,7 +203,8 @@ check_source() {
 check_ssh() {
 
     # Generate SSH keys silently. Ignore if exists
-    [[ ! -e "${u[public_ssh]}" ]] && yes "" | ssh-keygen -N "" >&- 2>&-
+    # -N new_passphrase
+    [[ ! -e "${u[public_ssh]}" ]] && yes "" | ssh-keygen -N "" &> "${u[null]}"
 
 }
 #======================#
@@ -265,7 +266,7 @@ install_packages() {
 #======================#
 
 #======================#
-remocao_inuteis() {
+remove_useless() {
 
     sudo apt autoremove -y &> "${u[null]}"
 
@@ -626,7 +627,7 @@ feh_stuffs() {
                 [[ $(grep --files-without-match "default" "${f[start]}") ]] \
                     && sudo tee -a "${f[start]}" > "${u[null]}" <<< "background=${f[dft_bkg]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -682,7 +683,7 @@ NoDisplay=false
 Hidden=false
 Name[pt_BR]=FehBG Wallpapers
 Comment[pt_BR]=Wallpaper único para cada monitor
-X-GNOME-Autostart-Delay=5" # here string: prevent unseless echo
+X-GNOME-Autostart-Delay=5" # here string: prevent useless echo
 
     unset d f l m
 
@@ -733,7 +734,7 @@ github_stuffs() {
 
                 sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -884,7 +885,7 @@ chrome_stuffs() {
 
                 sudo sed -i '\|"google-chrome.desktop",|d' "${d[13]}"/*.json
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -977,7 +978,7 @@ conky_stuffs() {
 
                 sudo rm --force "${f[conkyrc]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1056,7 +1057,7 @@ flameshot_stuffs() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1155,7 +1156,7 @@ heroku_stuffs() {
 
                 sudo rm --force --recursive "${d[0]}" "${d[1]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1359,7 +1360,7 @@ minidlna_stuffs() {
 
                 sudo rm --force "${f[config]}" "${f[default_minidlna]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1450,6 +1451,9 @@ minidlna_stuffs() {
 #======================#
 nvidia_stuffs() {
 
+    # The nouveau driver comes by default once linux is installed, but not
+    # extract all resources as nvidia driver (only father knows the kid haha)
+
     f+=(
         [hide_driver]=/etc/modprobe.d/blacklist-nouveau.conf
     )
@@ -1466,7 +1470,7 @@ nvidia_stuffs() {
     latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | sed 's| ||g')
 
     # https://4fasters.com.br/2018/04/26/benchmark-nvidia-driver-do-fabricante-vs-driver-open-source-no-linux/
-    # -class: Exibe apenas informações do display
+    # -class: Show reduced data
     check_nvidia_existence=$(sudo lshw -class display | grep --extended-regexp "fabricante|vendor" | awk '{print $2}')
 
     if [[ "${check_nvidia_existence}" != "NVIDIA" ]]; then
@@ -1623,7 +1627,7 @@ postgres_stuffs() {
 
 
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1907,7 +1911,7 @@ sublime_stuffs() {
 
                 sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2127,7 +2131,7 @@ tmate_stuffs() {  # Okzão
 
                 sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2206,7 +2210,7 @@ usefull_pkgs() {
 
                 sudo sed -zi 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${u[mimeapps]}"
 
-                remocao_inuteis
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
