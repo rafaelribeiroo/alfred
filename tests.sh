@@ -18,7 +18,10 @@ Ao reiniciar, o swapfile vai ser perdido, a não ser que:
 
 # systemctl list-unit-files --type service -all
 
-[[ grep -L ]]
+# [[ grep -L ]]
+# usefull files
+
+sudo apt remove --purge -y feh &> /dev/null
 
 : ' aumenta_valor() {
     if [[ ${1} -eq 1 ]]; then
