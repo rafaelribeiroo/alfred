@@ -163,14 +163,14 @@ check_distro() {
 check_pkg() {
 
 	# instalado
-	if dpkg-query -s "${1}" > "${u[null]}" 2>&1; then
+	if dpkg-query -s "${1}" &> "${u[null]}"; then
 
 		return 0
 
 	else
 
 		# não instalado, porém disponível no registro de pacote
-		if apt-cache show "${1}" > "${u[null]}" 2>&1; then
+		if apt-cache show "${1}" &> "${u[null]}"; then
 
 			return 1
 
@@ -211,7 +211,7 @@ check_ssh() {
 #======================#
 encerra_menu() {
 
-    show "\n${c[RED]}   FOR YOUR OWN SAKE,\n${c[CYAN]}THERE IS NO TURNING BACK...\n"
+    show "\n   ${c[RED]}FOR YOUR OWN SAKE,\n${c[CYAN]}THERE IS NO TURNING BACK...\n"
 
     [[ ${BASH_SOURCE[0]} -ef "${0}" ]] && exit || return 0
 
@@ -253,7 +253,7 @@ install_packages() {
                     && show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!\n" \
                     || show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!"
 
-                sudo apt install -y "${package}" > "${u[null]}" 2>&-
+                sudo apt install -y "${package}" &> "${u[null]}"
 
             fi
 
@@ -267,7 +267,7 @@ install_packages() {
 #======================#
 remocao_inuteis() {
 
-    sudo apt autoremove -y > "${u[null]}" 2>&-
+    sudo apt autoremove -y &> "${u[null]}"
 
     sudo apt autoclean > "${u[null]}"
 
@@ -345,9 +345,9 @@ bash_stuffs() {
 
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
-                sudo rm -fr "${d[0]}"
+                sudo rm --force --recursive "${d[0]}"
 
-                sudo rm -f "${f[powerline_otf]}" "${f[powerline_conf]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
 
                 # Move bkp content to bashrc (oh-my-bash)
                 [[ -e "${f[bkp]}" ]] && sudo mv "${f[bkp]}" "${u[bashrc]}"
@@ -392,7 +392,7 @@ bash_stuffs() {
 
         # Hidden directories are owned by root, we must change owner to bash "read"
         # 2>&- prevent error message: "can't stat: no such file..."
-        [[ ! -d "${d[1]}" || $(stat --format "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
             && sudo mkdir -p "${d[1]}" > "${u[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[1]}" # Tranca saída de erro
 
@@ -407,25 +407,25 @@ bash_stuffs() {
 
     if [[ ! -e "${f[powerline_conf]}" ]]; then
 
-        [[ ! -d "${d[2]}" || $(stat --format "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
             && sudo mkdir -p "${d[2]}" > "${u[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[2]}"
+            && sudo chown -R "${USER}":"${USER}" "${d[2]%conf.d}"
 
         curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
 
     fi
 
     # If show error when open oh-my-base, run command below
-    # [[ $(grep -l "check_for_upgrade.sh" "${f[config]}") ]] \
+    # [[ $(grep --files-with-matches "check_for_upgrade.sh" "${f[config]}") ]] \
     #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
-    [[ $(grep -L "DEFAULT_USER" "${u[bashrc]}") ]] \
+    [[ $(grep --files-without-match "DEFAULT_USER" "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     # Install plugins
-    [[ $(grep -L "agnoster" "${u[bashrc]}") && $(grep -L "plugins=(git" "${u[bashrc]}") ]] \
+    [[ $(grep --files-without-match "agnoster" "${u[bashrc]}") && $(grep --files-without-match "plugins=(git" "${u[bashrc]}") ]] \
         && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${u[bashrc]}" \
         && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${u[bashrc]}"
 
@@ -445,7 +445,7 @@ deezloader_stuffs() {
     d+=(
         ~/Deezloader\ Music  # 0
         ~/.config/Deezloader\ Remix  # 1
-        ~/$(cat "${u[user_dirs]}" | grep MUSIC | awk --field-separator=/ '{print $2}' | sed 's|"||')/  # 2
+        ~/$(cat "${u[user_dirs]}" | awk -F/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
     )
 
     l+=(
@@ -465,7 +465,7 @@ deezloader_stuffs() {
 
     link_latest=$(curl --location --silent "${l[0]}" | grep -6 "Linux x64" | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
 
-    if [[ -e "${f[file]}" || -d "${d[0]}" ]]; then
+    if [[ -e "${f[file]}" ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -477,9 +477,9 @@ deezloader_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo rm -f "${f[file]}"
+                sudo rm --force "${f[file]}"
 
-                sudo rm -fr "${d[0]}" "${d[1]}"
+                sudo rm --force --recursive "${d[0]}" "${d[1]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -513,24 +513,24 @@ deezloader_stuffs() {
     show "INITIALIZING CONFIGS..."
 
     # Checa permissão. Se não for executável, torna-o
-    [[ $(stat --format "%a" "${f[file]}" 2>&-) -ne 755 ]] \
+    [[ $(stat -c "%a" "${f[file]}" 2>&-) -ne 755 ]] \
         && sudo chmod +x "${f[file]}"
 
-    local=$(stat --format "%n" "${d[2]}"Deez* | awk --field-separator=_ '{print $3}' | sed 's|-x86||')
+    local=$(stat -c "%n" "${d[2]}"Deez* | awk --field-separator=_ '{print $3}' | sed 's|-x86||')
 
     latest=$(curl --silent "${l[0]}" | grep -1 "markdown" | tail -1 | awk '{print $3}' | sed 's|</h2>||')
 
     # Remove old deezloader and updates
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && sudo rm -f "${d[2]}"Deez* \
+        && sudo rm --force "${d[2]}"Deez* \
         && megadl --no-progress "${link_latest}" --path "${d[2]}"
 
-    if [[ $(grep -L "${d[2]#~/}" "${f[config]}") ]]; then
+    if [[ $(grep --files-without-match "${d[2]#~/}" "${f[config]}") ]]; then
 
         cd "${d[2]}" > "${u[null]}"
 
         # Run deezloader and free tty
-        ( nohup ./"${f[file]#${d[2]}}" & ) > "${u[null]}" 2>&1
+        ( nohup ./"${f[file]#${d[2]}}" & ) &> "${u[null]}"
 
         read -p $'\033[1;37m\nHAVE YOU LOGON? \n[Y/N] R: \033[m' option
 
@@ -550,7 +550,7 @@ deezloader_stuffs() {
 
                     sudo sed -i "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
 
-                    ( nohup ./"${f[file]#${d[2]}}" & ) > "${u[null]}" 2>&1
+                    ( nohup ./"${f[file]#${d[2]}}" & ) &> "${u[null]}"
 
                     cd - > "${u[null]}"
 
@@ -617,13 +617,13 @@ feh_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                sudo rm -f "${f[dskt]}" "${f[fehbg]}"
+                sudo rm --force "${f[dskt]}" "${f[fehbg]}"
 
-                sudo rm -fr "${d[0]}"
+                sudo rm --force --recursive "${d[0]}"
 
-                [[ $(grep -L "default" "${f[start]}") ]] \
+                [[ $(grep --files-without-match "default" "${f[start]}") ]] \
                     && sudo tee -a "${f[start]}" > "${u[null]}" <<< "background=${f[dft_bkg]}"
 
                 remocao_inuteis
@@ -658,9 +658,9 @@ feh_stuffs() {
     show "INITIALIZING CONFIGS..."
 
     # --word-regexp don't match with disconnected
-    if [[ $(xrandr --query | grep --word-regexp "connected" | wc -l) -eq 2 ]] ; then
+    if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
-        [[ ! -d "${d[0]}" || $(stat --format "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
             && mkdir -p "${d[0]}" > "${u[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
@@ -672,7 +672,7 @@ feh_stuffs() {
 
     fi
 
-    [[ ! -e "${f[dskt]}" || $(grep -L "Feh" "${f[dskt]}") ]] \
+    [[ ! -e "${f[dskt]}" || $(grep --files-without-match "Feh" "${f[dskt]}") ]] \
         && sudo tee -a "${f[dskt]}" > "${u[null]}" <<< "[Desktop Entry]
 Name=Feh
 Type=Application
@@ -697,7 +697,7 @@ github_stuffs() {
     f+=(
         [config]=~/.gitconfig
         [ssh_config]=~/.ssh/config
-        [check_successful]=/tmp/check_successful
+        [hosts]=~/.ssh/known_hosts
     )
 
     l+=(
@@ -714,7 +714,7 @@ github_stuffs() {
 
     if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -724,12 +724,12 @@ github_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                sudo rm -f "${f[config]}"
+                sudo rm --force "${f[config]}"
 
-                ( $(dpkg --compare-versions "${local}" eq "${latest}") ) \
-                    && sudo add-apt-repository --remove -y ppa:git-core/ppa > /dev/null 2>&1
+                [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
+                    && sudo add-apt-repository --remove -y ppa:git-core/ppa &> "${u[null]}"
 
                 sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"
 
@@ -767,8 +767,8 @@ github_stuffs() {
     # Any changes pushed to GitHub, BitBucket, GitLab or another Git host
     # server in a later lesson will include this information.
     # from: https://swcarpentry.github.io/git-novice/02-setup/
-    # -L: files-without-match if pattern is not found; then
-    [[ ! -e "${f[config]}" || $(grep -L "email" "${f[config]}") ]] \
+    # -L: files-without-match if don't exist this pattern is true
+    [[ ! -e "${f[config]}" || $(grep --files-without-match "@" "${f[config]}") ]] \
         && read -p $'\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
         && read -p $'\033[1;37mNAME '"${e[20]}"$': \033[m' nome \
         && git config --global user.email "${email}" \
@@ -776,21 +776,23 @@ github_stuffs() {
         && git config --global core.editor "vim" \
         && git config --global core.autocrlf input
 
-    [[ $(grep -L "dark" "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
+    [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
 
     local=$(git --version | awk '{print $3}')
 
     latest=$(curl --silent "${l[1]}" | grep -1 '<span class="version">' | tail -1 | awk '{print $1}')
 
+    [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
+        && sudo add-apt-repository -y ppa:git-core/ppa &> "${u[null]}"
+
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && sudo add-apt-repository -y ppa:git-core/ppa > "${u[null]}" 2>&1 \
         && update \
-        && sudo apt install -y "${m[0]}" > "${u[null]}" 2>&-
+        && sudo apt install -y "${m[0]}" &> "${u[null]}"
 
     check_ssh
 
-    [[ ! -e "${f[ssh_config]}" || $(grep -L "github.com" "${f[ssh_config]}") ]] \
+    [[ ! -e "${f[ssh_config]}" || $(grep --files-without-match "github.com" "${f[ssh_config]}") ]] \
         && sudo tee -a "${f[ssh_config]}" > "${u[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
@@ -829,18 +831,15 @@ github_stuffs() {
             $(cat "${u[public_ssh]}" | awk '{print $2}') != \
             $(curl --silent --user "${usuario}":"${senha}" "${l[0]}" | jq ".[] | .key" | sed 's/.$//' | awk '{print $2}') \
         ]] \
-            && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS. FIXING!" \
+            && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
             && curl --user "${usuario}":"${senha}" --request DELETE "${l[0]}"/"$(curl --silent --user ${usuario}:${senha} ${l[0]} | jq '.[] | .id')" \
             && curl --silent --include --user "${usuario}":"${senha}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}" \
             && echo
 
     fi
 
-    [[ ! -e "${f[check_successful]}" ]] \
-        && ssh -T git@github.com 2> "${f[check_successful]}"
-
-    [[ $(cat "${f[check_successful]}" | grep "successfully" | wc -l) -eq 0 ]] \
-        && ssh -T -o StrictHostKeyChecking=no git@github.com > "${u[null]}" 2>&-
+    [[ ! -e "${f[hosts]}" ]] \
+        && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${u[null]}"
 
     unset f l m
 
@@ -853,7 +852,7 @@ github_stuffs() {
 chrome_stuffs() {
 
     f+=(
-        [file]=~/$(cat "${u[user_dirs]}" | grep DOWNLOAD | awk --field-separator=/ '{print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [file]=~/$(cat "${u[user_dirs]}" | awk -F/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
     )
 
     l+=(
@@ -879,7 +878,7 @@ chrome_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[18]}" "${m[1]}" "${m[2]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" "${m[18]}" "${m[1]}" "${m[2]}" &> "${u[null]}"
 
                 sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${u[mimeapps]}"
 
@@ -920,13 +919,13 @@ chrome_stuffs() {
 
         sudo dpkg -i "${f[file]}" &> "${u[null]}"
 
-        sudo rm -f "${f[file]}" && echo
+        sudo rm --force "${f[file]}" && echo
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${u[mimeapps]}" || $(grep -L "google-chrome" "${u[mimeapps]}") ]] \
+    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "google-chrome" "${u[mimeapps]}") ]] \
         && sudo tee "${u[mimeapps]}" > "${u[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
 x-scheme-handler/http=google-chrome.desktop
@@ -935,7 +934,7 @@ x-scheme-handler/about=google-chrome.desktop
 x-scheme-handler/unknown=google-chrome.desktop
 x-scheme-handler/mailto=google-chrome.desktop'
 
-    [[ $(grep -L "google-chrome" "${d[13]}"/*.json) ]] \
+    [[ $(grep --files-without-match "google-chrome" "${d[13]}"/*.json) ]] \
         && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",|g' "${d[13]}"/*.json \
         && sudo sed -i 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|g' "${d[13]}"/*.json \
         && sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[13]}"/*.json
@@ -974,9 +973,9 @@ conky_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                sudo rm -f "${f[conkyrc]}"
+                sudo rm --force "${f[conkyrc]}"
 
                 remocao_inuteis
 
@@ -1053,9 +1052,9 @@ flameshot_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                sudo rm -fr "${d[0]}"
+                sudo rm --force --recursive "${d[0]}"
 
                 remocao_inuteis
 
@@ -1090,7 +1089,8 @@ flameshot_stuffs() {
 
     dconf write "${f[screenshot]}" "[]"
 
-    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | grep PICTURES | awk --field-separator=/ '{print $2}' | sed 's|"||')'"
+    # -F: field-separator to cut
+    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | awk -F/ '/PICTURES/ {print $2}' | sed 's|"||')'"
 
     dconf write "${f[bdg]}" "['Print']"
 
@@ -1100,7 +1100,7 @@ flameshot_stuffs() {
 
     sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)||g' "${f[config]}"
 
-    [[ ! -e "${f[dskt]}" || $(grep -L "flameshot" "${f[dskt]}") ]] \
+    [[ ! -e "${f[dskt]}" || $(grep --files-without-match "flameshot" "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${u[null]}" <<< '[Desktop Entry]
 Name=flameshot
 Icon=flameshot
@@ -1119,6 +1119,16 @@ X-GNOME-Autostart-enabled=true'
 #======================#
 heroku_stuffs() {
 
+    d+=(
+        /usr/lib/heroku/  # 0
+        ~/.cache/heroku/  # 1
+    )
+
+    f+=(
+        [auth]=~/.netrc
+        [ppa]=/etc/apt/sources.list.d/heroku.list
+    )
+
     l+=(
         'https://cli-assets.heroku.com/install-ubuntu.sh'  # 0
     )
@@ -1129,7 +1139,7 @@ heroku_stuffs() {
 
     if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1139,7 +1149,11 @@ heroku_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+
+                sudo rm --force "${f[auth]}" "${f[ppa]}"
+
+                sudo rm --force --recursive "${d[0]}" "${d[1]}"
 
                 remocao_inuteis
 
@@ -1168,7 +1182,7 @@ heroku_stuffs() {
 
         show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
-        bash -c "$(curl --silent ${l[0]})" &> "${u[null]}"
+        sh -c "$(curl --silent ${l[0]})" &> "${u[null]}"
 
     fi
 
@@ -1181,6 +1195,15 @@ heroku_stuffs() {
 		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
     		echo && heroku login -i
+
+            for (( ; ; )); do
+
+                # https://devcenter.heroku.com/articles/heroku-cli#login-issues
+                [[ -e "${f[auth]}" ]] && break \
+                    || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" 1 \
+                    && heroku login -i
+
+            done
 
             echo && break
 
@@ -1198,7 +1221,7 @@ heroku_stuffs() {
 
     done
 
-    unset l m
+    unset d f l m
 
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1244,7 +1267,7 @@ hide_devices() {  # Okzão
 
                     show "\n${c[RED]}S${c[WHITE]}HOWING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                    sudo rm -f "${f[hide_rules]}"
+                    sudo rm --force "${f[hide_rules]}"
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1276,7 +1299,7 @@ hide_devices() {  # Okzão
 
             done
 
-            [[ ! -d "${d[0]}" || $(stat --format "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
                 && mkdir -p "${d[0]}" > "${u[null]}" \
                 && sudo chown -R ${USER}:${USER} "${d[0]}"
 
@@ -1308,7 +1331,7 @@ hide_devices() {  # Okzão
 minidlna_stuffs() {
 
     d+=(
-        ~/$(cat "${u[user_dirs]}" | grep VIDEO | awk --field-separator=/ '{print $2}' | sed 's|"||')/  # 0
+        ~/$(cat "${u[user_dirs]}" | awk -F/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
     )
 
     f+=(
@@ -1332,9 +1355,9 @@ minidlna_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
-                sudo rm -f "${f[config]}" "${f[default_minidlna]}"
+                sudo rm --force "${f[config]}" "${f[default_minidlna]}"
 
                 remocao_inuteis
 
@@ -1367,7 +1390,7 @@ minidlna_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    if [[ $(grep -L "Mídias" "${f[config]}") ]]; then
+    if [[ $(grep --files-without-match "Mídias" "${f[config]}") ]]; then
 
         # automatic discover new files
         sudo sed -i "s|#inotify=yes|inotify=yes|g" "${f[config]}"
@@ -1428,7 +1451,6 @@ minidlna_stuffs() {
 nvidia_stuffs() {
 
     f+=(
-        [nvidia_ppa]=/etc/apt/sources.list.d/graphics-drivers-ppa-bionic.list
         [hide_driver]=/etc/modprobe.d/blacklist-nouveau.conf
     )
 
@@ -1473,6 +1495,9 @@ nvidia_stuffs() {
 
                     show "\n${c[RED]}R${c[WHITE]}ESTORING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
+                    [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
+                        && sudo add-apt-repository --remove -y ppa:graphics-drivers/ppa &> "${u[null]}"
+
 
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
@@ -1499,7 +1524,7 @@ nvidia_stuffs() {
                 && show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
-                && sudo add-apt-repository -y ppa:graphics-drivers/ppa > "${u[null]}" 2>&1 \
+                && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}" \
                 && update
 
             install_packages "${m[0]}-${latest}"
@@ -1514,14 +1539,14 @@ nvidia_stuffs() {
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        [[ ! -e "${nvidia_ppa}" ]] \
-            && sudo add-apt-repository -y ppa:graphics-drivers/ppa > "${u[null]}" 2>&1 \
-            && update \
-            && sudo apt install -y "${m[0]}" > "${u[null]}" 2>&-
+        [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
+            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}"
+
+        update && sudo apt install -y "${m[0]}" &> "${u[null]}"
 
     fi
 
-    if [[ ! -e "${f[hide_driver]}" || $(grep -L "nouveau" "${f[hide_driver]}") ]]; then
+    if [[ ! -e "${f[hide_driver]}" || $(grep --files-without-match "nouveau" "${f[hide_driver]}") ]]; then
 
         sudo tee "${f[hide_driver]}" > "${u[null]}" <<< 'blacklist nouveau
 blacklist lbm-nouveau
@@ -1594,7 +1619,7 @@ postgres_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${u[null]}"
 
 
 
@@ -1627,7 +1652,7 @@ postgres_stuffs() {
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
         # Apontando o host do postgres no sources.list
-    	[[ ! -e "${f[postgres_ppa]}" || $(grep -L "bionic-pgdg" "${f[postgres_ppa]}") ]] \
+    	[[ ! -e "${f[postgres_ppa]}" || $(grep --files-without-match "bionic-pgdg" "${f[postgres_ppa]}") ]] \
     		&& sudo tee "${f[postgres_ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
             && update
 
@@ -1639,7 +1664,7 @@ postgres_stuffs() {
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    if [[ $(grep -L "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
+    if [[ $(grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
 
         # Antes de alterar a criptografia do postgres, devemos criar uma senha
         senha=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
@@ -1773,7 +1798,7 @@ upgrade_py() {
 
                 show "\n${c[RED]}R${c[WHITE]}ESETING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                sudo rm -fr "${d[0]}"
+                sudo rm --force --recursive "${d[0]}"
 
                 sudo sed -zi 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${u[bashrc]}"
 
@@ -1815,7 +1840,7 @@ upgrade_py() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ $(grep -L "pyenv init" "${u[bashrc]}") ]] \
+    [[ $(grep --files-without-match "pyenv init" "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
@@ -1849,17 +1874,17 @@ sublime_stuffs() {
     )
 
     f+=(
-        [subl_ppa]=/etc/apt/sources.list.d/sublime-text.list
-        [subl_exec]=/opt/sublime_text/sublime_text
-        [subl_license]=~/.config/sublime-text-3/Local/License.sublime_license
-        [subl_pkg_ctrl]=~/.config/sublime-text-3/Installed\ Packages/Package\ Control.sublime-package
-        [subl_pkg]=~/.config/sublime-text-3/Packages/User/Package\ Control.sublime-settings
-        [subl_anaconda]=~/.config/sublime-text-3/Packages/Anaconda/Anaconda.sublime-settings
-        [subl_keymap]=~/.config/sublime-text-3/Packages/User/Default\ \(Linux\).sublime-keymap
-        [subl_settings]=~/.config/sublime-text-3/Packages/User/Preferences.sublime-settings
-        [subl_REPL]=~/.config/sublime-text-3/Packages/SublimeREPL/SublimeREPL.sublime-settings
-        [subl_REPL_pyI]=~/.config/sublime-text-3/Packages/SublimeREPL/config/Python/Main.sublime-menu
-        [subl_REPL_pyII]=~/.config/sublime-text-3/Packages/SublimeREPL/sublimerepl.py
+        [config]=~/.config/sublime-text-3/Packages/User/Preferences.sublime-settings
+        [ppa]=/etc/apt/sources.list.d/sublime-text.list
+        [exec]=/opt/sublime_text/sublime_text
+        [license]=~/.config/sublime-text-3/Local/License.sublime_license
+        [pkg_ctrl]=~/.config/sublime-text-3/Installed\ Packages/Package\ Control.sublime-package
+        [pkgs]=~/.config/sublime-text-3/Packages/User/Package\ Control.sublime-settings
+        [anaconda]=~/.config/sublime-text-3/Packages/Anaconda/Anaconda.sublime-settings
+        [keymap]=~/.config/sublime-text-3/Packages/User/Default\ \(Linux\).sublime-keymap
+        [REPL]=~/.config/sublime-text-3/Packages/SublimeREPL/SublimeREPL.sublime-settings
+        [REPL_pyI]=~/.config/sublime-text-3/Packages/SublimeREPL/config/Python/Main.sublime-menu
+        [REPL_pyII]=~/.config/sublime-text-3/Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
     )
 
@@ -1880,7 +1905,7 @@ sublime_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
                 remocao_inuteis
 
@@ -1914,8 +1939,8 @@ sublime_stuffs() {
         # Dependências
         install_packages "${m[1]}"
 
-        [[ ! -e "${f[subl_ppa]}" || $(grep -L "sublimetext" "${f[subl_ppa]}") ]] \
-            && sudo tee "${f[subl_ppa]}" > "${u[null]}" <<< "deb ${l[1]}" \
+        [[ ! -e "${f[ppa]}" || $(grep --files-without-match "sublimetext" "${f[ppa]}") ]] \
+            && sudo tee "${f[ppa]}" > "${u[null]}" <<< "deb ${l[1]}" \
             && update
 
         install_packages "${m[0]}"
@@ -1931,13 +1956,13 @@ sublime_stuffs() {
 
             # hexed.it: get position and convert to decimal, put in seek
             # Altera sequência binária do executável
-            [[ $(xxd -p -seek 158612 -l 3 "${f[subl_exec]}") =~ "97940d" ]] \
+            [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ "97940d" ]] \
                 && sudo pkill subl \
-                && printf '\00\00\00' | dd of="${f[subl_exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
+                && printf '\00\00\00' | dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
 
             # Inserindo a chave do produto
-            [[ ! -e "${f[subl_license]}" || $(grep -L "Member" "${f[subl_license]}") ]] \
-                && sudo tee "${f[subl_license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
+            [[ ! -e "${f[license]}" || $(grep --files-without-match "Member" "${f[license]}") ]] \
+                && sudo tee "${f[license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
 Member J2TeaM
 Single User License
 EA7E-1011316
@@ -1954,33 +1979,33 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             # Remove histórico de modificações no arquivo
             # sudo rm --force "${f[recently_used]}"
 
-            [[ ! -e "${f[subl_pkg_ctrl]}" ]] \
+            [[ ! -e "${f[pkg_ctrl]}" ]] \
                 && sudo mkdir -p "${d[1]}" > "${u[null]}" \
                 && sudo chown -R ${USER}:${USER} "${d[1]}" \
-                && curl --location --silent --output "${f[subl_pkg_ctrl]}" --create-dirs "${l[2]}"
+                && curl --location --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
 
-            [[ ! -e "${f[subl_pkg]}" || $(grep -L "packages" "${f[subl_pkg]}") ]] \
-                && sudo tee "${f[subl_pkg]}" > "${u[null]}" <<< '{
+            [[ ! -e "${f[pkgs]}" || $(grep --files-without-match "packages" "${f[pkgs]}") ]] \
+                && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
 
     		for (( ; ; )); do
 
 				# Se instalou um pacote, instalou o restante também, então...
-	            if [[ -e "${f[subl_anaconda]}"  ]]; then
+	            if [[ -e "${f[anaconda]}"  ]]; then
 
 	                # Informando ao Anaconda para sublinhar aos códigos específicos do PY 3.6
-	                sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[subl_anaconda]}"
+	                sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
 
-	                sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[subl_anaconda]}"
+	                sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
-                    sudo tee -a "${f[subl_keymap]}" > "${u[null]}" <<< '{
+                    sudo tee -a "${f[keymap]}" > "${u[null]}" <<< '{
     "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
         "id": "repl_python_run", "file": "config/Python/Main.sublime-menu"
     }
 }'
 
-                    sudo tee -a "${f[subl_settings]}" > "${u[null]}" <<< '{
+                    sudo tee -a "${f[config]}" > "${u[null]}" <<< '{
     // default value is []
     "rulers": [80],
 
@@ -1997,38 +2022,38 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 }'
 
 					# Remover o autocomplete no interpretador
-					sudo sed -zi 's|true|false|7' "${f[subl_REPL]}"
+					sudo sed -zi 's|true|false|7' "${f[REPL]}"
 
 	                # Reutilizar mesma tab para várias runtimes
                     # https://github.com/wuub/SublimeREPL/issues/481
-                    sudo sed -zi 's|"R"|"r"|1' "${f[subl_REPL_pyI]}"
+                    sudo sed -zi 's|"R"|"r"|1' "${f[REPL_pyI]}"
 
-                    sudo sed -i 's|"R"|"d"|g' "${f[subl_REPL_pyI]}"
+                    sudo sed -i 's|"R"|"d"|g' "${f[REPL_pyI]}"
 
-                    sudo sed -i 's|"P"|"p"|g' "${f[subl_REPL_pyI]}"
+                    sudo sed -i 's|"P"|"p"|g' "${f[REPL_pyI]}"
 
-                    sudo sed -i 's|"I"|"p"|g' "${f[subl_REPL_pyI]}"
+                    sudo sed -i 's|"I"|"p"|g' "${f[REPL_pyI]}"
 
-                    sudo sed -i 's|"D"|"d"|g' "${f[subl_REPL_pyI]}"
+                    sudo sed -i 's|"D"|"d"|g' "${f[REPL_pyI]}"
 
-                    [[ $(grep -L '"view_id"' "${f[subl_REPL_pyI]}") ]] \
-                        && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[subl_REPL_pyI]}"
+                    [[ $(grep --files-without-match '"view_id"' "${f[REPL_pyI]}") ]] \
+                        && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
 
-                    sudo sed -zi 's|view.id|view.name|1' "${f[subl_REPL_pyII]}"
+                    sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
 
-                    [[ $(grep -L "focus_view(found)" "${f[subl_REPL_pyII]}") ]] \
-                        && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[subl_REPL_pyII]}"
+                    [[ $(grep --files-without-match "focus_view(found)" "${f[REPL_pyII]}") ]] \
+                        && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[REPL_pyII]}"
 
                     # Seta versão recente do PY para execuções de scripts
-                    sudo sed -i 's|"python", |"python3", |g' "${f[subl_REPL_pyI]}"
+                    sudo sed -i 's|"python", |"python3", |g' "${f[REPL_pyI]}"
 
-                    sudo sed -zi 's|"python3", |"python", |4' "${f[subl_REPL_pyI]}"
+                    sudo sed -zi 's|"python3", |"python", |4' "${f[REPL_pyI]}"
 
-                    sudo sed -zi 's|"python3", |"python", |6' "${f[subl_REPL_pyI]}"
+                    sudo sed -zi 's|"python3", |"python", |6' "${f[REPL_pyI]}"
 
             	else
 
-                    ( nohup subl & ) > "${u[null]}" 2>&1
+                    ( nohup subl & ) &> "${u[null]}"
 
                     for contador in {1..10..1}; do
 
@@ -2049,7 +2074,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             show "\nAcessaremos o sublime para ele criar o diretório padrão."
 
             # O sublime cria os diretórios padrão quando executado pela 1a vez
-            ( nohup subl & ) > "${u[null]}" 2>&1
+            ( nohup subl & ) &> "${u[null]}"
 
             take_a_break
 
@@ -2076,7 +2101,7 @@ upgrade() {
     date=$(date -d "${last}" +"%d/%m/%Y")
     show "OH ${name[random]}, LAST TIME WE'VE SEEN YOU WAS IN\n\t\t${c[CYAN]}${date}\n\n${c[WHITE]}UPGRADING..."
 
-    sudo apt update > "${u[null]}" 2>&-; sudo apt upgrade -y > "${u[null]}" 2>&-
+    sudo apt update &> "${u[null]}"; sudo apt upgrade -y &> "${u[null]}"
 
 }
 #======================#
@@ -2100,7 +2125,7 @@ tmate_stuffs() {  # Okzão
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
                 remocao_inuteis
 
@@ -2175,7 +2200,7 @@ usefull_pkgs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]} AND ${c[RED]}${m[3]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" > "${u[null]}" 2>&-
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" &> "${u[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
@@ -2212,11 +2237,11 @@ usefull_pkgs() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${u[mimeapps]}" || $(grep -L "vlc" "${u[mimeapps]}") ]] \
+    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "vlc" "${u[mimeapps]}") ]] \
         && sudo tee -a "${u[mimeapps]}" > "${u[null]}" <<< 'video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop'
 
-    [[ ! -e "${f[vimrc]}" || $(grep -L "set number" "${u[mimeapps]}") ]] \
+    [[ ! -e "${f[vimrc]}" || $(grep --files-without-match "set number" "${u[mimeapps]}") ]] \
         && sudo tee "${f[vimrc]}" > "${u[null]}" <<< 'set encoding=UTF-8
 syntax on
 set autoread
@@ -2252,7 +2277,7 @@ workspace_stuffs() {  # Okzão
     )
 
     m+=(
-        'workspace'  # 0: String para satisfazer função: "workspace()"
+        'workspace'  # 0
     )
 
     r=(
@@ -2263,7 +2288,7 @@ workspace_stuffs() {  # Okzão
         instrutions_sql  # 4
     )
 
-    if [[ -d "${d[0]}" || $(stat --format "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
+    if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n"
 
@@ -2275,9 +2300,9 @@ workspace_stuffs() {  # Okzão
 
                 show "\n${c[RED]}R${c[WHITE]}EMOVING ${c[RED]}${d[0]^^}${c[WHITE]}!\n"
 
-                sudo rm -fr "${d[0]}"
+                sudo rm --force --recursive "${d[0]}"
 
-                [[ $(grep -l "workspace" "${f[bookmarks]}") ]] \
+                [[ $(grep --files-with-matches "workspace" "${f[bookmarks]}") ]] \
                     && sudo sed -i 's|file:///workspace workspace||g' "${f[bookmarks]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
@@ -2312,7 +2337,7 @@ workspace_stuffs() {  # Okzão
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${f[bookmarks]}" || $(grep -L "workspace" "${f[bookmarks]}") ]] \
+    [[ ! -e "${f[bookmarks]}" || $(grep --files-without-match "workspace" "${f[bookmarks]}") ]] \
         && sudo tee -a "${f[bookmarks]}" > "${u[null]}" <<< 'file:///workspace workspace'
 
     if [[ ! -d "${d[0]}"/"${r[0]}" \
@@ -2375,8 +2400,8 @@ invoca_funcoes() {
         3|03) feh_stuffs 1 && retorna_menu ;;
         4|04) github_stuffs 1 && retorna_menu ;;
         5|05) chrome_stuffs 1 && retorna_menu ;;
-        6|06) conky_stuffs && retorna_menu ;;
-        7|07) flameshot_stuffs && retorna_menu ;;
+        6|06) conky_stuffs 1 && retorna_menu ;;
+        7|07) flameshot_stuffs 1 && retorna_menu ;;
         8|08) heroku_stuffs 1 && retorna_menu ;;
         9|09) hide_devices 1 && retorna_menu ;;
         10) minidlna_stuffs 1 && retorna_menu ;;
@@ -2428,7 +2453,7 @@ invoca_funcoes() {
         # START APPLETS STUFFS
         if [[ ! -e "${f[capslock]}" && ! -e "${f[pomodoro]}" ]]; then
 
-            [[ ! -d "${d[13]}" || $(stat --format "%U" "${d[13]}" 2>&-) != ${USER} ]] \
+            [[ ! -d "${d[13]}" || $(stat -c "%U" "${d[13]}" 2>&-) != ${USER} ]] \
                 && sudo mkdir -p "${d[13]}" > "${u[null]}" \
                 && sudo chown -R ${USER}:${USER} "${d[13]}"
 
@@ -2439,11 +2464,11 @@ invoca_funcoes() {
         fi
 
         [[ ! -d "${d[0]}" && ! -d "${d[1]}" ]] \
-            && unzip "${d[2]}"/*.zip -d "${d[2]}" > "${u[null]}" 2>&- \
-            && sudo rm -f "${f[capslock]}" "${f[pomodoro]}" # END APPLETS
+            && unzip "${d[2]}"/*.zip -d "${d[2]}" &> "${u[null]}" \
+            && sudo rm --force "${f[capslock]}" "${f[pomodoro]}" # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-        [[ $(grep -l "false" "${f[numlock]}") ]] \
+        [[ $(grep --files-with-matches "false" "${f[numlock]}") ]] \
             && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
         [[ $(dconf read "${f[paste]}") =~ '<Ctrl><Shift>v' ]] \
@@ -2463,7 +2488,7 @@ invoca_funcoes() {
             && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
             && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
 
-        [[ $(grep -l "Boot Manager" "${f[grub]}") ]] \
+        [[ $(grep --files-with-matches "Boot Manager" "${f[grub]}") ]] \
             && sudo sed -i 's|Boot Manager|10|g' "${f[grub]}"
 
         echo; show "\n\t  ${c[CYAN]}WE'RE GOING TO BASH COLORFULL"
