@@ -109,17 +109,17 @@ m=()
 #======================#
 
 #======================#
-checar_distro() {
+check_distro() {
 
     f+=(
         [os_release]=/etc/os-release
     )
 
-    checar_os=$(cat "${f[os_release]}" | grep -w NAME | awk '{print $2}' | sed 's|"||')
+    check_os=$(cat "${f[os_release]}" | grep -w NAME | awk '{print $2}' | sed 's|"||')
 
     unset f
 
-    if [[ "${checar_os}" != 'Mint' ]]; then
+    if [[ "${check_os}" != 'Mint' ]]; then
 
         show "\n   ${e[21]} ${c[RED]}WHY WE FALL ${name[random]}? ${e[21]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
 
@@ -131,7 +131,7 @@ checar_distro() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                checar_source
+                check_source
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -151,14 +151,14 @@ checar_distro() {
 
     else
 
-        checar_source
+        check_source
 
     fi
 }
 #======================#
 
 #======================#
-checar_pacote() {
+check_pkg() {
 
 	# instalado
 	if dpkg-query -s "${1}" > "${u[null]}" 2>&1; then
@@ -185,7 +185,7 @@ checar_pacote() {
 #======================#
 
 #======================#
-checar_source() {
+check_source() {
 
     [[ ${BASH_SOURCE[0]} -ef "${0}" ]] \
         && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" 1 \
@@ -198,7 +198,7 @@ checar_source() {
 #======================#
 
 #======================#
-checar_ssh() {
+check_ssh() {
 
     # Generate SSH keys silently. Ignore if exists
     [[ ! -e "${u[public_ssh]}" ]] && yes "" | ssh-keygen -N "" >&- 2>&-
@@ -233,7 +233,7 @@ install_packages() {
     # $@: Truque para "desempacotar" todos os valores recebidos, tipo PY
     for package in "$@"; do
 
-    	if checar_pacote "${package}"; then
+    	if check_pkg "${package}"; then
 
             # Por que não colocar as inúmeras validações se o pacote já existe
             # e se o usuário deseja desinstalar aqui pra economizar linha?
@@ -313,7 +313,7 @@ bash_stuffs() {
         [powerline_otf]=~/.fonts/PowerlineSymbols.otf
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
         [config]=~/.oh-my-bash/oh-my-bash.sh
-        [pre_bashrc]=~/.bashrc.pre-oh-my-bash
+        [bkp]=~/.bashrc.pre-oh-my-bash
     )
 
     l+=(
@@ -325,6 +325,7 @@ bash_stuffs() {
     m+=(
         'oh-my-bash'  # 0
         'curl'  # 1
+        'git'  # 2
     )
 
     if [[ -d "${d[0]}" ]]; then
@@ -337,14 +338,16 @@ bash_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
+                # lost your .bashrc accidentally? Runs: cp /etc/skel/.bashrc ~/
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 # --force: ignore nonexistent files, never prompt
                 sudo rm --recursive --force "${d[0]}"
 
-                sudo rm --force "${u[bashrc]}" "${f[powerline_otf]}" "${f[powerline_conf]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
 
-                [[ -e "${f[pre_bashrc]}" ]] && sudo mv "${f[pre_bashrc]}" "${u[bashrc]}"
+                # Move bkp content to bashrc (oh-my-bash)
+                [[ -e "${f[bkp]}" ]] && sudo mv "${f[bkp]}" "${u[bashrc]}"
 
                 source "${u[bashrc]}"
 
@@ -371,12 +374,12 @@ bash_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}"
+        install_packages "${m[1]}" "${m[2]}"
 
         show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
         # First /dev/null hide download progress, second hide thirty commands
-        0> "${u[null]}" bash -c "$(curl --fail --silent --location ${l[0]})" &> "${u[null]}"
+        0> "${u[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${u[null]}"
 
     fi
 
@@ -413,9 +416,9 @@ bash_stuffs() {
     # [[ $(grep --files-with-matches "check_for_upgrade.sh" "${f[config]}") ]] \
     #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
-    # Hide username from tty and accepts pip freeze > requirements.txt
+    # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
     [[ $(grep --files-without-match "DEFAULT_USER" "${u[bashrc]}") ]] \
-        && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< "DEFAULT_USER=${USER}
+        && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     # Install plugins
@@ -678,7 +681,7 @@ Name[pt_BR]=FehBG Wallpapers
 Comment[pt_BR]=Wallpaper único para cada monitor
 X-GNOME-Autostart-Delay=5" # here string: prevent unseless echo
 
-    unset f d l m
+    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -686,7 +689,7 @@ X-GNOME-Autostart-Delay=5" # here string: prevent unseless echo
 #======================#
 
 #======================#
-github_stuffs() {  # Okzão
+github_stuffs() {
 
     f+=(
         [config]=~/.gitconfig
@@ -701,9 +704,9 @@ github_stuffs() {  # Okzão
 
     m+=(
         'git'  # 0
-        'vim'  # 1: Editor de texto
-        'git-cola'  # 2: Utilitário gráfico
-        'jq'  # 3: Provê mais funcionalidades para tratar .json
+        'vim'  # 1
+        'git-cola'  # 2
+        'jq'  # 3
     )
 
     if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
@@ -725,7 +728,7 @@ github_stuffs() {  # Okzão
                 ( $(dpkg --compare-versions "${local_git}" eq "${latest_git}") ) \
                     && sudo add-apt-repository --remove -y ppa:git-core/ppa > /dev/null 2>&1
 
-                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"  # TESTAR
+                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"
 
                 remocao_inuteis
 
@@ -782,8 +785,7 @@ github_stuffs() {  # Okzão
         && update \
         && sudo apt install -y "${m[0]}" > "${u[null]}" 2>&-
 
-    # Criação/ignora chave pública
-    checar_ssh
+    check_ssh
 
     [[ ! -e "${f[ssh_config]}" || $(grep --files-without-match "github.com" "${f[ssh_config]}") ]] \
         && sudo tee -a "${f[ssh_config]}" > "${u[null]}" <<< 'Host github.com
@@ -799,11 +801,11 @@ github_stuffs() {  # Okzão
 
         # Ver se dá pra fazer com awk '{print $2}'
         # Opções curl: s de silent, i de informações a mais, u de usuário
-        checar_integridade=$(curl --silent --include --user "${usuario}":"${senha}" "${l[0]}" | grep "Status" | awk '{print $2}')
+        check_integrity=$(curl --silent --include --user "${usuario}":"${senha}" "${l[0]}" | grep Status | awk '{print $2}')
 
         # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
-        # [[ "${checar_integridade}" -eq 401 || "${checar_integridade}" -eq 403 ]]
-        [[ "${checar_integridade}" -gt 400 ]] \
+        # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
+        [[ "${check_integrity}" -gt 400 ]] \
             && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
             || break
 
@@ -837,13 +839,15 @@ github_stuffs() {  # Okzão
     [[ $(cat "${f[check_successful]}" | grep "successfully" | wc -l) -eq 0 ]] \
         && ssh -T -o StrictHostKeyChecking=no git@github.com > "${u[null]}" 2>&-
 
+    unset f l m
+
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
 
 #======================#
-chrome_stuffs() {  # Okzão
+chrome_stuffs() {
 
     f+=(
         [file]=~/$(cat "${u[user_dirs]}" | grep DOWNLOAD | awk --field-separator=/ '{print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
@@ -854,10 +858,10 @@ chrome_stuffs() {  # Okzão
     )
 
     m+=(
-        'google-chrome'  # 0: Navegador/browser
-        'libappindicator1'  # 1: Dependência do chrome
-        'libindicator7'  # 2: Dependência do chrome
-        'libxss1'  # 3: Dependência do chrome
+        'google-chrome'  # 0
+        'libappindicator1'  # 1
+        'libindicator7'  # 2
+        'libxss1'  # 3
     )
 
 	if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
@@ -933,6 +937,8 @@ x-scheme-handler/mailto=google-chrome.desktop'
         && sudo sed -i 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|g' "${d[13]}"/*.json \
         && sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[13]}"/*.json
 
+    unset f l m
+
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1002,6 +1008,8 @@ conky_stuffs() {
 
     [[ ! -e "${f[conkyrc]}" ]] \
         && curl --silent --output "${f[conkyrc]}" --create-dirs "${l[0]}"
+
+    unset f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1098,6 +1106,8 @@ Terminal=false
 Type=Application
 X-GNOME-Autostart-enabled=true'
 
+    unset d f m
+
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1185,6 +1195,8 @@ heroku_stuffs() {
 
     done
 
+    unset l m
+
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1205,9 +1217,9 @@ hide_devices() {  # Okzão
         'devices'  # 0
     )
 
-    checar_dispositivos=$(sudo fdisk --list | grep --extended-regexp "Microsoft dados básico|Microsoft basic data" | awk '{print $1}')
+    check_devices=$(sudo fdisk --list | grep --extended-regexp "Microsoft dados básico|Microsoft basic data" | awk '{print $1}')
 
-    if [[ -z "${checar_dispositivos}" ]]; then
+    if [[ -z "${check_devices}" ]]; then
 
         [[ "${1}" -eq 1 ]] \
             && show "\n  THERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!" \
@@ -1252,10 +1264,10 @@ hide_devices() {  # Okzão
         else
 
             [[ "${1}" -eq 1 ]] \
-                && show "${c[GREEN]}\n\t\t     H${c[WHITE]}IDING ${c[RED]}$((${#checar_dispositivos[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-                || show "${c[GREEN]}\nH${c[WHITE]}IDING ${c[RED]}$((${#checar_dispositivos[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+                && show "${c[GREEN]}\n\t\t     H${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
+                || show "${c[GREEN]}\nH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
 
-            for device in "${checar_dispositivos}"; do
+            for device in "${check_devices}"; do
 
                 devices+=(${device})
 
@@ -1281,6 +1293,8 @@ hide_devices() {  # Okzão
     show "INITIALIZING CONFIGS..."
 
     sudo udevadm control --reload-rules && sudo udevadm trigger
+
+    unset d f m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1402,6 +1416,8 @@ minidlna_stuffs() {
 
     done
 
+    unset d f m
+
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1428,9 +1444,9 @@ nvidia_stuffs() {
 
     # https://4fasters.com.br/2018/04/26/benchmark-nvidia-driver-do-fabricante-vs-driver-open-source-no-linux/
     # -class: Exibe apenas informações do display
-    checar_existencia_nvidia=$(sudo lshw -class display | grep --extended-regexp "fabricante|vendor" | awk '{print $2}')
+    check_nvidia_existence=$(sudo lshw -class display | grep --extended-regexp "fabricante|vendor" | awk '{print $2}')
 
-    if [[ "${checar_existencia_nvidia}" != "NVIDIA" ]]; then
+    if [[ "${check_nvidia_existence}" != "NVIDIA" ]]; then
 
         [[ "${1}" -eq 1 ]] \
             && show "\n\tTHERE'S NO NVIDIA CARD IN YOUR MACHINE!" \
@@ -1442,9 +1458,9 @@ nvidia_stuffs() {
 
         # Identifica qual o driver está sendo utilizado no momento.
         # nouveau: o padrão/nvidia_drm: terceiros.
-        checar_driver=$(lsmod | grep drm_kms_helper | head -1 | awk '{print $4}')
+        check_driver=$(lsmod | grep drm_kms_helper | head -1 | awk '{print $4}')
 
-        if [[ "${checar_driver%%_drm}" = "nvidia" ]]; then
+        if [[ "${check_driver%%_drm}" = "nvidia" ]]; then
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
 
@@ -1536,6 +1552,8 @@ alias lbm-nouveau off'
         done
 
     fi
+
+    unset f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1675,6 +1693,8 @@ postgres_stuffs() {
         && sudo service postgresql restart \
         || sudo service postgresql start
 
+    unset f l m
+
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1702,6 +1722,8 @@ py_libraries() {
     latest_pip=$(curl --silent "${l[0]}" | grep -1 '<h1 class="package-header__name">' | tail -1 | awk '{print $2}')
     "${m[3]}" install -U "${m[3]}"
 
+    unset l m
+
 }
 #======================#
 
@@ -1715,22 +1737,22 @@ upgrade_py() {  # OKzão
 
     d+=(
         ~/.pyenv  # 0
-        ~/.pyenv/versions/$(curl -s "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')/  # 1
+        ~/.pyenv/versions/$(curl --silent --show-error --fail "${l[1]}" | grep external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')/  # 1
     )
 
     m+=(
-        'pyenv'  # 0: Programa que permite a mudança de versão global do py
+        'pyenv'  # 0
         'python'  # 1
-        'curl'  # 2: Semelhante ao WGET, porém enquanto o wget é uma ferramenta que efetua download dos arquivos de servidores, o curl deixa você trocar requisições/respostas com servidores;
-        'wget'  # 3: Utilitário indicado por prosseguir download mesmo com conexão instável ou lenta, basicamente baixa arquivos da WWW usando protocolos de HTTP/HTTPS/FTP;
-        'zlib1g-dev'  # 4: Implementa o método de compressão deflate encontrado no gzip;
-        'libreadline-dev'  # 5: Biblioteca de readline – provê funcionalidades extras na edição de linha de comando;
-        'libsqlite3-dev'  # 6: Implementa o mecanismo de banco de dados SQL, que permite acesso ao BD sem necessidade de um processo separado de RDBMS;
-        'llvm'  # 7: Otimiza tempos de compilação;
-        'libncurses5-dev'  # 8: Provê uma API para o desenvolvimento de interfaces em modo texto;
-        'libbz2-dev'  # 9: Descompressão de arquivos zipados com extensão bzip2;
-        'libssl-dev'  # 10: Implementação do OpenSSL (lida com as comunicações SSL e TLS);
-        'libffi-dev'  # 11: Contém as ferramentas necessárias para criar programas libffi;
+        'curl'  # 2
+        'wget'  # 3
+        'zlib1g-dev'  # 4
+        'libreadline-dev'  # 5
+        'libsqlite3-dev'  # 6
+        'llvm'  # 7
+        'libncurses5-dev'  # 8
+        'libbz2-dev'  # 9
+        'libssl-dev'  # 10
+        'libffi-dev'  # 11
     )
 
     local_python=$(apt version "${m[1]}")
@@ -1741,7 +1763,7 @@ upgrade_py() {  # OKzão
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${lineu:${#m[1]}} [UPGRADED]\n"
 
-        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1755,51 +1777,53 @@ upgrade_py() {  # OKzão
 
                 retorna_menu && break
 
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                    echo && break
+                echo && break
 
-                else
+            else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-                    read option
+                read option
 
-                fi
+            fi
 
-            done
+        done
 
-        else
+    else
 
-            [[ "${1}" -eq 1 ]] \
-                && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        [[ "${1}" -eq 1 ]] \
+            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-            # Dependências
-            install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
+        # Dependências
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
-            [[ ! -d "${d[0]}" ]] \
-                && show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-                && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}"
+        [[ ! -d "${d[0]}" ]] \
+            && show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
+            && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}"
 
-            echo
+        echo
 
-        fi
+    fi
 
-        show "INITIALIZING CONFIGS..."
+    show "INITIALIZING CONFIGS..."
 
-        [[ $(grep --files-without-match "pyenv init" "${u[bashrc]}") ]] \
-            && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
+    [[ $(grep --files-without-match "pyenv init" "${u[bashrc]}") ]] \
+        && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
-            && source "${u[bashrc]}"
+        && source "${u[bashrc]}"
 
-        # pyenv versions
-        # pyenv install --list
-        [[ ! -d "${d[1]}" ]] && pyenv install "${latest_python}" &> "${u[null]}"
+    # pyenv versions
+    # pyenv install --list
+    [[ ! -d "${d[1]}" ]] && pyenv install "${latest_python}" &> "${u[null]}"
 
-        pyenv global "${latest_python}"
+    pyenv global "${latest_python}"
 
-        echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    unset l d m
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -2103,7 +2127,7 @@ tmate_stuffs() {  # Okzão
 
     show "INITIALIZING CONFIGS..."
 
-    checar_ssh
+    check_ssh
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
