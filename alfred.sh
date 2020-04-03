@@ -62,7 +62,7 @@ e=(
     $'\360\237\232\252'  #  0 (porta): exit
     $'\360\237\216\250'  #  1 (pintor): bash colorful
     $'\360\237\216\247'  #  2 (headphone): deezloader
-    $'\360\237\214\211'  #  3 (paisagem): feh
+    $'\360\237\214\211'  #  3 (paisagem): hydrapaper
     $'\360\237\220\231'  #  4 (polvo): git
     $'\360\237\214\215'  #  5 (globo): chrome
     $'\360\237\223\266'  #  6 (gráfico): conky
@@ -507,6 +507,8 @@ deezloader_stuffs() {
 
         install_packages "${m[1]}"
 
+        show "${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+
         megadl --no-progress "${link_latest}" --path "${d[2]}"
 
     fi
@@ -528,10 +530,8 @@ deezloader_stuffs() {
 
     if [[ $(grep --files-without-match "${d[2]#~/}" "${f[config]}") ]]; then
 
-        cd "${d[2]}" > "${u[null]}"
-
         # Run deezloader and free tty
-        ( nohup ./"${f[file]#${d[2]}}" & ) &> "${u[null]}"
+        ( nohup "${f[file]}" & ) &> "${u[null]}"
 
         read -p $'\033[1;37m\nHAVE YOU LOGON? \n[Y/N] R: \033[m' option
 
@@ -551,9 +551,7 @@ deezloader_stuffs() {
 
                     sudo sed -i "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
 
-                    ( nohup ./"${f[file]#${d[2]}}" & ) &> "${u[null]}"
-
-                    cd - > "${u[null]}"
+                    ( nohup "${f[file]}" & ) &> "${u[null]}"
 
                     break
 
@@ -585,30 +583,38 @@ deezloader_stuffs() {
 #======================#
 
 #======================#
-feh_stuffs() {
+hydrapaper_stuffs() {
 
     d+=(
-        ~/.feh/  # 0
+        ~/.var/app/org.gabmus.hydrapaper  # 0
+
     )
 
     f+=(
-        [dskt]=~/.config/autostart/FehBG.desktop
-        [fehbg]=~/.fehbg
-        [dft_bkg]=/usr/share/backgrounds/linuxmint/default_background.jpg
+        [pkg]=org.gabmus.hydrapaper
+        [left]=~/.var/app/org.gabmus.hydrapaper/cache/hydrapaper/left.jpg
+        [right]=~/.var/app/org.gabmus.hydrapaper/cache/hydrapaper/right.jpg
+        [init 4]=/etc/lightdm/slick-greeter.conf
     )
 
     l+=(
         'https://images5.alphacoders.com/300/300707.jpg'  # 0
         'https://wallpapercave.com/wp/BXfl2ly.jpg'  # 1
+        'https://flathub.org/repo/flathub.flatpakrepo'  # 2
     )
 
     m+=(
-        'feh'  # 0
+        'flatpak'  # 0
+        'hydrapaper'  # 1
+        'flathub'  # 2
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ \
+            $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
+            && $(flatpak list | grep --count "${m[1]}") -ge 1 \
+        ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -616,16 +622,15 @@ feh_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
-
-                sudo rm --force "${f[dskt]}" "${f[fehbg]}"
+                flatpak uninstall -y "${m[2]}" "${f[pkg]}" &> "${u[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
-                [[ $(grep --files-without-match "default" "${f[start]}") ]] \
-                    && sudo tee -a "${f[start]}" > "${u[null]}" <<< "background=${f[dft_bkg]}"
+                [[ $(grep --files-without-match "default" "${f[init 4]}") ]] \
+                    && sudo tee -a "${f[init 4]}" > "${u[null]}" <<< "background=${f[dft_bkg]}"
+
 
                 remove_useless
 
@@ -650,40 +655,63 @@ feh_stuffs() {
     else
 
         [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_packages "${m[0]}"
+
+        if [[ $("${m[0]}" remotes | grep --count "${m[2]}") -eq 0 ]]; then
+
+            sudo "${m[0]}" remote-add "${m[2]}" "${l[2]}"  # --if-not-exists
+
+            read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    reboot
+
+                elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+        fi
+
+        show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]}!"
+
+        flatpak install -y "${m[2]}" "${f[pkg]}" &> "${u[null]}"
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
     # --word-regexp don't match with disconnected
+    # dual monitor wallpaper
     if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
         [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
             && mkdir -p "${d[0]}" > "${u[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
-        [[ ! -e "${d[0]}l.jpg" && ! -e "${d[0]}r.jpg" ]] \
-            && curl --silent --output "${d[0]}l.jpg" --create-dirs "${l[0]}" \
-            && curl --silent --output "${d[0]}r.jpg" --create-dirs "${l[1]}"
+        [[ ! -e "${f[left]}" && ! -e "${f[right]}" ]] \
+            && curl --silent --output "${f[left]}" --create-dirs "${l[0]}" \
+            && curl --silent --output "${f[right]}" --create-dirs "${l[1]}"
 
-        feh --bg-scale "${d[0]}l.jpg" "${d[0]}r.jpg"
+        feh --bg-scale "${f[left]}" "${f[right]}"
 
     fi
 
-    [[ ! -e "${f[dskt]}" || $(grep --files-without-match "Feh" "${f[dskt]}") ]] \
-        && sudo tee -a "${f[dskt]}" > "${u[null]}" <<< "[Desktop Entry]
-Name=Feh
-Type=Application
-Exec=/home/${USER}/.fehbg
-X-GNOME-Autostart-enabled=true
-NoDisplay=false
-Hidden=false
-Name[pt_BR]=FehBG Wallpapers
-Comment[pt_BR]=Wallpaper único para cada monitor
-X-GNOME-Autostart-Delay=5" # here string: prevent useless echo
+
 
     unset d f l m
 
@@ -1099,7 +1127,7 @@ flameshot_stuffs() {
 
     dconf write "${f[custom]}" "['screenshot']"
 
-    sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)||g' "${f[config]}"
+    sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x1\\0\\0\\0\\n)|g' "${f[config]}"
 
     [[ ! -e "${f[dskt]}" || $(grep --files-without-match "flameshot" "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${u[null]}" <<< '[Desktop Entry]
@@ -1660,7 +1688,7 @@ postgres_stuffs() {
     		&& sudo tee "${f[postgres_ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
             && update
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" && echo
 
     fi
 
@@ -1668,7 +1696,7 @@ postgres_stuffs() {
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    if [[ $(grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
+    if [[ $(sudo grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
 
         # Antes de alterar a criptografia do postgres, devemos criar uma senha
         senha=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
@@ -1836,7 +1864,8 @@ upgrade_py() {
 
         [[ ! -d "${d[0]}" ]] \
             && show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-            && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}"
+            && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}" \
+            || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
 
         echo
 
@@ -1866,12 +1895,6 @@ eval "$(pyenv virtualenv-init -)"' \
 #======================#
 sublime_stuffs() {
 
-    l+=(
-        'https://download.sublimetext.com/sublimehq-pub.gpg'  # 0
-        'https://download.sublimetext.com/ apt/stable/'  # 1
-        'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
-    )
-
     d+=(
         ~/.config/sublime-text-3  # 0
         ~/.config/sublime-text-3/Installed\ Packages  # 1
@@ -1890,6 +1913,12 @@ sublime_stuffs() {
         [REPL_pyI]=~/.config/sublime-text-3/Packages/SublimeREPL/config/Python/Main.sublime-menu
         [REPL_pyII]=~/.config/sublime-text-3/Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
+    )
+
+    l+=(
+        'https://download.sublimetext.com/sublimehq-pub.gpg'  # 0
+        'https://download.sublimetext.com/ apt/stable/'  # 1
+        'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
     )
 
     m+=(
@@ -2088,6 +2117,8 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     done
 
+    unset d f l m
+
 }
 #======================#
 
@@ -2106,6 +2137,8 @@ upgrade() {
     show "OH ${name[random]}, LAST TIME WE'VE SEEN YOU WAS IN\n\t\t${c[CYAN]}${date}\n\n${c[WHITE]}UPGRADING..."
 
     sudo apt update &> "${u[null]}"; sudo apt upgrade -y &> "${u[null]}"
+
+    unset f
 
 }
 #======================#
@@ -2163,6 +2196,8 @@ tmate_stuffs() {  # Okzão
     show "INITIALIZING CONFIGS..."
 
     check_ssh
+
+    unset m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2259,6 +2294,8 @@ set smartindent
 set laststatus=2 "Setting the size for the command area, and airline status bar
 set cmdheight=1
 set background=dark'
+
+    unset f m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2388,6 +2425,8 @@ workspace_stuffs() {  # Okzão
 
     fi
 
+    unset d f l m r
+
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -2401,7 +2440,7 @@ invoca_funcoes() {
         0|00) encerra_menu > "${u[null]}" ;;
         1|01) bash_stuffs 1 && retorna_menu ;;
         2|02) deezloader_stuffs 1 && retorna_menu ;;
-        3|03) feh_stuffs 1 && retorna_menu ;;
+        3|03) hydrapaper_stuffs 1 && retorna_menu ;;
         4|04) github_stuffs 1 && retorna_menu ;;
         5|05) chrome_stuffs 1 && retorna_menu ;;
         6|06) conky_stuffs 1 && retorna_menu ;;
@@ -2498,8 +2537,8 @@ invoca_funcoes() {
         echo; show "\n\t  ${c[CYAN]}WE'RE GOING TO BASH COLORFULL"
 
         bash_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO DEEZLOADER"
-        deezloader_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FEH"
-        feh_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO GITHUB"
+        deezloader_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HYDRAPAPER"
+        hydrapaper_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO GITHUB"
         github_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CHROME"
         chrome_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CONKY"
         conky_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FLAMESHOT"
@@ -2579,7 +2618,7 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" 1
         sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" 1
         sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEZLOADER ${e[2]}" 1
-        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}FEH ${e[3]}" 1
+        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}HYDRAPAPER ${e[3]}" 1
         sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
         sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" 1
         sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}CONKY ${e[6]}" 1
