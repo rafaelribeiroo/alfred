@@ -44,16 +44,13 @@ d=(
 )
 
 l+=(
-    'https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Downloads'  # 0
-    'https://notabug.org/RemixDevs/DeezloaderRemix'  # 1
+    'https://api.github.com/user/keys'  # 0
+    'https://git-scm.com/'  # 1
 )
 
-f+=(
-    [file]="${d[2]}"$(curl --silent "${l[1]}" | grep --no-messages 64.AppImage | awk --field-separator='>' '{print $2}' | sed 's|</td||')
-)
 
-( nohup "${f[file]}" & ) &> "${u[null]}"
 
+# psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"
 
 # systemctl list-unit-files --type service -all
 
