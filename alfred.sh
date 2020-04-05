@@ -79,7 +79,7 @@ e=(
     $'\360\237\222\274'  # 17 (maleta): workspace
     $'\360\237\220\213'  # 18 (baleia): all
     $'\360\237\224\245'  # 19 (fogo): some men...
-    $'\360\237\231\212'  # 20 (macaco calado): senha
+    $'\360\237\231\212'  # 20 (macaco calado): password
     $'\360\237\246\207'  # 21 (morcego): why do we fall...
     $'\360\237\223\267'  # 22 (câmera): flameshot
 )
@@ -808,12 +808,12 @@ github_stuffs() {
     [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
 
+    [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
+        && sudo add-apt-repository -y ppa:git-core/ppa &> "${u[null]}"
+
     local=$(git --version | awk '{print $3}')
 
     latest=$(curl --silent "${l[1]}" | grep -1 '<span class="version">' | tail -1 | awk '{print $1}')
-
-    [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
-        && sudo add-apt-repository -y ppa:git-core/ppa &> "${u[null]}"
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && update \
@@ -829,13 +829,13 @@ github_stuffs() {
     # GITHUB STUFF
     for (( ; ; )); do
 
-        read -p $'\033[1;37m\nENTER YOUR USERNAME FROM GITHUB: \033[m' usuario
+        read -p $'\033[1;37m\nENTER YOUR USERNAME FROM GITHUB: \033[m' user
 
-        senha=$("${u[askpass]}" $'\033[1;37mPASSWORD:\033[m')
+        password=$("${u[askpass]}" $'\033[1;37mPASSWORD:\033[m')
 
         # Ver se dá pra fazer com awk '{print $2}'
         # Opções curl: s de silent, i de informações a mais, u de usuário
-        check_integrity=$(curl --silent --include --user "${usuario}":"${senha}" "${l[0]}" | grep Status | awk '{print $2}')
+        check_integrity=$(curl --silent --include --user "${user}":"${password}" "${l[0]}" | grep Status | awk '{print $2}')
 
         # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
@@ -846,9 +846,9 @@ github_stuffs() {
     done
 
     # Se não existir nenhuma chave no github
-    if [[ -z $(curl --silent --user "${usuario}":"${senha}" "${l[0]}") ]]; then
+    if [[ -z $(curl --silent --user "${user}":"${password}" "${l[0]}") ]]; then
 
-        curl --silent --include --user "${usuario}":"${senha}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}"
+        curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}"
 
         echo
 
@@ -858,11 +858,11 @@ github_stuffs() {
 
         [[ \
             $(cat "${u[public_ssh]}" | awk '{print $2}') != \
-            $(curl --silent --user "${usuario}":"${senha}" "${l[0]}" | jq ".[] | .key" | sed 's/.$//' | awk '{print $2}') \
+            $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | sed 's/.$//' | awk '{print $2}') \
         ]] \
             && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
-            && curl --user "${usuario}":"${senha}" --request DELETE "${l[0]}"/"$(curl --silent --user ${usuario}:${senha} ${l[0]} | jq '.[] | .id')" \
-            && curl --silent --include --user "${usuario}":"${senha}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}" \
+            && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
+            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}" \
             && echo
 
     fi
@@ -1284,7 +1284,8 @@ hide_devices() {  # Okzão
 
     else
 
-        if [[ -e "${f[hide_rules]}" || $(grep --no-messages -l "ID_FS_UUID" "${f[hide_rules]}") ]]; then
+        # no messages hide if file don't exists
+        if [[ -e "${f[hide_rules]}" || $(grep --no-messages --files-with-matches "ID_FS_UUID" "${f[hide_rules]}") ]]; then
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n"
 
@@ -1330,7 +1331,7 @@ hide_devices() {  # Okzão
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
                 && mkdir -p "${d[0]}" > "${u[null]}" \
-                && sudo chown -R ${USER}:${USER} "${d[0]}"
+                && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
             # Na quantidade de itens em uma lista ele começa do 1
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
@@ -1696,17 +1697,6 @@ postgres_stuffs() {
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    if [[ $(sudo grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
-
-        # Antes de alterar a criptografia do postgres, devemos criar uma senha
-        senha=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
-
-        sudo --username postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${senha}'"
-
-        sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
-
-    fi
-
     # Usuário: Acesso ao console
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
@@ -1716,19 +1706,19 @@ postgres_stuffs() {
 
             read -p $'\033[1;37m\nENTER THE USER: \033[m' user
 
-            [[ $(psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='${user}'") -eq 1 ]] \
+            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep registro | awk '{print $1}' | sed 's|(||') -eq 1 ]] \
                 && show "USER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. BREAKING." \
                 && break
 
-            senha=$("${u[askpass]}" $'\033[1;37m\nPASSWORD OF USER '"${user^^}"$':\033[m')
+            password=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
-            sudo --username postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${senha}'"
+            sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'"
 
-            sudo --username postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'"
 
-            sudo --username postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'"
 
-            sudo --username postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'"
 
             break
 
@@ -1745,6 +1735,19 @@ postgres_stuffs() {
         fi
 
     done
+
+    : ' If you want more security, uncoment code below.
+    # We could give permission for "${USER}" to read the file below or run with sudo
+    if [[ $(sudo grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
+
+        # Antes de alterar a criptografia do postgres, devemos criar uma senha
+        password=$("${u[askpass]}" $"\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m")  # Change $"..." to $'...'
+
+        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${u[null]}"
+
+        sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
+
+    fi'
 
 	# Verifica status do postgres
     [[ $(systemctl is-active postgresql.service) = 'active' ]] \
@@ -1767,7 +1770,7 @@ py_libraries() {
 
     m+=(
         'python-pip'  # 0
-        'python-dev '  # 1
+        'python-dev'  # 1
         'build-essential'  # 2
         'pip'  # 3
     )
