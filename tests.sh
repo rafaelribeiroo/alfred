@@ -37,10 +37,6 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-pic=(/home/ribeiro/Downloads/*)
-
-echo "${pic[RANDOM % ${#pic[@]}]}"
-
 #show "${c[RED]}=======================================================" 1
 
 # psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"
