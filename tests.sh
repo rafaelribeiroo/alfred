@@ -37,18 +37,11 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-d=(
-    ~/Deezloader\ Music  # 0
-    ~/.config/Deezloader\ Remix  # 1
-    ~/$(cat "${u[user_dirs]}" | awk -F/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
-)
+pic=(/home/ribeiro/Downloads/*)
 
-l+=(
-    'https://api.github.com/user/keys'  # 0
-    'https://git-scm.com/'  # 1
-)
+echo "${pic[RANDOM % ${#pic[@]}]}"
 
-
+#show "${c[RED]}=======================================================" 1
 
 # psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"
 
