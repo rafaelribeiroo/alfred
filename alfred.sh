@@ -857,6 +857,10 @@ github_stuffs() {
 #======================#
 chrome_stuffs() {
 
+    d+=(
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
+    )
+
     f+=(
         [file]=~/$(cat "${u[user_dirs]}" | awk -F/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
     )
@@ -888,7 +892,7 @@ chrome_stuffs() {
 
                 sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${u[mimeapps]}"
 
-                sudo sed -i '\|"google-chrome.desktop",|d' "${d[13]}"/*.json
+                sudo sed -i '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
 
                 remove_useless
 
@@ -940,12 +944,11 @@ x-scheme-handler/about=google-chrome.desktop
 x-scheme-handler/unknown=google-chrome.desktop
 x-scheme-handler/mailto=google-chrome.desktop'
 
-    [[ $(grep --files-without-match "google-chrome" "${d[13]}"/*.json) ]] \
-        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",|g' "${d[13]}"/*.json \
-        && sudo sed -i 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|g' "${d[13]}"/*.json \
-        && sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[13]}"/*.json
+    [[ $(grep --files-without-match "google-chrome" "${d[0]}"/*.json) ]] \
+        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",|g' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"firefox.desktop",|"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|2' "${d[0]}"/*.json
 
-    unset f l m
+    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1658,7 +1661,7 @@ postgres_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        [[ ! $(sudo apt-key list 2> "${u[null]}" | grep "PostgreSQL") ]] \
+        [[ ! $(sudo apt-key list 2> "${u[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
         # Apontando o host do postgres no sources.list
@@ -1878,6 +1881,7 @@ sublime_stuffs() {
     d+=(
         ~/.config/sublime-text-3  # 0
         ~/.config/sublime-text-3/Installed\ Packages  # 1
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
     )
 
     f+=(
@@ -1902,8 +1906,8 @@ sublime_stuffs() {
     )
 
     m+=(
-        'sublime-text'  # 0: Editor de texto
-        'apt-transport-https'  # 1: Dependência
+        'sublime-text'  # 0
+        'apt-transport-https'  # 1
     )
 
 	if [[ $(dpkg -l | awk "/${m[0]}/" | wc -l) -ge 1 ]]; then
@@ -1946,7 +1950,7 @@ sublime_stuffs() {
             && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
 		# Verifica certificado de segurança (apt-key list)
-		[[ ! $(sudo apt-key list 2> "${u[null]}" | grep "Sublime") ]] \
+		[[ ! $(apt-key list 2> "${u[null]}" | grep Sublime) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
         # Dependências
@@ -1966,6 +1970,8 @@ sublime_stuffs() {
     for (( ; ; )); do
 
         if [[ -d "${d[0]}" ]]; then
+
+            sudo pkill subl
 
             # hexed.it: get position and convert to decimal, put in seek
             # Altera sequência binária do executável
@@ -1994,110 +2000,142 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             [[ ! -e "${f[pkg_ctrl]}" ]] \
                 && sudo mkdir -p "${d[1]}" > "${u[null]}" \
-                && sudo chown -R ${USER}:${USER} "${d[1]}" \
-                && curl --location --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
+                && sudo chown -R "${USER}":"${USER}" "${d[1]}" \
+                && curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
 
             [[ ! -e "${f[pkgs]}" || $(grep --files-without-match "packages" "${f[pkgs]}") ]] \
                 && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
+                # && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-    		for (( ; ; )); do
-
-				# Se instalou um pacote, instalou o restante também, então...
-	            if [[ -e "${f[anaconda]}"  ]]; then
-
-	                # Informando ao Anaconda para sublinhar aos códigos específicos do PY 3.6
-	                sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
-
-	                sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
-
-                    sudo tee -a "${f[keymap]}" > "${u[null]}" <<< '{
-    "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
-        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu"
-    }
-}'
-
-                    sudo tee -a "${f[config]}" > "${u[null]}" <<< '{
-    // default value is []
-    "rulers": [80],
-
-    "word_wrap": false,
-
-    "wrap_width": 80,
-
-    "tab_size": 4,
-    "translate_tabs_to_spaces": true,
-    "trim_trailing_white_space_on_save": true,
-    "ensure_newline_at_eof_on_save": true,
-
-    "font_size": 12,
-}'
-
-					# Remover o autocomplete no interpretador
-					sudo sed -zi 's|true|false|7' "${f[REPL]}"
-
-	                # Reutilizar mesma tab para várias runtimes
-                    # https://github.com/wuub/SublimeREPL/issues/481
-                    sudo sed -zi 's|"R"|"r"|1' "${f[REPL_pyI]}"
-
-                    sudo sed -i 's|"R"|"d"|g' "${f[REPL_pyI]}"
-
-                    sudo sed -i 's|"P"|"p"|g' "${f[REPL_pyI]}"
-
-                    sudo sed -i 's|"I"|"p"|g' "${f[REPL_pyI]}"
-
-                    sudo sed -i 's|"D"|"d"|g' "${f[REPL_pyI]}"
-
-                    [[ $(grep --files-without-match '"view_id"' "${f[REPL_pyI]}") ]] \
-                        && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
-
-                    sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
-
-                    [[ $(grep --files-without-match "focus_view(found)" "${f[REPL_pyII]}") ]] \
-                        && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[REPL_pyII]}"
-
-                    # Seta versão recente do PY para execuções de scripts
-                    sudo sed -i 's|"python", |"python3", |g' "${f[REPL_pyI]}"
-
-                    sudo sed -zi 's|"python3", |"python", |4' "${f[REPL_pyI]}"
-
-                    sudo sed -zi 's|"python3", |"python", |6' "${f[REPL_pyI]}"
-
-            	else
-
-                    ( nohup subl & ) &> "${u[null]}"
-
-                    for contador in {1..10..1}; do
-
-                        take_a_break
-
-                    done
-
-                    sudo pkill subl*
-
-                fi
-
-            done
-
-        break
+            break
 
         else
 
-            show "\nAcessaremos o sublime para ele criar o diretório padrão."
-
-            # O sublime cria os diretórios padrão quando executado pela 1a vez
             ( nohup subl & ) &> "${u[null]}"
 
-            take_a_break
-
-            sudo pkill subl*
+            echo && show "OPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
         fi
 
     done
 
+    for (( ; ; )); do
+
+        if [[ -e "${f[anaconda]}" ]]; then
+
+            # Informando ao Anaconda para sublinhar aos códigos específicos do PY 3.6
+            sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
+
+            sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
+
+            sudo tee "${f[keymap]}" > "${u[null]}" <<< '{
+    "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
+        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu"
+    }
+}'
+
+            sudo tee "${f[config]}" > "${u[null]}" <<< '{
+    // default value is []
+    "rulers": [80],
+
+    "ignored_packages":	["Vintage"],
+
+    "word_wrap": false,
+    "wrap_width": 80,
+    "tab_size": 4,
+    "translate_tabs_to_spaces": true,
+    "trim_trailing_white_space_on_save": true,
+    "ensure_newline_at_eof_on_save": true,
+    "font_size": 12,
+}'
+
+			# Remover o autocomplete no interpretador
+			sudo sed -zi 's|true|false|7' "${f[REPL]}"
+
+            # Reuse same tab for multiple runtimes
+            # https://github.com/wuub/SublimeREPL/issues/481
+            sudo sed -zi 's|"R"|"r"|1' "${f[REPL_pyI]}"
+
+            sudo sed -i 's|"R"|"d"|g' "${f[REPL_pyI]}"
+
+            sudo sed -i 's|"P"|"p"|g' "${f[REPL_pyI]}"
+
+            sudo sed -i 's|"I"|"p"|g' "${f[REPL_pyI]}"
+
+            sudo sed -i 's|"D"|"d"|g' "${f[REPL_pyI]}"
+
+            [[ $(grep --files-without-match '"view_id"' "${f[REPL_pyI]}") ]] \
+                && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
+
+            # Seta versão recente do PY para execuções de scripts
+            sudo sed -i 's|"python", |"python3", |g' "${f[REPL_pyI]}"
+
+            sudo sed -zi 's|"python3", |"python", |4' "${f[REPL_pyI]}"
+
+            sudo sed -zi 's|"python3", |"python", |6' "${f[REPL_pyI]}"
+
+            sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
+
+            [[ $(grep --files-without-match "focus_view(found)" "${f[REPL_pyII]}") ]] \
+                && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[REPL_pyII]}"
+
+            echo && break
+
+        else
+
+            ( nohup subl & ) &> "${u[null]}"
+
+            echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
+
+        	for (( ; ; )); do
+
+        		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    sudo pkill subl && break
+
+        		elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                    echo && show "I'LL RESTART... (A RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
+
+                    sudo pkill subl && ( nohup subl & ) &> "${u[null]}"
+
+                    echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
+
+        	    else
+
+                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+            	fi
+
+            done
+
+        fi
+
+    done
+
+    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "sublime" "${u[mimeapps]}") ]] \
+        && sudo tee -a "${u[mimeapps]}" > "${u[null]}" <<< 'text/plain=sublime_text.desktop
+text/csv=sublime_text.desktop
+application/xml=sublime_text.desktop
+text/html=sublime_text.desktop
+text/css=sublime_text.desktop
+text/markdown=sublime_text.desktop
+application/json=sublime_text.desktop
+application/javascript=sublime_text.desktop
+text/x-python=sublime_text.desktop
+application/x-shellscript=sublime_text.desktop
+application/x-subrip=sublime_text.desktop'
+
+    [[ $(grep --files-without-match "subl" "${d[2]}"/*.json) ]] \
+        && sudo sed -i 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
+
     unset d f l m
+
+    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -2432,7 +2470,7 @@ invoca_funcoes() {
         12) postgres_stuffs 1 && retorna_menu ;;
         13) py_libraries && retorna_menu ;;
         14) upgrade_py 1 && retorna_menu ;;
-        15) sublime_stuffs && retorna_menu ;;
+        15) sublime_stuffs 1 && retorna_menu ;;
         16) upgrade && retorna_menu ;;
         17) tmate_stuffs 1 && retorna_menu ;;
         18) usefull_pkgs 1 && retorna_menu ;;
@@ -2443,6 +2481,7 @@ invoca_funcoes() {
             ~/.local/share/cinnamon/applets/pomodoro@gregfreeman.org  # 0
             ~/.local/share/cinnamon/applets/betterlock  # 1
             ~/.local/share/cinnamon/applets  # 2
+            ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 3
         )
 
         f+=(
@@ -2493,6 +2532,11 @@ invoca_funcoes() {
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
         [[ $(grep --files-with-matches "false" "${f[numlock]}") ]] \
             && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+
+        # START ICONS PANEL ARRANGEMENT
+        sudo sed -i 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|g' "${d[3]}"/*.json
+        sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[3]}"/*.json
+        sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[3]}"/*.json  # END ARRANGEMENT
 
         [[ $(dconf read "${f[paste]}") =~ '<Ctrl><Shift>v' ]] \
             && dconf write "${f[paste]}" "'<Ctrl>v'" \
