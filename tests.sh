@@ -37,7 +37,15 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-#show "${c[RED]}=======================================================" 1
+m+=(
+        'python-pip'  # 0
+        'python-dev'  # 1
+        'build-essential'  # 2
+        'pip'  # 3
+        'libraries py'
+)
+
+# show "${c[RED]}=======================================================" 1
 
 # psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"
 
