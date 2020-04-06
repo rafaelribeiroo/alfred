@@ -62,7 +62,7 @@ e=(
     $'\360\237\232\252'  #  0 (porta): exit
     $'\360\237\216\250'  #  1 (pintor): bash colorful
     $'\360\237\216\247'  #  2 (headphone): deezloader
-    $'\360\237\214\211'  #  3 (paisagem): hydrapaper
+    $'\360\237\214\211'  #  3 (paisagem): dualmonitor
     $'\360\237\220\231'  #  4 (polvo): git
     $'\360\237\214\215'  #  5 (globo): chrome
     $'\360\237\223\266'  #  6 (gráfico): conky
@@ -583,38 +583,38 @@ deezloader_stuffs() {
 #======================#
 
 #======================#
-hydrapaper_stuffs() {
+dualmonitor_stuffs() {
 
     d+=(
-        ~/.var/app/org.gabmus.hydrapaper  # 0
-
+        /usr/share/backgrounds/linuxmint-random  # 0
     )
 
     f+=(
-        [pkg]=org.gabmus.hydrapaper
-        [left]=~/.var/app/org.gabmus.hydrapaper/cache/hydrapaper/left.jpg
-        [right]=~/.var/app/org.gabmus.hydrapaper/cache/hydrapaper/right.jpg
-        [init 4]=/etc/lightdm/slick-greeter.conf
+        [starwars]=/usr/share/backgrounds/linuxmint-random/sw.jpg
+        [stormtrooper]=/usr/share/backgrounds/linuxmint-random/st.jpg
+        [clubeluta]=/usr/share/backgrounds/linuxmint-random/cl.jpg
+        [picture]=/org/cinnamon/desktop/background/picture-uri
+        [option]=/org/cinnamon/desktop/background/picture-options
+        [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
+        [source]=/org/cinnamon/desktop/background/slideshow/image-source
+        [delay]=/org/cinnamon/desktop/background/slideshow/delay
     )
 
     l+=(
-        'https://images5.alphacoders.com/300/300707.jpg'  # 0
-        'https://wallpapercave.com/wp/BXfl2ly.jpg'  # 1
-        'https://flathub.org/repo/flathub.flatpakrepo'  # 2
+        'https://images3.alphacoders.com/673/673177.jpg'  # 0
+        'https://images4.alphacoders.com/885/885300.png'  # 1
+        'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-8.jpg'  # 2
+        'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-20.jpg'  # 3
     )
 
     m+=(
-        'flatpak'  # 0
-        'hydrapaper'  # 1
-        'flathub'  # 2
+        'wallpapers'  # 0
+        'dconf-editor'  # 1
     )
 
-    if [[ \
-            $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
-            && $(flatpak list | grep --count "${m[1]}") -ge 1 \
-        ]]; then
+    if [[ $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -622,14 +622,10 @@ hydrapaper_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                flatpak uninstall -y "${m[2]}" "${f[pkg]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[1]}" &> "${u[null]}"
 
-                sudo rm --force --recursive "${d[0]}"
-
-                [[ $(grep --files-without-match "default" "${f[init 4]}") ]] \
-                    && sudo tee -a "${f[init 4]}" > "${u[null]}" <<< "background=${f[dft_bkg]}"
 
 
                 remove_useless
@@ -655,41 +651,9 @@ hydrapaper_stuffs() {
     else
 
         [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+            && show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}"
-
-        if [[ $("${m[0]}" remotes | grep --count "${m[2]}") -eq 0 ]]; then
-
-            sudo "${m[0]}" remote-add "${m[2]}" "${l[2]}"  # --if-not-exists
-
-            read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
-
-            for (( ; ; )); do
-
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                    reboot
-
-                elif [[ "${option:0:1}" = @(n|N) ]] ; then
-
-                    break
-
-                else
-
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                    read option
-
-                fi
-
-            done
-
-        fi
-
-        show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]}!"
-
-        flatpak install -y "${m[2]}" "${f[pkg]}" &> "${u[null]}"
+        install_packages "${m[1]}"
 
     fi
 
@@ -703,11 +667,24 @@ hydrapaper_stuffs() {
             && mkdir -p "${d[0]}" > "${u[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
-        [[ ! -e "${f[left]}" && ! -e "${f[right]}" ]] \
-            && curl --silent --output "${f[left]}" --create-dirs "${l[0]}" \
-            && curl --silent --output "${f[right]}" --create-dirs "${l[1]}"
+        [[ ! -e "${f[left]}" ]] \
+            && curl --silent --output "${f[starwars]}" --create-dirs "${l[0]}"
 
-        feh --bg-scale "${f[left]}" "${f[right]}"
+        [[ ! -e "${f[clubeluta]}" ]] \
+            && curl --silent --output "${f[clubeluta]}" --create-dirs "${l[1]}"
+
+        [[ ! -e "${f[stormtrooper]}" ]] \
+            && curl --silent --output "${f[stormtrooper]}" --create-dirs "${l[2]}"
+
+        dconf write "${f[picture]}" "'/usr/share/backgrounds/linuxmint-random/sw.jpg'"
+
+        dconf write "${f[option]}" "'spanned'"
+
+        dconf write "${f[slideshow]}" true
+
+        dconf write "${f[source]}" "'xml:///usr/share/cinnamon-background-properties/linuxmint-random.xml'"
+
+        dconf write "${f[delay]}" 15
 
     fi
 
@@ -2443,7 +2420,7 @@ invoca_funcoes() {
         0|00) encerra_menu > "${u[null]}" ;;
         1|01) bash_stuffs 1 && retorna_menu ;;
         2|02) deezloader_stuffs 1 && retorna_menu ;;
-        3|03) hydrapaper_stuffs 1 && retorna_menu ;;
+        3|03) dualmonitor_stuffs 1 && retorna_menu ;;
         4|04) github_stuffs 1 && retorna_menu ;;
         5|05) chrome_stuffs 1 && retorna_menu ;;
         6|06) conky_stuffs 1 && retorna_menu ;;
@@ -2541,7 +2518,7 @@ invoca_funcoes() {
 
         bash_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO DEEZLOADER"
         deezloader_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HYDRAPAPER"
-        hydrapaper_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO GITHUB"
+        dualmonitor_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO GITHUB"
         github_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CHROME"
         chrome_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CONKY"
         conky_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FLAMESHOT"
@@ -2621,7 +2598,7 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" 1
         sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" 1
         sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEZLOADER ${e[2]}" 1
-        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}HYDRAPAPER ${e[3]}" 1
+        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" 1
         sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
         sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" 1
         sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}CONKY ${e[6]}" 1
