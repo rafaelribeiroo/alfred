@@ -392,7 +392,7 @@ bash_stuffs() {
     if [[ ! -e "${f[powerline_otf]}" ]]; then
 
         # Hidden directories are owned by root, we must change owner to bash "read"
-        # 2>&- prevent error message: "can't stat: no such file..."
+        # 2>&- hides: "can't stat: no such file..."
         [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
             && sudo mkdir -p "${d[1]}" > "${u[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[1]}" # Tranca saída de erro
@@ -785,16 +785,18 @@ github_stuffs() {
     [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
 
-    [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
-        && sudo add-apt-repository -y ppa:git-core/ppa &> "${u[null]}"
-
     local=$(git --version | awk '{print $3}')
 
     latest=$(curl --silent "${l[1]}" | grep -1 '<span class="version">' | tail -1 | awk '{print $1}')
 
-    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && update \
-        && sudo apt install -y "${m[0]}" &> "${u[null]}"
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
+            && sudo add-apt-repository -y ppa:git-core/ppa &> "${u[null]}"
+
+        update && sudo apt install -y "${m[0]}" &> "${u[null]}"
+
+    fi
 
     check_ssh
 
@@ -1610,15 +1612,19 @@ postgres_stuffs() {
 
     l+=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
+        'https://www.postgresql.org/download/linux/ubuntu/'  # 1
     )
 
     m+=(
-        'postgresql-11'  # 0: Núcleo do servidor de banco de dados
-        'postgresql-client-11'  # 1: Bibliotecas/binários client
-        'postgresql-contrib-9.6'  # 2: Módulos adicionais
-        'libpq-dev'  # 3: Bibliotecas e headers para compilar programas C
-        'pgadmin4'  # 4: Utilitário gráfico administrativo
+        'postgresql-11'  # 0
+        'postgresql-client-11'  # 1
+        'postgresql-contrib-9.6'  # 2
+        'libpq-dev'  # 3
+        'pgadmin4'  # 4
     )
+
+    # Wait postgresql upgrade from 11 to (12??) to check how we gonna do
+    # latest=$(curl --silent "${l[1]}" | grep 'scope="row"' | head -1 | awk --field-separator=- '{print $3}' | sed 's|</th>||')
 
     if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
 
@@ -1661,6 +1667,8 @@ postgres_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
+        # 2> hides warning
+        # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${u[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
@@ -1752,18 +1760,73 @@ py_libraries() {
         'python-pip'  # 0
         'python-dev'  # 1
         'build-essential'  # 2
-        'pip'  # 3
+        'libraries py'  # 3
     )
 
-	install_packages "${m[0]}" "${m[1]}" "${m[2]}"
-	# python-pip: gerenciador de pacotes
-	# build-essential: inclui make, automake, fakerrot etc
-	# python-dev: bibliotecas de compilação (caso algum pacote precise).
+    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg -l | awk "/${m[2]}/ {print }" | wc -l) -ge 1 ]]; then
 
-    latest=$(curl --silent "${l[0]}" | grep -1 '<h1 class="package-header__name">' | tail -1 | awk '{print $2}')
-    "${m[3]}" install -U "${m[3]}"
+        for package in "${m[@]}"; do
+
+            show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
+
+        done
+
+        read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]} AND ${c[RED]}${m[2]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" &> "${u[null]}"
+
+
+
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                retorna_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                echo && break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        [[ "${1}" -eq 1 ]] \
+            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
+
+    fi
+
+    show "INITIALIZING CONFIGS..."
+
+    local=$(apt version "${m[0]}")
+
+    latest=$(curl --silent "${l[0]}" | grep -1 header__name | tail -1 | awk '{print $2}')
+
+    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
+        && pip install -U pip
 
     unset l m
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -1949,7 +2012,8 @@ sublime_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-		# Verifica certificado de segurança (apt-key list)
+		# 2> hides
+        # Warning: apt-key output should not be parsed (stdout is not a terminal)
 		[[ ! $(apt-key list 2> "${u[null]}" | grep Sublime) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
@@ -2288,7 +2352,7 @@ usefull_pkgs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"; echo
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" && echo
 
     fi
 
@@ -2468,7 +2532,7 @@ invoca_funcoes() {
         10) minidlna_stuffs 1 && retorna_menu ;;
         11) nvidia_stuffs 1 && retorna_menu ;;
         12) postgres_stuffs 1 && retorna_menu ;;
-        13) py_libraries && retorna_menu ;;
+        13) py_libraries 1 && retorna_menu ;;
         14) upgrade_py 1 && retorna_menu ;;
         15) sublime_stuffs 1 && retorna_menu ;;
         16) upgrade && retorna_menu ;;
