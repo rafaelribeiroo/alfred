@@ -73,8 +73,8 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-[[ ! $(grep --no-messages "DEFAULT_USER" ~/Downloads/gabr) ]] \
-    && echo encontrado || echo n encontrado
+[[ ! $(grep 'Linux x64' ~/Downloads/gabr) ]] \
+    && echo n || echo encontrado
 
 menu() {
 
