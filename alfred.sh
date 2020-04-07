@@ -21,6 +21,7 @@
 #======================#
 
 #======================#
+linen='-----------------------------------------'
 linei='------------------------------------------'
 lineu='-------------------------------------------'
 linec='--------------------------------------------'
@@ -40,11 +41,12 @@ random=$(shuf -i 0-$((${#name[@]}-1)) -n 1)
 
 # Associative array
 declare -A c=(
-    [WHITE]='\033[1;37m'  # 0
-    [RED]='\033[31;1m'  # 1
-    [GREEN]='\033[1;32m'  # 2
-    [CYAN]='\033[1;36m'  # 3 CYAN
-    [END]='\e[0m'  # 5 Sem mudança
+    [WHITE]='\033[1;37m'
+    [RED]='\033[31;1m'
+    [GREEN]='\033[1;32m'
+    [YELLOW]='\033[1;33m'
+    [CYAN]='\033[1;36m'
+    [END]='\e[0m'
 )
 
 logo=(
@@ -251,8 +253,8 @@ install_packages() {
             if test "${?}" -eq 1; then
 
                 [[ "${#}" -eq 1 ]] \
-                    && show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!\n" \
-                    || show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!"
+                    && show "\n${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]\n" \
+                    || show "\n${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]" \
 
                 sudo apt install -y "${package}" &> "${u[null]}"
 
@@ -507,7 +509,7 @@ deezloader_stuffs() {
 
         install_packages "${m[1]}"
 
-        show "${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         megadl --no-progress "${link_latest}" --path "${d[2]}"
 
@@ -718,7 +720,7 @@ github_stuffs() {
         'jq'  # 3
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/${m[2]}/ {print }" | wc -l) -ge 1 ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -924,14 +926,14 @@ chrome_stuffs() {
         # Dependências
         install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
-        show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
 
         sudo dpkg -i "${f[file]}" &> "${u[null]}"
 
-        sudo rm --force "${f[file]}" && echo
+        sudo rm --force "${f[file]}"
 
     fi
 
@@ -1191,7 +1193,7 @@ heroku_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         sh -c "$(curl --silent ${l[0]})" &> "${u[null]}"
 
@@ -1266,7 +1268,7 @@ hide_devices() {  # Okzão
 
     else
 
-        # no messages hide if file don't exists
+        # --no-messages hide if file don't exists
         if [[ -e "${f[hide_rules]}" || $(grep --no-messages --files-with-matches "ID_FS_UUID" "${f[hide_rules]}") ]]; then
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n"
