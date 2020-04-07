@@ -1515,6 +1515,7 @@ nvidia_stuffs() {
 
 
 
+
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                     retorna_menu && break
@@ -1550,17 +1551,6 @@ nvidia_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    local=$(apt version "${m[0]}-*")
-
-    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
-
-        [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
-            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}"
-
-        update && sudo apt install -y "${m[0]}" &> "${u[null]}"
-
-    fi
-
     if [[ ! $(grep --no-messages "nouveau" "${f[hide_driver]}") ]]; then
 
         sudo tee "${f[hide_driver]}" > "${u[null]}" <<< 'blacklist nouveau
@@ -1570,7 +1560,7 @@ alias lbm-nouveau off'
 
         sudo update-initramfs -u > "${u[null]}"
 
-        read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+        echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
     	for (( ; ; )); do
 
@@ -1580,7 +1570,7 @@ alias lbm-nouveau off'
 
     		elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-                break
+                echo && break
 
     	    else
 
@@ -1594,9 +1584,21 @@ alias lbm-nouveau off'
 
     fi
 
+    local=$(apt version "${m[0]}-*")
+
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
+            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}"
+
+
+        update && install_packages "${m[0]}-${latest}"
+
+    fi
+
     unset f l m
 
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
