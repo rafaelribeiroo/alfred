@@ -119,7 +119,7 @@ check_distro() {
         [os_release]=/etc/os-release
     )
 
-    check_os=$(cat "${f[os_release]}" | grep -w NAME | awk '{print $2}' | sed 's|"||')
+    check_os=$(cat "${f[os_release]}" | grep --word-regexp NAME | awk '{print $2}' | sed 's|"||')
 
     unset f
 
@@ -419,16 +419,15 @@ bash_stuffs() {
     fi
 
     # If show error when open oh-my-base, run command below
-    # [[ $(grep --files-with-matches "check_for_upgrade.sh" "${f[config]}") ]] \
+    # [[ $(grep --no-messages "check_for_upgrade.sh" "${f[config]}") ]] \
     #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
-    [[ $(grep --files-without-match "DEFAULT_USER" "${u[bashrc]}") ]] \
+    [[ ! $(grep DEFAULT_USER "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
-    # Install plugins
-    [[ $(grep --files-without-match "agnoster" "${u[bashrc]}") && $(grep --files-without-match "plugins=(git" "${u[bashrc]}") ]] \
+    [[ ! $(grep agnoster "${u[bashrc]}") && ! $(grep 'plugins=(git' "${u[bashrc]}") ]] \
         && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${u[bashrc]}" \
         && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${u[bashrc]}"
 
@@ -466,7 +465,7 @@ deezloader_stuffs() {
         'megatools'  # 1
     )
 
-    link_latest=$(curl --location --silent "${l[0]}" | grep -6 "Linux x64" | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
+    link_latest=$(curl --silent "${l[0]}" | grep -6 'Linux x64' | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
 
     if [[ -e "${f[file]}" ]]; then
 
@@ -530,7 +529,7 @@ deezloader_stuffs() {
         && sudo rm --force "${d[2]}"Deez* \
         && megadl --no-progress "${link_latest}" --path "${d[2]}"
 
-    if [[ $(grep --files-without-match "${d[2]#~/}" "${f[config]}") ]]; then
+    if [[ ! $(grep --no-messages "${d[2]#~/}" "${f[config]}") ]]; then
 
         # Run deezloader and free tty
         ( nohup "${f[file]}" & ) &> "${u[null]}"
