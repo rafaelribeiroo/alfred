@@ -23,6 +23,7 @@
 #======================#
 linen='-----------------------------------------'
 linei='------------------------------------------'
+lineu='-------------------------------------------'
 linec='--------------------------------------------'
 lineh='----------------------------------------------'
 
@@ -90,6 +91,7 @@ declare -A u=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
+    [hosts]=~/.ssh/known_hosts
     [mimeapps]=~/.config/mimeapps.list
     [null]=/dev/null
     [public_ssh]=~/.ssh/id_rsa.pub
@@ -226,7 +228,7 @@ show() {
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
     # Se passar 1, não "dorme"
-    [[ "${2}" -eq 1 ]] || take_a_break
+    [[ "${2}" -ne 1 ]] && take_a_break
 
 }
 #======================#
@@ -243,17 +245,13 @@ install_packages() {
             # e se o usuário deseja desinstalar aqui pra economizar linha?
             # Porque se for várias dependências, ele vai perguntar uma a uma
             # ao invés de desinstalar o conjunto como um todo.
-            [[ "${#}" -eq 1 ]] \
-                && show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]\n" \
-                || show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
+            show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]" 1
 
         else
 
             if test "${?}" -eq 1; then
 
-                [[ "${#}" -eq 1 ]] \
-                    && show "\n${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]\n" \
-                    || show "\n${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]" \
+                show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]" 1
 
                 sudo apt install -y "${package}" &> "${u[null]}"
 
@@ -295,6 +293,16 @@ take_a_break() {
 }
 #======================#
 
+thatsallfolks() {
+
+    unset d f l m
+
+    show "\nOPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
+
+    [[ "${1}" -ne 1 ]] && show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${escolha} ${c[RED]}––––––––––––––––––––––––" 1
+
+}
+
 #======================#
 update() {
 
@@ -304,11 +312,14 @@ update() {
 }
 #======================#
 
+#======================#
 uninstall_or_configure() {
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    echo; show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${escolha} ${c[RED]}–––––––––––––––––––" 1
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+    if [[ "${1}" ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -316,17 +327,9 @@ uninstall_or_configure() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
-
-                sudo rm --force --recursive "${d[0]}"
-
-                remove_useless
-
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-                retorna_menu && break
+                return 0
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -334,7 +337,7 @@ uninstall_or_configure() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I COMEBACK TO STATUS QUO?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -344,14 +347,18 @@ uninstall_or_configure() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        "${2}" 1
 
-        install_packages "${m[0]}" "${m[1]}" && echo
+        "${3}"
 
     fi
 
+    show "INITIALIZING CONFIGS..."
+
+    return 1
+
 }
+#======================#
 
 #======================#
 bash_stuffs() {
@@ -428,9 +435,9 @@ bash_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}" "${m[2]}"
+        echo && install_packages "${m[1]}" "${m[2]}"
 
-        show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         # First /dev/null hide download progress, second hide thirty commands
         0> "${u[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${u[null]}"
@@ -511,6 +518,7 @@ deezloader_stuffs() {
     m+=(
         'deezloader'  # 0
         'megatools'  # 1
+        'xplayer'  # 2
     )
 
     link_latest=$(curl --silent "${l[0]}" | grep -6 'Linux x64' | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
@@ -554,9 +562,9 @@ deezloader_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}"
+        echo && install_packages "${m[1]}" "${m[2]}"
 
-        show "${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         megadl --no-progress "${link_latest}" --path "${d[2]}"
 
@@ -751,8 +759,7 @@ github_stuffs() {
 
     f+=(
         [config]=~/.gitconfig
-        [ssh_config]=~/.ssh/config
-        [hosts]=~/.ssh/known_hosts
+        [config-ssh]=~/.ssh/config
     )
 
     l+=(
@@ -767,7 +774,7 @@ github_stuffs() {
         'jq'  # 3
     )
 
-    if [[ $(dpkg -l | awk "/${m[2]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[2]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -786,7 +793,7 @@ github_stuffs() {
                 [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
                     && sudo add-apt-repository --remove -y ppa:git-core/ppa &> "${u[null]}"
 
-                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"
+                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
 
                 remove_useless
 
@@ -848,8 +855,8 @@ github_stuffs() {
 
     check_ssh
 
-    [[ ! $(grep --no-messages github.com "${f[ssh_config]}") ]] \
-        && sudo tee -a "${f[ssh_config]}" > "${u[null]}" <<< 'Host github.com
+    [[ ! $(grep --no-messages github.com "${f[config-ssh]}") ]] \
+        && sudo tee -a "${f[config-ssh]}" > "${u[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
 
@@ -894,7 +901,7 @@ github_stuffs() {
 
     fi
 
-    [[ ! -e "${f[hosts]}" ]] \
+    [[ ! -e "${u[hosts]}" ]] \
         && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${u[null]}"
 
     unset f l m
@@ -1914,19 +1921,17 @@ upgrade_py() {
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
-    show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${escolha} ${c[RED]}–––––––––––––––––––" 1
+    if ( $(dpkg --compare-versions "${local_python}" eq "${latest_python}") ); then
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+        escreva "\n${c[VERDE]}${m[1]^^} ${c[BRANCO]}${lineu:${#m[1]}} [UPGRADED]\n"
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
-
-        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE PYTHON? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}R${c[WHITE]}ESETING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                escreva "\n${c[VERMELHO]}R${c[BRANCO]}ESETING ${c[VERMELHO]}${m[1]^^}${c[BRANCO]}!\n"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -1934,7 +1939,7 @@ upgrade_py() {
 
                 source "${u[bashrc]}"
 
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+                escreva "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 retorna_menu && break
 
@@ -1944,7 +1949,7 @@ upgrade_py() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[BRANCO]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[BRANCO]}[Y/N] R: "${c[FIM]}
 
                 read option
 
@@ -1955,20 +1960,21 @@ upgrade_py() {
     else
 
         [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!\n" 1
+            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        # Dependências
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
+        # Dependencies
+        echo && install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLING]\n"
+        [[ ! -d "${d[0]}" ]] \
+            && show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]" \
+            && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}" \
+            || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
 
-        bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}" \
+        echo
 
     fi
 
     show "INITIALIZING CONFIGS..."
-
-    ( $(dpkg --compare-versions "${local}" lt "${latest}") )
 
     [[ ! $(grep --no-messages rehash "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
@@ -1985,8 +1991,6 @@ eval "$(pyenv virtualenv-init -)"' \
     unset l d m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
-
-    show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${escolha} ${c[RED]}––––––––––––––––––––––––" 1
 
 }
 #======================#
@@ -2527,11 +2531,17 @@ workspace_stuffs() {  # Okzão
 
             if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-                echo; show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" 1
+                if [[ ! -e "${u[hosts]}" ]]; then
 
-                github_stuffs
+                    echo; show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" 1
 
-                git clone -q "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
+                    github_stuffs
+
+                fi
+
+                # First time running git clone through ssh could receiver message:
+                # permanently added to the list of known hosts
+                git clone -q "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}" 2> "${u[null]}"
 
                 git clone -q "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}"
 
@@ -2591,13 +2601,11 @@ invoca_funcoes() {
         17) tmate_stuffs 1 && retorna_menu ;;
         18) usefull_pkgs 1 && retorna_menu ;;
         19) workspace_stuffs 1 && retorna_menu ;;
-        20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        20) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
         d+=(
-            ~/.local/share/cinnamon/applets/pomodoro@gregfreeman.org  # 0
+            ~/.local/share/cinnamon/applets  # 0
             ~/.local/share/cinnamon/applets/betterlock  # 1
-            ~/.local/share/cinnamon/applets  # 2
-            ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 3
         )
 
         f+=(
@@ -2615,10 +2623,12 @@ invoca_funcoes() {
             [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
             [numlock]=/etc/lightdm/slick-greeter.conf
             [paste]=/org/gnome/terminal/legacy/keybindings/paste
-            [pomodoro]=~/.local/share/cinnamon/applets/pomodoro@gregfreeman.org.zip
             [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
             [show-hidden]=/org/nemo/preferences/show-hidden-files
-            [thumbnail_limit]=/org/nemo/preferences/thumbnail-limit
+        )
+
+        l+=(
+            'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
         )
 
         m+=(
@@ -2629,50 +2639,57 @@ invoca_funcoes() {
         install_packages "${m[0]}" "${m[1]}"
 
         # START APPLETS STUFFS
-        if [[ ! -e "${f[capslock]}" && ! -e "${f[pomodoro]}" ]]; then
+        if [[ ! -e "${f[capslock]}" ]]; then
 
-            [[ ! -d "${d[13]}" || $(stat -c "%U" "${d[13]}" 2>&-) != ${USER} ]] \
-                && sudo mkdir -p "${d[13]}" > "${u[null]}" \
-                && sudo chown -R ${USER}:${USER} "${d[13]}"
+            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+                && sudo mkdir --parents "${d[0]}" > "${u[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-            wget --quiet "${l[22]}" --output-document "${f[capslock]}"
-
-            wget --quiet "${l[23]}" --output-document "${f[pomodoro]}"
+            wget --quiet "${l[0]}" --output-document "${f[capslock]}"
 
         fi
 
-        [[ ! -d "${d[0]}" && ! -d "${d[1]}" ]] \
-            && unzip "${d[2]}"/*.zip -d "${d[2]}" &> "${u[null]}" \
-            && sudo rm --force "${f[capslock]}" "${f[pomodoro]}" # END APPLETS
+        [[ ! -d "${d[1]}" ]] \
+            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${u[null]}" \
+            && sudo rm --force "${f[capslock]}" # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
         [[ $(grep --no-messages false "${f[numlock]}") ]] \
             && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
-        # START ICONS PANEL ARRANGEMENT
-        sudo sed -i 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|g' "${d[3]}"/*.json
-        sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[3]}"/*.json
-        sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[3]}"/*.json  # END ARRANGEMENT
 
-        [[ $(dconf read "${f[paste]}") =~ '<Ctrl><Shift>v' ]] \
-            && dconf write "${f[paste]}" "'<Ctrl>v'" \
-            && dconf write "${f[computer_icon]}" false \
-            && dconf write "${f[home_icon]}" false \
-            && dconf write "${f[automount]}" true \
-            && dconf write "${f[automount_open]}" true \
-            && dconf write "${f[show-hidden]}" true \
-            && dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']" \
-            && dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']" \
-            && dconf write "${f[default_sort_order]}" "'name'" \
-            && dconf write "${f[default_sort_reverse]}" false \
-            && dconf write "${f[thumbnail_limit]}" "34359738368" \
-            && dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:13', 'panel1:left:1:show-desktop@cinnamon.org:14', 'panel1:right:11:systray@cinnamon.org:16', 'panel1:right:12:notifications@cinnamon.org:18', 'panel1:right:13:printers@cinnamon.org:19', 'panel1:right:14:removable-drives@cinnamon.org:20', 'panel1:right:15:keyboard@cinnamon.org:21', 'panel1:right:16:network@cinnamon.org:22', 'panel1:right:17:sound@cinnamon.org:23', 'panel1:right:18:power@cinnamon.org:24', 'panel1:right:10:xapp-status@cinnamon.org:26', 'panel1:right:19:calendar@cinnamon.org:28', 'panel1:right:6:betterlock:31', 'panel1:left:2:grouped-window-list@cinnamon.org:35', 'panel1:right:1:pomodoro@gregfreeman.org:36']" \
-            && dconf write "${u[gtk_theme]}" "'Mint-Y-Dark-Red'" \
-            && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
-            && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
+        dconf write "${f[paste]}" "'<Ctrl>v'"
+
+        dconf write "${f[computer_icon]}" false
+
+        dconf write "${f[home_icon]}" false
+
+        dconf write "${f[automount]}" true
+
+        dconf write "${f[automount_open]}" true
+
+        dconf write "${f[show-hidden]}" true
+
+        dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
+
+        dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']"
+
+        dconf write "${f[default_sort_order]}" "'name'"
+
+        dconf write "${f[default_sort_reverse]}" false
+
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:13', 'panel1:left:1:show-desktop@cinnamon.org:14', 'panel1:right:11:systray@cinnamon.org:16', 'panel1:right:12:notifications@cinnamon.org:18', 'panel1:right:13:printers@cinnamon.org:19', 'panel1:right:14:removable-drives@cinnamon.org:20', 'panel1:right:15:keyboard@cinnamon.org:21', 'panel1:right:16:network@cinnamon.org:22', 'panel1:right:17:sound@cinnamon.org:23', 'panel1:right:18:power@cinnamon.org:24', 'panel1:right:10:xapp-status@cinnamon.org:26', 'panel1:right:19:calendar@cinnamon.org:28', 'panel1:right:6:betterlock:31', 'panel1:left:2:grouped-window-list@cinnamon.org:35']"
+
+        dconf write "${u[gtk_theme]}" "'Mint-Y-Dark-Red'"
+
+        dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
+
+        dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
 
         [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
             && sudo sed -i 's|Boot Manager|10|g' "${f[grub]}"
+
+        unset d f l m
 
         echo; show "\n\t  ${c[CYAN]}WE'RE GOING TO BASH COLORFULL"
 

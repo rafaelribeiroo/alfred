@@ -73,70 +73,13 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-[[ ! $(sudo apt-key list 2> "${u[null]}" | grep Sublime) ]] \
-    && echo nao || echo exists
+m=(
+    'oh-my-bash'  # 0
+)
 
-menu() {
-
-    show "${c[RED]}=======================================================" 1
-
-    for line in "${!logo[@]}"; do
-        show "    ${c[RED]}${logo[${line}]}" 1
-        
-    done
-
-    show "${c[RED]}=======================================================" 1
-    show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" 1
-    show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" 1
-    show "${c[RED]}[ 02 ] ${c[WHITE]}DEEZLOADER ${e[2]}" 1
-    show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" 1
-    show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
-    show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" 1
-    show "${c[RED]}[ 06 ] ${c[WHITE]}CONKY ${e[6]}" 1
-    show "${c[RED]}[ 07 ] ${c[WHITE]}FLAMESHOT ${e[22]}" 1
-    show "${c[RED]}[ 08 ] ${c[WHITE]}HEROKU ${e[7]}" 1
-    show "${c[RED]}[ 09 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[8]}" 1
-    show "${c[RED]}[ 10 ] ${c[WHITE]}MINIDLNA ${e[9]}" 1
-    show "${c[RED]}[ 11 ] ${c[WHITE]}NVIDIA DRIVER ${e[10]}" 1
-    show "${c[RED]}[ 12 ] ${c[WHITE]}POSTGRES ${e[11]}" 1
-    show "${c[RED]}[ 13 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
-    show "${c[RED]}[ 14 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
-    show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[13]}" 1
-    show "${c[RED]}[ 16 ] ${c[WHITE]}SYSTEM UPGRADE ${e[14]}" 1
-    show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[15]}" 1
-    show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
-    show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
-    show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[18]}" 1
-    show "${c[RED]}=======================================================" 1
-
-    read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' escolha && echo
-
-    show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${escolha} ${c[RED]}–––––––––––––––––––" 1
-
-    package=('git-cola')
-
-    linen='-----------------------------------------'
-    linei='------------------------------------------'
-
-    show "\n${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]\n" 1
-
-    show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${escolha} ${c[RED]}––––––––––––––––––––––––" 1
-
-}
+show "${c[RED]}=======================================================" 1
+show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
 # psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"
 
 # systemctl list-unit-files --type service -all
-
-: ' aumenta_valor() {
-    if [[ ${1} -eq 1 ]]; then
-        return 0
-    elif [[ ${1} -eq 2 ]]; then
-        return 1
-    fi
-}
-
-aumenta_valor 1
-if [[ "$?" -eq 0 ]]; then
-    echo "Vim do if do aumenta_valor"
-fi'
