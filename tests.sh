@@ -14,7 +14,7 @@ show() {
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
     # Se passar 1, não "dorme"
-    [[ "${2}" -eq 1 ]] || take_a_break
+    [[ "${2}" -ne 1 ]] && take_a_break
 
 }
 
