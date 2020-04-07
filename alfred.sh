@@ -423,11 +423,11 @@ bash_stuffs() {
     #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
-    [[ ! $(grep DEFAULT_USER "${u[bashrc]}") ]] \
+    [[ ! $(grep --no-messages DEFAULT_USER "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
-    [[ ! $(grep agnoster "${u[bashrc]}") && ! $(grep 'plugins=(git' "${u[bashrc]}") ]] \
+    [[ ! $(grep --no-messages agnoster "${u[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${u[bashrc]}") ]] \
         && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${u[bashrc]}" \
         && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${u[bashrc]}"
 
@@ -548,7 +548,7 @@ deezloader_stuffs() {
 
                 else
 
-                    kill -9 $(ps -aux | grep "/tmp/.mount_Deez" | grep "Sl" | head -1 | awk '{print $2}')
+                    kill -9 $(ps -aux | grep --no-messages "Deezlo0" | head -1 | awk '{print $2}')
 
                     sudo sed -i "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
 
@@ -774,8 +774,7 @@ github_stuffs() {
     # Any changes pushed to GitHub, BitBucket, GitLab or another Git host
     # server in a later lesson will include this information.
     # from: https://swcarpentry.github.io/git-novice/02-setup/
-    # -L: files-without-match if don't exist this pattern is true
-    [[ ! -e "${f[config]}" || $(grep --files-without-match "@" "${f[config]}") ]] \
+    [[ ! $(grep --no-messages @ "${f[config]}") ]] \
         && read -p $'\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
         && read -p $'\033[1;37mNAME '"${e[20]}"$': \033[m' nome \
         && git config --global user.email "${email}" \
@@ -783,7 +782,7 @@ github_stuffs() {
         && git config --global core.editor "vim" \
         && git config --global core.autocrlf input
 
-    [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
+    [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
 
     local=$(git --version | awk '{print $3}')
@@ -801,7 +800,7 @@ github_stuffs() {
 
     check_ssh
 
-    [[ ! -e "${f[ssh_config]}" || $(grep --files-without-match "github.com" "${f[ssh_config]}") ]] \
+    [[ ! $(grep --no-messages github.com "${f[ssh_config]}") ]] \
         && sudo tee -a "${f[ssh_config]}" > "${u[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
@@ -938,7 +937,7 @@ chrome_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "google-chrome" "${u[mimeapps]}") ]] \
+    [[ ! $(grep --no-messages google-chrome "${u[mimeapps]}") ]] \
         && sudo tee "${u[mimeapps]}" > "${u[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
 x-scheme-handler/http=google-chrome.desktop
@@ -947,7 +946,7 @@ x-scheme-handler/about=google-chrome.desktop
 x-scheme-handler/unknown=google-chrome.desktop
 x-scheme-handler/mailto=google-chrome.desktop'
 
-    [[ $(grep --files-without-match "google-chrome" "${d[0]}"/*.json) ]] \
+    [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
         && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",|g' "${d[0]}"/*.json \
         && sudo sed -zi 's|"firefox.desktop",|"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|2' "${d[0]}"/*.json
 
@@ -1112,7 +1111,7 @@ flameshot_stuffs() {
 
     sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x1\\0\\0\\0\\n)|g' "${f[config]}"
 
-    [[ ! -e "${f[dskt]}" || $(grep --files-without-match "flameshot" "${f[dskt]}") ]] \
+    [[ ! $(grep --no-messages flameshot "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${u[null]}" <<< '[Desktop Entry]
 Name=flameshot
 Icon=flameshot
@@ -1268,7 +1267,7 @@ hide_devices() {  # Okzão
     else
 
         # --no-messages hide if file don't exists
-        if [[ -e "${f[hide_rules]}" || $(grep --no-messages --files-with-matches "ID_FS_UUID" "${f[hide_rules]}") ]]; then
+        if [[ $(grep --no-messages ID_FS_UUID "${f[hide_rules]}") ]]; then
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n"
 
@@ -1403,7 +1402,7 @@ minidlna_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    if [[ $(grep --files-without-match "Mídias" "${f[config]}") ]]; then
+    if [[ ! $(grep --no-messages Mídias "${f[config]}") ]]; then
 
         # automatic discover new files
         sudo sed -i "s|#inotify=yes|inotify=yes|g" "${f[config]}"
@@ -1562,7 +1561,7 @@ nvidia_stuffs() {
 
     fi
 
-    if [[ ! -e "${f[hide_driver]}" || $(grep --files-without-match "nouveau" "${f[hide_driver]}") ]]; then
+    if [[ ! $(grep --no-messages "nouveau" "${f[hide_driver]}") ]]; then
 
         sudo tee "${f[hide_driver]}" > "${u[null]}" <<< 'blacklist nouveau
 blacklist lbm-nouveau
@@ -1674,7 +1673,7 @@ postgres_stuffs() {
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
         # Apontando o host do postgres no sources.list
-    	[[ ! -e "${f[postgres_ppa]}" || $(grep --files-without-match "bionic-pgdg" "${f[postgres_ppa]}") ]] \
+    	[[ ! $(grep --no-messages bionic-pgdg "${f[postgres_ppa]}") ]] \
     		&& sudo tee "${f[postgres_ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
             && update
 
@@ -1695,7 +1694,7 @@ postgres_stuffs() {
 
             read -p $'\033[1;37m\nENTER THE USER: \033[m' user
 
-            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep registro | awk '{print $1}' | sed 's|(||') -eq 1 ]] \
+            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep --extended-regexp "registro" | awk '{print $1}' | sed 's|(||') -eq 1 ]] \
                 && show "USER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. BREAKING." \
                 && break
 
@@ -1727,12 +1726,12 @@ postgres_stuffs() {
 
     : ' If you want more security, uncoment code below.
     # We could give permission for "${USER}" to read the file below or run with sudo
-    if [[ $(sudo grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
+    if [[ ! $(sudo grep --no-messages "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
 
         # Antes de alterar a criptografia do postgres, devemos criar uma senha
         password=$("${u[askpass]}" $"\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m")  # Change $"..." to $'...'
 
-        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${u[null]}"
+        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD QUOTE_SINGLE${password}QUOTE_SINGLE" &> "${u[null]}"
 
         sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
 
@@ -1820,7 +1819,7 @@ py_libraries() {
 
     local=$(apt version "${m[0]}")
 
-    latest=$(curl --silent "${l[0]}" | grep -1 header__name | tail -1 | awk '{print $2}')
+    latest=$(curl --silent "${l[0]}" | grep --no-messages -2 _le | tail -1  | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && pip install -U pip
@@ -1843,7 +1842,7 @@ upgrade_py() {
     d+=(
         ~/.pyenv  # 0
         # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
-        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages "external" | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
+        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
     m+=(
@@ -1920,7 +1919,7 @@ upgrade_py() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ $(grep --files-without-match "pyenv init" "${u[bashrc]}") ]] \
+    [[ ! $(grep --no-messages rehash "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
@@ -2015,13 +2014,13 @@ sublime_stuffs() {
 
 		# 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
-		[[ ! $(apt-key list 2> "${u[null]}" | grep Sublime) ]] \
+		[[ ! $(sudo apt-key list 2> "${u[null]}" | grep Sublime) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
         # Dependências
         install_packages "${m[1]}"
 
-        [[ ! -e "${f[ppa]}" || $(grep --files-without-match "sublimetext" "${f[ppa]}") ]] \
+        [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
             && sudo tee "${f[ppa]}" > "${u[null]}" <<< "deb ${l[1]}" \
             && update
 
@@ -2045,7 +2044,7 @@ sublime_stuffs() {
                 && printf '\00\00\00' | dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
 
             # Inserindo a chave do produto
-            [[ ! -e "${f[license]}" || $(grep --files-without-match "Member" "${f[license]}") ]] \
+            [[ ! $(grep --no-messages Member "${f[license]}") ]] \
                 && sudo tee "${f[license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
 Member J2TeaM
 Single User License
@@ -2068,7 +2067,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
                 && sudo chown -R "${USER}":"${USER}" "${d[1]}" \
                 && curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
 
-            [[ ! -e "${f[pkgs]}" || $(grep --files-without-match "packages" "${f[pkgs]}") ]] \
+            [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
                 && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
@@ -2131,7 +2130,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             sudo sed -i 's|"D"|"d"|g' "${f[REPL_pyI]}"
 
-            [[ $(grep --files-without-match '"view_id"' "${f[REPL_pyI]}") ]] \
+            [[ ! $(grep --no-messages '"view_id"' "${f[REPL_pyI]}") ]] \
                 && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
 
             # Seta versão recente do PY para execuções de scripts
@@ -2143,7 +2142,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
 
-            [[ $(grep --files-without-match "focus_view(found)" "${f[REPL_pyII]}") ]] \
+            [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPL_pyII]}") ]] \
                 && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[REPL_pyII]}"
 
             echo && break
@@ -2182,7 +2181,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     done
 
-    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "sublime" "${u[mimeapps]}") ]] \
+    [[ ! $(grep --no-messages sublime "${u[mimeapps]}") ]] \
         && sudo tee -a "${u[mimeapps]}" > "${u[null]}" <<< 'text/plain=sublime_text.desktop
 text/csv=sublime_text.desktop
 application/xml=sublime_text.desktop
@@ -2195,7 +2194,7 @@ text/x-python=sublime_text.desktop
 application/x-shellscript=sublime_text.desktop
 application/x-subrip=sublime_text.desktop'
 
-    [[ $(grep --files-without-match "subl" "${d[2]}"/*.json) ]] \
+    [[ ! $(grep --no-messages sublime_text "${d[2]}"/*.json) ]] \
         && sudo sed -i 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
 
     unset d f l m
@@ -2213,7 +2212,7 @@ upgrade() {
     )
 
     # Filtra a última data em que foram realizadas atualizações
-    last=$(grep "Start-Date" "${f[apt_history]}" | tail -1 | awk '{print $2}')
+    last=$(grep Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
 
     # Modifica o formato de data pro BR
     date=$(date -d "${last}" +"%d/%m/%Y")
@@ -2359,11 +2358,11 @@ usefull_pkgs() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "vlc" "${u[mimeapps]}") ]] \
+    [[ ! $(grep --no-messages vlc "${u[mimeapps]}") ]] \
         && sudo tee -a "${u[mimeapps]}" > "${u[null]}" <<< 'video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop'
 
-    [[ ! -e "${f[vimrc]}" || $(grep --files-without-match "set number" "${u[mimeapps]}") ]] \
+    [[ ! $(grep --no-messages "syntax" "${f[vimrc]}") ]] \
         && sudo tee "${f[vimrc]}" > "${u[null]}" <<< 'set encoding=UTF-8
 syntax on
 set autoread
@@ -2426,7 +2425,7 @@ workspace_stuffs() {  # Okzão
 
                 sudo rm --force --recursive "${d[0]}"
 
-                [[ $(grep --files-with-matches "workspace" "${f[bookmarks]}") ]] \
+                [[ $(grep --no-messages workspace "${f[bookmarks]}") ]] \
                     && sudo sed -i 's|file:///workspace workspace||g' "${f[bookmarks]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
@@ -2461,7 +2460,7 @@ workspace_stuffs() {  # Okzão
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${f[bookmarks]}" || $(grep --files-without-match "workspace" "${f[bookmarks]}") ]] \
+    [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
         && sudo tee -a "${f[bookmarks]}" > "${u[null]}" <<< 'file:///workspace workspace'
 
     if [[ ! -d "${d[0]}"/"${r[0]}" \
@@ -2595,7 +2594,7 @@ invoca_funcoes() {
             && sudo rm --force "${f[capslock]}" "${f[pomodoro]}" # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-        [[ $(grep --files-with-matches "false" "${f[numlock]}") ]] \
+        [[ $(grep --no-messages false "${f[numlock]}") ]] \
             && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
         # START ICONS PANEL ARRANGEMENT
@@ -2620,7 +2619,7 @@ invoca_funcoes() {
             && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
             && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
 
-        [[ $(grep --files-with-matches "Boot Manager" "${f[grub]}") ]] \
+        [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
             && sudo sed -i 's|Boot Manager|10|g' "${f[grub]}"
 
         echo; show "\n\t  ${c[CYAN]}WE'RE GOING TO BASH COLORFULL"
