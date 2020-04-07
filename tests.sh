@@ -73,8 +73,8 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-[[ ! $(grep 'Linux x64' ~/Downloads/gabr) ]] \
-    && echo n || echo encontrado
+[[ ! $(sudo apt-key list 2> "${u[null]}" | grep Sublime) ]] \
+    && echo nao || echo exists
 
 menu() {
 
