@@ -2032,22 +2032,21 @@ sublime_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    # Não sai do loop enquanto o sublime não cria os arquivos padrões
-    for (( ; ; )); do
+    [[ ! -e "${d[0]}" ]] \
+        && ( nohup subl & ) &> "${u[null]}" \
+        && show "\nOPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..." \
+        && sudo pkill subl
 
-        if [[ -d "${d[0]}" ]]; then
 
-            sudo pkill subl
+    # hexed.it: get position and convert to decimal, put in seek
+    # Change executable binary sequence
+    [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ "97940d" ]] \
+        && sudo pkill subl \
+        && printf '\00\00\00' | dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
 
-            # hexed.it: get position and convert to decimal, put in seek
-            # Altera sequência binária do executável
-            [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ "97940d" ]] \
-                && sudo pkill subl \
-                && printf '\00\00\00' | dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
-
-            # Inserindo a chave do produto
-            [[ ! $(grep --no-messages Member "${f[license]}") ]] \
-                && sudo tee "${f[license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
+    # Inserindo a chave do produto
+    [[ ! $(grep --no-messages Member "${f[license]}") ]] \
+        && sudo tee "${f[license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
 Member J2TeaM
 Single User License
 EA7E-1011316
@@ -2061,31 +2060,25 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 8C8BB2AD B2ECE5A4 EFC08AF2 25A9B864
 ------ END LICENSE ------'
 
-            # Remove histórico de modificações no arquivo
-            # sudo rm --force "${f[recently_used]}"
+    # Remove histórico de modificações no arquivo
+    # sudo rm --force "${f[recently_used]}"
 
-            [[ ! -e "${f[pkg_ctrl]}" ]] \
-                && sudo mkdir -p "${d[1]}" > "${u[null]}" \
-                && sudo chown -R "${USER}":"${USER}" "${d[1]}" \
-                && curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
+    if [[ ! -e "${f[pkg_ctrl]}" ]]; then
 
-            [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
-                && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
+        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir -p "${d[1]}" > "${u[null]}" \
+            && sudo chown -R "${USER}":"${USER}" "${d[1]}"
+
+        curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
+
+    fi
+
+    [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
+        && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
-                # && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
+        # && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-            break
-
-        else
-
-            ( nohup subl & ) &> "${u[null]}"
-
-            echo && show "OPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
-
-        fi
-
-    done
 
     for (( ; ; )); do
 
