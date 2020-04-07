@@ -23,7 +23,6 @@
 #======================#
 linen='-----------------------------------------'
 linei='------------------------------------------'
-lineu='-------------------------------------------'
 linec='--------------------------------------------'
 lineh='----------------------------------------------'
 
@@ -304,6 +303,55 @@ update() {
 
 }
 #======================#
+
+uninstall_or_configure() {
+
+    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+
+                sudo rm --force --recursive "${d[0]}"
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                retorna_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                echo && break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        [[ "${1}" -eq 1 ]] \
+            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+
+        install_packages "${m[0]}" "${m[1]}" && echo
+
+    fi
+
+}
 
 #======================#
 bash_stuffs() {
@@ -1866,11 +1914,13 @@ upgrade_py() {
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
-    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+    show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${escolha} ${c[RED]}–––––––––––––––––––" 1
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${lineu:${#m[1]}} [UPGRADED]\n"
+    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
 
-        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE? \n[Y/N] R: \033[m' option
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+
+        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE PYTHON? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1905,21 +1955,20 @@ upgrade_py() {
     else
 
         [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!\n" 1
 
         # Dependências
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
-        [[ ! -d "${d[0]}" ]] \
-            && show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-            && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}" \
-            || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLING]\n"
 
-        echo
+        bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}" \
 
     fi
 
     show "INITIALIZING CONFIGS..."
+
+    ( $(dpkg --compare-versions "${local}" lt "${latest}") )
 
     [[ ! $(grep --no-messages rehash "${u[bashrc]}") ]] \
         && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
@@ -1935,7 +1984,9 @@ eval "$(pyenv virtualenv-init -)"' \
 
     unset l d m
 
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
+
+    show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${escolha} ${c[RED]}––––––––––––––––––––––––" 1
 
 }
 #======================#
@@ -2033,16 +2084,17 @@ sublime_stuffs() {
     show "INITIALIZING CONFIGS..."
 
     [[ ! -e "${d[0]}" ]] \
-        && ( nohup subl & ) &> "${u[null]}" \
         && show "\nOPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..." \
+        && ( nohup subl & ) &> "${u[null]}" \
+        && sleep 15s \
         && sudo pkill subl
 
 
     # hexed.it: get position and convert to decimal, put in seek
     # Change executable binary sequence
-    [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ "97940d" ]] \
+    [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ 97940d ]] \
         && sudo pkill subl \
-        && printf '\00\00\00' | dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
+        && printf '\00\00\00' | sudo dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
 
     # Inserindo a chave do produto
     [[ ! $(grep --no-messages Member "${f[license]}") ]] \
@@ -2060,7 +2112,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 8C8BB2AD B2ECE5A4 EFC08AF2 25A9B864
 ------ END LICENSE ------'
 
-    # Remove histórico de modificações no arquivo
+    # Removes file changes history
     # sudo rm --force "${f[recently_used]}"
 
     if [[ ! -e "${f[pkg_ctrl]}" ]]; then
@@ -2077,14 +2129,33 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
         && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
-        # && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
+
+
+    [[ ! $(grep --no-messages rulers "${f[config]}") ]] \
+        && sudo tee "${f[config]}" > "${u[null]}" <<< '{
+    "ensure_newline_at_eof_on_save": true,
+    "font_size": 12,
+    "ignored_packages":
+    [
+        "Vintage"
+    ],
+    "rulers":
+    [
+        80
+    ],
+    "tab_size": 4,
+    "translate_tabs_to_spaces": true,
+    "trim_trailing_white_space_on_save": true,
+    "word_wrap": false,
+    "wrap_width": 80
+}'
 
 
     for (( ; ; )); do
 
         if [[ -e "${f[anaconda]}" ]]; then
 
-            # Informando ao Anaconda para sublinhar aos códigos específicos do PY 3.6
+            # Lint for python 3.6
             sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
@@ -2095,22 +2166,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
     }
 }'
 
-            sudo tee "${f[config]}" > "${u[null]}" <<< '{
-    // default value is []
-    "rulers": [80],
-
-    "ignored_packages":	["Vintage"],
-
-    "word_wrap": false,
-    "wrap_width": 80,
-    "tab_size": 4,
-    "translate_tabs_to_spaces": true,
-    "trim_trailing_white_space_on_save": true,
-    "ensure_newline_at_eof_on_save": true,
-    "font_size": 12,
-}'
-
-			# Remover o autocomplete no interpretador
+			# Removes autocomplete at runtime
 			sudo sed -zi 's|true|false|7' "${f[REPL]}"
 
             # Reuse same tab for multiple runtimes
@@ -2128,17 +2184,18 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             [[ ! $(grep --no-messages '"view_id"' "${f[REPL_pyI]}") ]] \
                 && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
 
-            # Seta versão recente do PY para execuções de scripts
+            sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
+
+            # PY don't run if mix tabs with space
+            [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPL_pyII]}") ]] \
+                && sudo sed -i "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPL_pyII]}"
+
+            # Set python3 for runtime
             sudo sed -i 's|"python", |"python3", |g' "${f[REPL_pyI]}"
 
             sudo sed -zi 's|"python3", |"python", |4' "${f[REPL_pyI]}"
 
-            sudo sed -zi 's|"python3", |"python", |6' "${f[REPL_pyI]}"
-
-            sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
-
-            [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPL_pyII]}") ]] \
-                && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[REPL_pyII]}"
+            sudo sed -zi 's|"python3", |"python", |5' "${f[REPL_pyI]}"
 
             echo && break
 
@@ -2156,7 +2213,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         		elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-                    echo && show "I'LL RESTART... (A RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
+                    echo && show "I'LL RESTART... \n(RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
 
                     sudo pkill subl && ( nohup subl & ) &> "${u[null]}"
 
