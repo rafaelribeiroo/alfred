@@ -245,13 +245,13 @@ install_packages() {
             # e se o usuário deseja desinstalar aqui pra economizar linha?
             # Porque se for várias dependências, ele vai perguntar uma a uma
             # ao invés de desinstalar o conjunto como um todo.
-            show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]" 1
+            echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
         else
 
             if test "${?}" -eq 1; then
 
-                show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]" 1
+                echo && show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
 
                 sudo apt install -y "${package}" &> "${u[null]}"
 
@@ -435,9 +435,9 @@ bash_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        echo && install_packages "${m[1]}" "${m[2]}"
+        install_packages "${m[1]}" "${m[2]}"
 
-        show "${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         # First /dev/null hide download progress, second hide thirty commands
         0> "${u[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${u[null]}"
@@ -562,7 +562,7 @@ deezloader_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        echo && install_packages "${m[1]}" "${m[2]}"
+        install_packages "${m[1]}" "${m[2]}"
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
@@ -649,7 +649,10 @@ dualmonitor_stuffs() {
     f+=(
         [starwars]=/usr/share/backgrounds/linuxmint-random/sw.jpg
         [stormtrooper]=/usr/share/backgrounds/linuxmint-random/st.jpg
-        [clubeluta]=/usr/share/backgrounds/linuxmint-random/cl.jpg
+        [fightclub]=/usr/share/backgrounds/linuxmint-random/cl.png
+        [kyloren]=/usr/share/backgrounds/linuxmint-random/kr.jpg
+        [default]=/usr/share/backgrounds/linuxmint/default_background.jpg
+        [src]=/usr/share/cinnamon-background-properties/linuxmint-random.xml
         [picture]=/org/cinnamon/desktop/background/picture-uri
         [option]=/org/cinnamon/desktop/background/picture-options
         [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
@@ -657,6 +660,7 @@ dualmonitor_stuffs() {
         [delay]=/org/cinnamon/desktop/background/slideshow/delay
     )
 
+    # 3840x1080 wallpaper
     l+=(
         'https://images3.alphacoders.com/673/673177.jpg'  # 0
         'https://images4.alphacoders.com/885/885300.png'  # 1
@@ -669,7 +673,7 @@ dualmonitor_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dconf read "${f[option]}") = "'spanned'" ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n"
 
@@ -681,11 +685,15 @@ dualmonitor_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[1]}" &> "${u[null]}"
+                sudo rm --force --recursive "${d[0]}"
 
+                sudo rm --force "${f[src]}"
 
+                dconf write "${f[picture]}" "'${f[default]}'"
 
-                remove_useless
+                dconf write "${f[option]}" "'zoom'"
+
+                dconf write "${f[slideshow]}" false
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -710,7 +718,7 @@ dualmonitor_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[1]}"
+        install_packages "${m[1]}" && echo
 
     fi
 
@@ -721,31 +729,80 @@ dualmonitor_stuffs() {
     if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
         [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-            && mkdir -p "${d[0]}" > "${u[null]}" \
+            && sudo mkdir -p "${d[0]}" > "${u[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
         [[ ! -e "${f[left]}" ]] \
             && curl --silent --output "${f[starwars]}" --create-dirs "${l[0]}"
 
-        [[ ! -e "${f[clubeluta]}" ]] \
-            && curl --silent --output "${f[clubeluta]}" --create-dirs "${l[1]}"
+        [[ ! -e "${f[fightclub]}" ]] \
+            && curl --silent --output "${f[fightclub]}" --create-dirs "${l[1]}"
 
         [[ ! -e "${f[stormtrooper]}" ]] \
             && curl --silent --output "${f[stormtrooper]}" --create-dirs "${l[2]}"
 
-        dconf write "${f[picture]}" "'/usr/share/backgrounds/linuxmint-random/sw.jpg'"
+        [[ ! -e "${f[kyloren]}" ]] \
+            && curl --silent --output "${f[kyloren]}" --create-dirs "${l[3]}"
+
+        dconf write "${f[picture]}" "'${f[starwars]}'"
 
         dconf write "${f[option]}" "'spanned'"
 
         dconf write "${f[slideshow]}" true
 
-        dconf write "${f[source]}" "'xml:///usr/share/cinnamon-background-properties/linuxmint-random.xml'"
+        dconf write "${f[source]}" "'xml://${f[src]}'"
 
         dconf write "${f[delay]}" 15
 
+        [[ ! -e "${f[src]}" ]] \
+            && sudo tee "${f[src]}" > "${u[null]}" <<< '<?xml version="1.0"?>
+<!DOCTYPE wallpapers SYSTEM "cinnamon-wp-list.dtd">
+<wallpapers>
+
+<wallpaper deleted="false">
+    <name>Jedi vs Sith</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/sw.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Torino GT</artist>
+</wallpaper>
+<wallpaper deleted="false">
+    <name>Stormtrooper</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/st.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Duane</artist>
+</wallpaper>
+<wallpaper deleted="false">
+    <name>Fight Club</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/cl.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Joker Boy</artist>
+</wallpaper>
+<wallpaper deleted="false">
+    <name>Kylo Ren</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/kr.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Duane</artist>
+</wallpaper>
+
+</wallpapers>'
+
+    else
+
+        show "\nYOU DON'T HAVE DUAL MONITOR SETUP. EXITING..."
+
     fi
-
-
 
     unset d f l m
 
@@ -786,7 +843,7 @@ github_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[2]}" "${m[3]}" &> "${u[null]}"
 
                 sudo rm --force "${f[config]}"
 
@@ -945,7 +1002,7 @@ chrome_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[18]}" "${m[1]}" "${m[2]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
 
                 sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${u[mimeapps]}"
 
@@ -1478,34 +1535,12 @@ minidlna_stuffs() {
 
         sudo sed -i 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
 
+        [[ $(systemctl is-active minidlna.service) = 'active' ]] \
+            && sudo service minidlna restart \
+            && sudo service minidlna force-reload \
+            || sudo service minidlna start
+
     fi
-
-	echo; read -p $'\033[1;37mSHOULD I RESTART THE SERVICE SIR? \n[Y/N] R: \033[m' option
-
-	for (( ; ; )); do
-
-		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-            [[ $(systemctl is-active "${m[0]}".service) = 'active' ]] \
-                && sudo service minidlna restart \
-                && sudo service minidlna force-reload \
-                || sudo service minidlna start
-
-            echo && break
-
-		elif [[ "${option:0:1}" = @(n|N) ]] ; then
-
-            echo && break
-
-	    else
-
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-    	fi
-
-    done
 
     unset d f m
 
@@ -2164,11 +2199,35 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
-            sudo tee "${f[keymap]}" > "${u[null]}" <<< '{
-    "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
-        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu"
+            sudo tee "${f[keymap]}" > "${u[null]}" <<< '[
+    { "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
+                "id": "repl_python_run", "file": "config/Python/Main.sublime-menu" }
+    },
+    // Auto-pair escaped parentheses
+    { "keys": ["("], "command": "insert_snippet", "args": {"contents": "($0)"}, "context":
+    [
+        { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+        { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+        { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+    ]
+    },
+    // Auto-pair escaped curly brackets
+    { "keys": ["{"], "command": "insert_snippet", "args": {"contents": "{$0}"}, "context":
+      [
+        { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+        { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+        { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+    ]
+    },
+    // Auto-pair escaped braces
+    { "keys": ["["], "command": "insert_snippet", "args": {"contents": "[$0]"}, "context":
+      [
+        { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+        { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+        { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+    ]
     }
-}'
+]'
 
 			# Removes autocomplete at runtime
 			sudo sed -zi 's|true|false|7' "${f[REPL]}"
@@ -2641,7 +2700,7 @@ invoca_funcoes() {
         # START APPLETS STUFFS
         if [[ ! -e "${f[capslock]}" ]]; then
 
-            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
                 && sudo mkdir --parents "${d[0]}" > "${u[null]}" \
                 && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
@@ -2654,9 +2713,12 @@ invoca_funcoes() {
             && sudo rm --force "${f[capslock]}" # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
+        [[ ! -e "${f[numlock]}" ]] \
+            && sudo tee "${u[numlock]}" > "${u[null]}" <<< '[Greeter]
+activate-numlock=true'
+
         [[ $(grep --no-messages false "${f[numlock]}") ]] \
             && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
-
 
         dconf write "${f[paste]}" "'<Ctrl>v'"
 
