@@ -73,16 +73,29 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-m=(
-    'oh-my-bash'  # 0
+m+=(
+    'google-chrome-stable'  # 0
+    'libappindicator1'  # 1
+    'libindicator7'  # 2
+    'libxss1'  # 3
 )
 
-#show "${c[RED]}=======================================================" 1
-#show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+show "${c[RED]}=======================================================" 1
+show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
+# systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
+# tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
 
-l=(
-    'http://servidor.utech.com.br/softphone/uTechSoftphone.bin'
+# sudo rm --force --recursive ~/Downloads/PanGPLinux.tgz
+
+# sudo dpkg -i /tmp/GlobalProtect_deb-* &> /dev/null
+
+#GlobalProtect_deb-5.0.8.0-6.deb
+#GlobalProtect_deb_arm-5.0.8.0-6.deb
+
+: 'l=(
+    http://servidor.utech.com.br/softphone/uTechSoftphone.bin
+    https://fullerton-it-network-public.s3-us-west-2.amazonaws.com/PanGPLinux.tgz
 )
 
 declare -A f=(
@@ -91,7 +104,7 @@ declare -A f=(
 
 curl --silent --output "${f[bin]}" --create-dirs "${l[0]}"
 
-sudo rm -rf ~/desktop/uTechSoftphone.desktop
+sudo rm -rf ~/desktop/uTechSoftphone.desktop '
 
 
 : ' ~/.config/uTechSoftphone/contacts.json
