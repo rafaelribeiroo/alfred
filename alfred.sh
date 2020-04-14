@@ -1060,9 +1060,13 @@ x-scheme-handler/about=google-chrome.desktop
 x-scheme-handler/unknown=google-chrome.desktop
 x-scheme-handler/mailto=google-chrome.desktop'
 
+    # Nomenclature icon arrangement
     [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
-        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",|g' "${d[0]}"/*.json \
-        && sudo sed -zi 's|"firefox.desktop",|"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|2' "${d[0]}"/*.json
+        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
+        && sudo sed -i '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
 
     unset d f l m
 
