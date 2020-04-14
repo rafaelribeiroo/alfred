@@ -191,12 +191,18 @@ check_pkg() {
 #======================#
 check_source() {
 
-    [[ ${BASH_SOURCE[0]} -ef "${0}" ]] \
-        && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" \
-        && exit \
-        || clear \
-        && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n" \
-        && clear && menu
+    # If script is not being sourced
+    if [[ ${BASH_SOURCE[0]} -ef $0 ]]; then
+
+        show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" 1 && exit
+
+    else
+
+        clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
+
+        clear && menu
+
+    fi
 
 }
 #======================#
@@ -2900,4 +2906,4 @@ menu() {
 }
 #======================#
 
-menu
+check_source
