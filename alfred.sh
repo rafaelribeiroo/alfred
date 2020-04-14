@@ -10,8 +10,6 @@
 #==========TRY=========#
 # find . -type d -name '.git' | while read dir ; do sh -c "cd $dir/../ && echo -e \"\nGIT STATUS IN ${dir//\.git/}\" && git status -s" ; done
 # Se não aparecer imagens nos arquivos de música
-# rm -rf ~/.cache/thumbnails/fail*
-# sudo apt install -y xplayer
 #======================#
 
 #======================#
@@ -43,6 +41,7 @@ random=$(shuf -i 0-$((${#name[@]}-1)) -n 1)
 declare -A c=(
     [WHITE]='\033[1;37m'
     [RED]='\033[31;1m'
+    [RED-BLINK]='\033[31;1;5m'
     [GREEN]='\033[1;32m'
     [YELLOW]='\033[1;33m'
     [CYAN]='\033[1;36m'
@@ -193,11 +192,11 @@ check_pkg() {
 check_source() {
 
     [[ ${BASH_SOURCE[0]} -ef "${0}" ]] \
-        && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" 1 \
+        && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" \
         && exit \
         || clear \
         && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n" \
-        && clear; menu
+        && clear && menu
 
 }
 #======================#
@@ -517,6 +516,7 @@ deezloader_stuffs() {
     m+=(
         'deezloader'  # 0
         'megatools'  # 1
+        # If preview not show, try run: rm -rf ~/.cache/thumbnails/fail*
         'xplayer'  # 2
     )
 
@@ -1289,7 +1289,7 @@ heroku_stuffs() {
         'heroku'  # 0
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1329,8 +1329,7 @@ heroku_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
@@ -1348,12 +1347,12 @@ heroku_stuffs() {
 
     		echo && heroku login -i
 
-            for (( ; ; )); do
+            # https://devcenter.heroku.com/articles/heroku-cli#login-issues
+            while [[ ! -e "${f[auth]}" ]]; do
 
-                # https://devcenter.heroku.com/articles/heroku-cli#login-issues
-                [[ -e "${f[auth]}" ]] && break \
-                    || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" 1 \
-                    && heroku login -i
+                show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" 1
+
+                heroku login -i
 
             done
 
@@ -2677,7 +2676,7 @@ invoca_funcoes() {
         5|05) chrome_stuffs && retorna_menu ;;
         6|06) conky_stuffs && retorna_menu ;;
         7|07) flameshot_stuffs && retorna_menu ;;
-        8|08) heroku_stuffs 1 && retorna_menu ;;
+        8|08) heroku_stuffs && retorna_menu ;;
         9|09) hide_devices 1 && retorna_menu ;;
         10) minidlna_stuffs 1 && retorna_menu ;;
         11) nvidia_stuffs 1 && retorna_menu ;;
