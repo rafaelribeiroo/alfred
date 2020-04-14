@@ -948,7 +948,7 @@ github_stuffs() {
 
         [[ \
             $(cat "${u[public_ssh]}" | awk '{print $2}') != \
-            $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | sed 's/.$//' | awk '{print $2}') \
+            $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
         ]] \
             && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
             && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
