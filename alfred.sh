@@ -1128,8 +1128,7 @@ conky_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" && echo
 
@@ -1169,9 +1168,9 @@ flameshot_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1207,8 +1206,7 @@ flameshot_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" && echo
 
@@ -1216,18 +1214,43 @@ flameshot_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    dconf write "${f[screenshot]}" "[]"
+    if [[ $(dconf read "${f[screenshot]}" 2>&-) != "['']" ]]; then
 
-    # -F: field-separator to cut
-    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')'"
+        dconf write "${f[screenshot]}" "['']"
 
-    dconf write "${f[bdg]}" "['Print']"
+        # -F: field-separator to cut
+        dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')'"
 
-    dconf write "${f[name]}" "'Flameshot'"
+        dconf write "${f[bdg]}" "['Print']"
 
-    dconf write "${f[custom]}" "['screenshot']"
+        dconf write "${f[name]}" "'Flameshot'"
 
-    sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x1\\0\\0\\0\\n)|g' "${f[config]}"
+        dconf write "${f[custom]}" "['screenshot']"
+
+    fi
+
+    for (( ; ; )); do
+
+        [[ ! -e "${f[config]}" ]] \
+            && flameshot full -p /tmp/ \
+            && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..." \
+            || break
+
+    done
+
+    # If these instructions below stay in for, don't works
+    sudo pkill flameshot
+
+    take_a_break
+
+    [[ ! $(grep --no-messages disabledTrayIcon "${f[config]}") ]] \
+        && sudo tee "${f[config]}" > "${u[null]}" <<< "[General]
+buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
+contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
+disabledTrayIcon=true
+drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
+drawThickness=0
+savePath=~/$(cat ${u[user_dirs]} | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')/"
 
     [[ ! $(grep --no-messages flameshot "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${u[null]}" <<< '[Desktop Entry]
@@ -2652,8 +2675,8 @@ invoca_funcoes() {
         3|03) dualmonitor_stuffs && retorna_menu ;;
         4|04) github_stuffs && retorna_menu ;;
         5|05) chrome_stuffs && retorna_menu ;;
-        6|06) conky_stuffs 1 && retorna_menu ;;
-        7|07) flameshot_stuffs 1 && retorna_menu ;;
+        6|06) conky_stuffs && retorna_menu ;;
+        7|07) flameshot_stuffs && retorna_menu ;;
         8|08) heroku_stuffs 1 && retorna_menu ;;
         9|09) hide_devices 1 && retorna_menu ;;
         10) minidlna_stuffs 1 && retorna_menu ;;
