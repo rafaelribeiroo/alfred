@@ -73,7 +73,7 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-show "${c[RED]}=======================================================" 1
+# show "${c[RED]}=======================================================" 1
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
