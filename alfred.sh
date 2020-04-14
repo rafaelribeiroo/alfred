@@ -950,7 +950,7 @@ github_stuffs() {
             $(cat "${u[public_ssh]}" | awk '{print $2}') != \
             $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
         ]] \
-            && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
+            && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
             && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
             && curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}" \
             && echo
@@ -1090,7 +1090,7 @@ conky_stuffs() {
         'conky'  # 0
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
 
@@ -1131,7 +1131,7 @@ conky_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}"
+        install_packages "${m[0]}" && echo
 
     fi
 
