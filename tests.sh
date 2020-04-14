@@ -73,15 +73,7 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-m+=(
-    'google-chrome-stable'  # 0
-    'libappindicator1'  # 1
-    'libindicator7'  # 2
-    'libxss1'  # 3
-)
-
 show "${c[RED]}=======================================================" 1
-show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
