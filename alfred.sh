@@ -66,7 +66,7 @@ e=(
     $'\360\237\214\211'  #  3 (paisagem): dualmonitor
     $'\360\237\220\231'  #  4 (polvo): git
     $'\360\237\214\215'  #  5 (globo): chrome
-    $'\360\237\223\266'  #  6 (gráfico): conky
+    $'\360\237\223\267'  #  6 (câmera): flameshot
     $'\360\237\232\200'  #  7 (foguete): heroku
     $'\360\237\231\210'  #  8 (macaco vendado): hide devices
     $'\360\237\215\277'  #  9 (pipoca): minidlna
@@ -82,7 +82,6 @@ e=(
     $'\360\237\224\245'  # 19 (fogo): some men...
     $'\360\237\231\212'  # 20 (macaco calado): password
     $'\360\237\246\207'  # 21 (morcego): why do we fall...
-    $'\360\237\223\267'  # 22 (câmera): flameshot
 )
 
 # usefull files
@@ -1071,77 +1070,6 @@ x-scheme-handler/mailto=google-chrome.desktop'
         && sudo sed -zi 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
 
     unset d f l m
-
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-}
-#======================#
-
-#======================#
-conky_stuffs() {
-
-    f+=(
-        [conkyrc]=~/.conkyrc
-    )
-
-    l+=(
-        'https://gist.githubusercontent.com/rafaelribeiroo/81304bc07c7316ba841eacc90caf0564/raw/fa4ee571127b99d38fa93c9f7e0e4288edffd2b0/My%2520conkyrc%2520configs'  # 0
-    )
-
-    m+=(
-        'conky'  # 0
-    )
-
-    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
-
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
-
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
-
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
-
-                sudo rm --force "${f[conkyrc]}"
-
-                remove_useless
-
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-                retorna_menu && break
-
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                echo && break
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    else
-
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
-
-        install_packages "${m[0]}" && echo
-
-    fi
-
-    show "INITIALIZING CONFIGS..."
-
-    [[ ! -e "${f[conkyrc]}" ]] \
-        && curl --silent --output "${f[conkyrc]}" --create-dirs "${l[0]}"
-
-    unset f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2676,21 +2604,20 @@ invoca_funcoes() {
         3|03) dualmonitor_stuffs && retorna_menu ;;
         4|04) github_stuffs && retorna_menu ;;
         5|05) chrome_stuffs && retorna_menu ;;
-        6|06) conky_stuffs && retorna_menu ;;
-        7|07) flameshot_stuffs && retorna_menu ;;
-        8|08) heroku_stuffs && retorna_menu ;;
-        9|09) hide_devices 1 && retorna_menu ;;
-        10) minidlna_stuffs 1 && retorna_menu ;;
-        11) nvidia_stuffs 1 && retorna_menu ;;
-        12) postgres_stuffs 1 && retorna_menu ;;
-        13) py_libraries 1 && retorna_menu ;;
-        14) upgrade_py 1 && retorna_menu ;;
-        15) sublime_stuffs 1 && retorna_menu ;;
-        16) upgrade && retorna_menu ;;
-        17) tmate_stuffs 1 && retorna_menu ;;
-        18) usefull_pkgs 1 && retorna_menu ;;
-        19) workspace_stuffs 1 && retorna_menu ;;
-        20) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
+        6|06) flameshot_stuffs && retorna_menu ;;
+        7|07) heroku_stuffs && retorna_menu ;;
+        8|08) hide_devices 1 && retorna_menu ;;
+        9|09) minidlna_stuffs 1 && retorna_menu ;;
+        10) nvidia_stuffs 1 && retorna_menu ;;
+        11) postgres_stuffs 1 && retorna_menu ;;
+        12) py_libraries 1 && retorna_menu ;;
+        13) upgrade_py 1 && retorna_menu ;;
+        14) sublime_stuffs 1 && retorna_menu ;;
+        15) upgrade && retorna_menu ;;
+        16) tmate_stuffs 1 && retorna_menu ;;
+        17) usefull_pkgs 1 && retorna_menu ;;
+        18) workspace_stuffs 1 && retorna_menu ;;
+        19) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
         d+=(
             ~/.local/share/cinnamon/applets  # 0
@@ -2788,7 +2715,6 @@ activate-numlock=true'
         dualmonitor_stuffs
         github_stuffs
         chrome_stuffs
-        conky_stuffs
         flameshot_stuffs
         heroku_stuffs
         hide_devices
@@ -2868,21 +2794,20 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" 1
         sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
         sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" 1
-        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}CONKY ${e[6]}" 1
-        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}FLAMESHOT ${e[22]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HEROKU ${e[7]}" 1
-        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[8]}" 1
-        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}MINIDLNA ${e[9]}" 1
-        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}NVIDIA DRIVER ${e[10]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}POSTGRES ${e[11]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[13]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}SYSTEM UPGRADE ${e[14]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[15]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[18]}" 1
+        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}FLAMESHOT ${e[6]}" 1
+        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}HEROKU ${e[7]}" 1
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[8]}" 1
+        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}MINIDLNA ${e[9]}" 1
+        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}NVIDIA DRIVER ${e[10]}" 1
+        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}POSTGRES ${e[11]}" 1
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}SUBLIME TEXT ${e[13]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SYSTEM UPGRADE ${e[14]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}TMATE ${e[15]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}ALL ${e[18]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' escolha
