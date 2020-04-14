@@ -241,15 +241,11 @@ show() {
 #======================#
 install_packages() {
 
-    # $@: Truque para "desempacotar" todos os valores recebidos, tipo PY
+    # $@: Trick to unpack all received values
     for package in "$@"; do
 
     	if check_pkg "${package}"; then
 
-            # Por que não colocar as inúmeras validações se o pacote já existe
-            # e se o usuário deseja desinstalar aqui pra economizar linha?
-            # Porque se for várias dependências, ele vai perguntar uma a uma
-            # ao invés de desinstalar o conjunto como um todo.
             echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
         else
