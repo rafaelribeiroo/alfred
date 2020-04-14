@@ -432,8 +432,7 @@ bash_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_packages "${m[1]}" "${m[2]}"
 
@@ -502,7 +501,7 @@ deezloader_stuffs() {
     d+=(
         ~/Deezloader\ Music  # 0
         ~/.config/Deezloader\ Remix  # 1
-        ~/$(cat "${u[user_dirs]}" | awk -F/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
+        ~/$(cat "${u[user_dirs]}" | awk --field-separator=/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
     )
 
     l+=(
@@ -559,8 +558,7 @@ deezloader_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_packages "${m[1]}" "${m[2]}"
 
@@ -673,9 +671,11 @@ dualmonitor_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dconf read "${f[option]}") = "'spanned'" ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+        && $(dconf read "${f[option]}" 2>&-) = "'spanned'" ]]; then
+        # 2>&- if dconf not installed
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -715,8 +715,7 @@ dualmonitor_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[1]}" && echo
 
@@ -831,7 +830,8 @@ github_stuffs() {
         'jq'  # 3
     )
 
-    if [[ $(dpkg -l | awk "/ii  ${m[2]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -874,8 +874,7 @@ github_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
 
@@ -976,7 +975,8 @@ chrome_stuffs() {
     )
 
     f+=(
-        [file]=~/$(cat "${u[user_dirs]}" | awk -F/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [file]=~/$(cat "${u[user_dirs]}" | awk --field-separator=/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [garbage]=/etc/default/google-chrome
     )
 
     l+=(
@@ -984,15 +984,15 @@ chrome_stuffs() {
     )
 
     m+=(
-        'google-chrome'  # 0
+        'google-chrome-stable'  # 0
         'libappindicator1'  # 1
         'libindicator7'  # 2
         'libxss1'  # 3
     )
 
-	if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1002,11 +1002,14 @@ chrome_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                # Only libappindicator1 doesn't come default in debian distros
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" &> "${u[null]}"
 
                 sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${u[mimeapps]}"
 
                 sudo sed -i '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
+
+                sudo rm --force "${f[garbage]}"
 
                 remove_useless
 
@@ -1030,8 +1033,7 @@ chrome_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependências
         install_packages "${m[1]}" "${m[2]}" "${m[3]}"
@@ -1213,7 +1215,7 @@ flameshot_stuffs() {
     dconf write "${f[screenshot]}" "[]"
 
     # -F: field-separator to cut
-    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | awk -F/ '/PICTURES/ {print $2}' | sed 's|"||')'"
+    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')'"
 
     dconf write "${f[bdg]}" "['Print']"
 
@@ -1455,7 +1457,7 @@ hide_devices() {  # Okzão
 minidlna_stuffs() {
 
     d+=(
-        ~/$(cat "${u[user_dirs]}" | awk -F/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
+        ~/$(cat "${u[user_dirs]}" | awk --field-separator=/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
     )
 
     f+=(
@@ -2641,11 +2643,11 @@ invoca_funcoes() {
     case "${escolha}" in
 
         0|00) encerra_menu > "${u[null]}" ;;
-        1|01) bash_stuffs 1 && retorna_menu ;;
-        2|02) deezloader_stuffs 1 && retorna_menu ;;
-        3|03) dualmonitor_stuffs 1 && retorna_menu ;;
-        4|04) github_stuffs 1 && retorna_menu ;;
-        5|05) chrome_stuffs 1 && retorna_menu ;;
+        1|01) bash_stuffs && retorna_menu ;;
+        2|02) deezloader_stuffs && retorna_menu ;;
+        3|03) dualmonitor_stuffs && retorna_menu ;;
+        4|04) github_stuffs && retorna_menu ;;
+        5|05) chrome_stuffs && retorna_menu ;;
         6|06) conky_stuffs 1 && retorna_menu ;;
         7|07) flameshot_stuffs 1 && retorna_menu ;;
         8|08) heroku_stuffs 1 && retorna_menu ;;
@@ -2753,27 +2755,25 @@ activate-numlock=true'
 
         unset d f l m
 
-        echo; show "\n\t  ${c[CYAN]}WE'RE GOING TO BASH COLORFULL"
-
-        bash_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO DEEZLOADER"
-        deezloader_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HYDRAPAPER"
-        dualmonitor_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO GITHUB"
-        github_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CHROME"
-        chrome_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CONKY"
-        conky_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FLAMESHOT"
-        flameshot_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HEROKU"
-        heroku_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HIDE SOME DEVICES"
-        hide_devices; show "\n\t  ${c[CYAN]}WE'RE GOING TO MINIDLNA"
-        minidlna_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO NVIDIA"
-        nvidia_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO POSTGRES"
-        postgres_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO PYTHON LIBRARIES"
-        py_libraries; show "\n\t  ${c[CYAN]}WE'RE GOING TO PYTHON UPGRADE"
-        upgrade_py; show "\n\t  ${c[CYAN]}WE'RE GOING TO SUBLIME"
-        sublime_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO UPGRADE THE SYSTEM"
-        upgrade; show "\n\t  ${c[CYAN]}WE'RE GOING TO TMATE"
-        tmate_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO USEFULL PACKAGES"
-        usefull_pkgs; show "\n\t  ${c[CYAN]}WE'RE GOING TO WORKSPACE"
-        workspace_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FINISH THIS SHIT"
+        bash_stuffs
+        deezloader_stuffs
+        dualmonitor_stuffs
+        github_stuffs
+        chrome_stuffs
+        conky_stuffs
+        flameshot_stuffs
+        heroku_stuffs
+        hide_devices
+        minidlna_stuffs
+        nvidia_stuffs
+        postgres_stuffs
+        py_libraries
+        upgrade_py
+        sublime_stuffs
+        upgrade
+        tmate_stuffs
+        usefull_pkgs
+        workspace_stuffs
 
         echo; show "INITIALIZING CONFIGS..."; echo
         sudo tee "${u[mimeapps]}" > "${u[null]}" <<< '[Default Applications]
