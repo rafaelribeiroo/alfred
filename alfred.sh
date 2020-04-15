@@ -1317,7 +1317,7 @@ hide_devices() {
     )
 
     f+=(
-        [hide_rules]=/etc/udev/rules.d/99-hide-disks.rules
+        [config]=/etc/udev/rules.d/99-hide-disks.rules
     )
 
     m+=(
@@ -1328,16 +1328,14 @@ hide_devices() {
 
     if [[ -z "${check_devices}" ]]; then
 
-        [[ "${1}" -eq 1 ]] \
-            && show "\n  THERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!" \
-            || show "\nTHERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!"
+        show "\n  THERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!"
 
         retorna_menu
 
     else
 
         # --no-messages hide if file don't exists
-        if [[ $(grep --no-messages ID_FS_UUID "${f[hide_rules]}") ]]; then
+        if [[ $(grep --no-messages ID_FS_UUID "${f[config]}") ]]; then
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n"
 
@@ -1349,7 +1347,7 @@ hide_devices() {
 
                     show "\n${c[RED]}S${c[WHITE]}HOWING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                    sudo rm --force "${f[hide_rules]}"
+                    sudo rm --force "${f[config]}"
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1371,9 +1369,7 @@ hide_devices() {
 
         else
 
-            [[ "${1}" -eq 1 ]] \
-                && show "${c[GREEN]}\n\t\t     H${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-                || show "${c[GREEN]}\nH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+            show "${c[GREEN]}\n\t\tH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} WINDOWS ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
 
             for device in "${check_devices}"; do
 
@@ -1385,10 +1381,9 @@ hide_devices() {
                 && mkdir -p "${d[0]}" > "${u[null]}" \
                 && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
-            # Na quantidade de itens em uma lista ele começa do 1
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
 
-                tee -a "${f[hide_rules]}" > "${u[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
+                tee -a "${f[config]}" > "${u[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
 
@@ -2606,7 +2601,7 @@ invoca_funcoes() {
         5|05) chrome_stuffs && retorna_menu ;;
         6|06) flameshot_stuffs && retorna_menu ;;
         7|07) heroku_stuffs && retorna_menu ;;
-        8|08) hide_devices 1 && retorna_menu ;;
+        8|08) hide_devices && retorna_menu ;;
         9|09) minidlna_stuffs 1 && retorna_menu ;;
         10) nvidia_stuffs 1 && retorna_menu ;;
         11) postgres_stuffs 1 && retorna_menu ;;
