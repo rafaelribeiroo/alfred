@@ -74,11 +74,10 @@ declare -A u=(
 )
 
 m+=(
-    'devices'  # 0
+    'nvidia-driver'  # 0
 )
 
-show "${c[RED]}=======================================================" 1
-show "${c[GREEN]}\n\t\tH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} WINDOWS ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+apt version "${m[0]}-"*
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
