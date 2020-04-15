@@ -73,11 +73,12 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-m+=(
-    'nvidia-driver'  # 0
+l+=(
+    'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
+    'https://www.postgresql.org/download/linux/ubuntu/'  # 1
 )
 
-apt version "${m[0]}-"*
+sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${u[null]}"
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
