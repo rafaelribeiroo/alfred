@@ -1670,8 +1670,12 @@ alias lbm-nouveau off'
 #======================#
 postgres_stuffs() {
 
+    d+=(
+        /etc/postgresql/  # 0
+    )
+
     f+=(
-        [postgres_ppa]=/etc/apt/sources.list.d/pgdg.list
+        [ppa]=/etc/apt/sources.list.d/pgdg.list
         [config]=/etc/postgresql/11/main/postgresql.conf
         [postgres_hba]=/etc/postgresql/11/main/pg_hba.conf
     )
@@ -1692,9 +1696,9 @@ postgres_stuffs() {
     # Wait postgresql upgrade from 11 to (12??) to check how we gonna do
     # latest=$(curl --silent "${l[1]}" | grep 'scope="row"' | head -1 | awk --field-separator=- '{print $3}' | sed 's|</th>||')
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1706,7 +1710,9 @@ postgres_stuffs() {
 
                 sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${u[null]}"
 
+                sudo rm --force "${f[ppa]}"
 
+                sudo rm --force --recursive "${d[0]}"
 
                 remove_useless
 
@@ -1730,17 +1736,15 @@ postgres_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${u[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
 
-        # Apontando o host do postgres no sources.list
-    	[[ ! $(grep --no-messages bionic-pgdg "${f[postgres_ppa]}") ]] \
-    		&& sudo tee "${f[postgres_ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
+    	[[ ! $(grep --no-messages bionic-pgdg "${f[ppa]}") ]] \
+    		&& sudo tee "${f[ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" && echo
@@ -1751,28 +1755,30 @@ postgres_stuffs() {
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    # Usuário: Acesso ao console
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-            read -p $'\033[1;37m\nENTER THE USER: \033[m' user
+            read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
 
-            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep --extended-regexp "registro" | awk '{print $1}' | sed 's|(||') -eq 1 ]] \
-                && show "USER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. BREAKING." \
+            # If user don't type anything, create same user of machine
+            [[ "${user}" = '' ]] && user="${USER}"
+
+            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+                && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
             password=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
-            sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'"
+            sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${u[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'" &> "${u[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'" &> "${u[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${u[null]}"
 
             break
 
@@ -1790,25 +1796,22 @@ postgres_stuffs() {
 
     done
 
-    : ' If you want more security, uncoment code below.
-    # We could give permission for "${USER}" to read the file below or run with sudo
-    if [[ ! $(sudo grep --no-messages "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
+    if [[ ! $(sudo grep --no-messages 'local   all             postgres                                md5' "${f[postgres_hba]}") ]]; then
 
-        # Antes de alterar a criptografia do postgres, devemos criar uma senha
-        password=$("${u[askpass]}" $"\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m")  # Change $"..." to $'...'
+        # Before change cryptography, we need add a password for postgres
+        password=$("${u[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
 
-        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD QUOTE_SINGLE${password}QUOTE_SINGLE" &> "${u[null]}"
+        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${u[null]}"
 
         sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
 
-    fi'
+    fi
 
-	# Verifica status do postgres
     [[ $(systemctl is-active postgresql.service) = 'active' ]] \
         && sudo service postgresql restart \
         || sudo service postgresql start
 
-    unset f l m
+    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2625,7 +2628,7 @@ invoca_funcoes() {
         8|08) hide_devices && retorna_menu ;;
         9|09) minidlna_stuffs && retorna_menu ;;
         10) nvidia_stuffs && retorna_menu ;;
-        11) postgres_stuffs 1 && retorna_menu ;;
+        11) postgres_stuffs && retorna_menu ;;
         12) py_libraries 1 && retorna_menu ;;
         13) upgrade_py 1 && retorna_menu ;;
         14) sublime_stuffs 1 && retorna_menu ;;
