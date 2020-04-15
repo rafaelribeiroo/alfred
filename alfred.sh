@@ -881,7 +881,7 @@ github_stuffs() {
 
     fi
 
-    show "INITIALIZING CONFIGS..." 1
+    show "INITIALIZING CONFIGS..."
 
     # Any changes pushed to GitHub, BitBucket, GitLab or another Git host
     # server in a later lesson will include this information.
@@ -1267,7 +1267,7 @@ heroku_stuffs() {
 
     fi
 
-    show "INITIALIZING CONFIGS..." 1
+    show "INITIALIZING CONFIGS..."
 
 	echo; read -p $'\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
 
@@ -1337,7 +1337,7 @@ hide_devices() {
         # --no-messages hide if file don't exists
         if [[ $(grep --no-messages ID_FS_UUID "${f[config]}") ]]; then
 
-            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n"
+            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n" 1
 
             read -p $'\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
 
@@ -1420,9 +1420,9 @@ minidlna_stuffs() {
         'minidlna'  # 0
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1458,10 +1458,9 @@ minidlna_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}"
+        install_packages "${m[0]}" && echo
 
     fi
 
@@ -1497,7 +1496,7 @@ minidlna_stuffs() {
 
     unset d f m
 
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -2602,7 +2601,7 @@ invoca_funcoes() {
         6|06) flameshot_stuffs && retorna_menu ;;
         7|07) heroku_stuffs && retorna_menu ;;
         8|08) hide_devices && retorna_menu ;;
-        9|09) minidlna_stuffs 1 && retorna_menu ;;
+        9|09) minidlna_stuffs && retorna_menu ;;
         10) nvidia_stuffs 1 && retorna_menu ;;
         11) postgres_stuffs 1 && retorna_menu ;;
         12) py_libraries 1 && retorna_menu ;;
