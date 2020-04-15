@@ -1310,7 +1310,7 @@ heroku_stuffs() {
 #======================#
 
 #======================#
-hide_devices() {  # Okzão
+hide_devices() {
 
     d+=(
         /etc/udev/rules.d  # 0
