@@ -1369,7 +1369,7 @@ hide_devices() {
 
         else
 
-            show "${c[GREEN]}\n\t\tH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} WINDOWS ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+            show "${c[GREEN]}\n\t\tH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} WINDOWS ${c[GREEN]}${m[0]^^}${c[WHITE]}!" 1
 
             for device in "${check_devices}"; do
 
@@ -1505,10 +1505,9 @@ minidlna_stuffs() {
 nvidia_stuffs() {
 
     # The nouveau driver comes by default once linux is installed, but not
-    # extract all resources as nvidia driver (only father knows the kid haha)
-
+    # extract all resources as nvidia driver (only father knows the kid)
     f+=(
-        [hide_driver]=/etc/modprobe.d/blacklist-nouveau.conf
+        [config]=/etc/modprobe.d/blacklist-nouveau.conf
     )
 
     l+=(
@@ -1518,6 +1517,7 @@ nvidia_stuffs() {
     m+=(
         'nvidia-driver'  # 0
         'nouveau-driver'  # 1
+        'nvidia-settings'  # 2
     )
 
     latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | sed 's| ||g')
@@ -1526,23 +1526,20 @@ nvidia_stuffs() {
     # -class: Show reduced data
     check_nvidia_existence=$(sudo lshw -class display | grep --extended-regexp "fabricante|vendor" | awk '{print $2}')
 
-    if [[ "${check_nvidia_existence}" != "NVIDIA" ]]; then
+    if [[ "${check_nvidia_existence}" != 'NVIDIA' ]]; then
 
-        [[ "${1}" -eq 1 ]] \
-            && show "\n\tTHERE'S NO NVIDIA CARD IN YOUR MACHINE!" \
-            || show "\nTHERE'S NO NVIDIA CARD IN YOUR MACHINE!"
+        show "\n\tTHERE'S NO NVIDIA CARD IN YOUR MACHINE!"
 
         retorna_menu
 
     else
 
-        # Identifica qual o driver está sendo utilizado no momento.
-        # nouveau: o padrão/nvidia_drm: terceiros.
+        # Identify actual driver.
         check_driver=$(lsmod | grep drm_kms_helper | head -1 | awk '{print $4}')
 
         if [[ "${check_driver%%_drm}" = "nvidia" ]]; then
 
-            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
             read -p $'\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
 
@@ -1555,8 +1552,35 @@ nvidia_stuffs() {
                     [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
                         && sudo add-apt-repository --remove -y ppa:graphics-drivers/ppa &> "${u[null]}"
 
+                    sudo apt remove --purge -y "${m[0]}-"* &> "${u[null]}"
 
+                    sudo rm --force "${f[config]}"
 
+                    sudo update-initramfs -u > "${u[null]}"
+
+                    echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+                    for (( ; ; )); do
+
+                        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                            reboot
+
+                        elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                            echo && break
+
+                        else
+
+                            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                            read option
+
+                        fi
+
+                    done
+
+                    remove_useless
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1578,14 +1602,13 @@ nvidia_stuffs() {
 
         else
 
-            [[ "${1}" -eq 1 ]] \
-                && show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+            show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
                 && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}" \
                 && update
 
-            install_packages "${m[0]}-${latest}"
+            install_packages "${m[0]}-${latest}" "${m[2]}" && echo
 
         fi
 
@@ -1593,9 +1616,9 @@ nvidia_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    if [[ ! $(grep --no-messages "nouveau" "${f[hide_driver]}") ]]; then
+    if [[ ! $(grep --no-messages nouveau "${f[config]}") ]]; then
 
-        sudo tee "${f[hide_driver]}" > "${u[null]}" <<< 'blacklist nouveau
+        sudo tee "${f[config]}" > "${u[null]}" <<< 'blacklist nouveau
 blacklist lbm-nouveau
 alias nouveau off
 alias lbm-nouveau off'
@@ -1612,7 +1635,7 @@ alias lbm-nouveau off'
 
     		elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-                echo && break
+                break
 
     	    else
 
@@ -1626,13 +1649,12 @@ alias lbm-nouveau off'
 
     fi
 
-    local=$(apt version "${m[0]}-*")
+    local=$(apt version "${m[0]}-"*)
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
         [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
             && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}"
-
 
         update && install_packages "${m[0]}-${latest}"
 
@@ -1640,7 +1662,7 @@ alias lbm-nouveau off'
 
     unset f l m
 
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -2602,7 +2624,7 @@ invoca_funcoes() {
         7|07) heroku_stuffs && retorna_menu ;;
         8|08) hide_devices && retorna_menu ;;
         9|09) minidlna_stuffs && retorna_menu ;;
-        10) nvidia_stuffs 1 && retorna_menu ;;
+        10) nvidia_stuffs && retorna_menu ;;
         11) postgres_stuffs 1 && retorna_menu ;;
         12) py_libraries 1 && retorna_menu ;;
         13) upgrade_py 1 && retorna_menu ;;
