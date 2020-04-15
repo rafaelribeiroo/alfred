@@ -1741,7 +1741,7 @@ postgres_stuffs() {
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${u[null]}" | grep PostgreSQL) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
+            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${u[null]}"
 
     	[[ ! $(grep --no-messages bionic-pgdg "${f[ppa]}") ]] \
     		&& sudo tee "${f[ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
@@ -2084,7 +2084,7 @@ sublime_stuffs() {
 		# 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
 		[[ ! $(sudo apt-key list 2> "${u[null]}" | grep Sublime) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
+            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${u[null]}"
 
         # Dependências
         install_packages "${m[1]}"
