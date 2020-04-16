@@ -1832,15 +1832,11 @@ py_libraries() {
         'libraries py'  # 3
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg -l | awk "/${m[2]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+        && $(dpkg -l | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+        && $(dpkg -l | awk "/ii  ${m[2]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        for package in "${m[@]}"; do
-
-            show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
-
-        done
+        show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" 1
 
         read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -1851,9 +1847,6 @@ py_libraries() {
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]} AND ${c[RED]}${m[2]^^}${c[WHITE]}!\n"
 
                 sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" &> "${u[null]}"
-
-
-
 
                 remove_useless
 
@@ -1877,8 +1870,7 @@ py_libraries() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[3]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
 
@@ -1891,7 +1883,7 @@ py_libraries() {
     latest=$(curl --silent "${l[0]}" | grep --no-messages -2 _le | tail -1  | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && pip install -U pip
+        && pip install --quiet --upgrade pip
 
     unset l m
 
@@ -1927,15 +1919,20 @@ upgrade_py() {
         'libbz2-dev'  # 9
         'libssl-dev'  # 10
         'libffi-dev'  # 11
+        'and'  # 12
     )
 
-    local=$(apt version "${m[1]}")
+    # apt version python don't works, because it shows only packages added by
+    # apt and pyenv download/install packages from curl
+    local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
-    if ( $(dpkg --compare-versions "${local_python}" eq "${latest_python}") ); then
+    install_packages "${m[1]}"
 
-        escreva "\n${c[VERDE]}${m[1]^^} ${c[BRANCO]}${lineu:${#m[1]}} [UPGRADED]\n"
+    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+
+        show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${lineu:${#m[12]}} [UPGRADED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
 
@@ -1943,7 +1940,9 @@ upgrade_py() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                escreva "\n${c[VERMELHO]}R${c[BRANCO]}ESETING ${c[VERMELHO]}${m[1]^^}${c[BRANCO]}!\n"
+                show "\n${c[VERMELHO]}R${c[WHITE]}ESETING ${c[VERMELHO]}${m[1]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge -y "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${u[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -1951,7 +1950,9 @@ upgrade_py() {
 
                 source "${u[bashrc]}"
 
-                escreva "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 retorna_menu && break
 
@@ -1961,7 +1962,7 @@ upgrade_py() {
 
             else
 
-                echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[BRANCO]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[BRANCO]}[Y/N] R: "${c[FIM]}
+                echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[WHITE]}[Y/N] R: "${c[FIM]}
 
                 read option
 
@@ -1971,11 +1972,10 @@ upgrade_py() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
-        echo && install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
+        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
         [[ ! -d "${d[0]}" ]] \
             && show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]" \
@@ -1995,14 +1995,14 @@ eval "$(pyenv virtualenv-init -)"' \
         && source "${u[bashrc]}"
 
     # pyenv versions
-    # pyenv install --list
+    # pyenv install --list | grep " 3\.[678]"
     [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${u[null]}"
 
     pyenv global "${latest}" > "${u[null]}"
 
     unset l d m
 
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -2042,9 +2042,9 @@ sublime_stuffs() {
         'apt-transport-https'  # 1
     )
 
-	if [[ $(dpkg -l | awk "/${m[0]}/" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2055,6 +2055,8 @@ sublime_stuffs() {
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+
+                sudo rm --force --recursive "${d[0]}"
 
                 remove_useless
 
@@ -2078,8 +2080,7 @@ sublime_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
 		# 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -2099,12 +2100,17 @@ sublime_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${d[0]}" ]] \
-        && show "\nOPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..." \
-        && ( nohup subl & ) &> "${u[null]}" \
-        && sleep 15s \
-        && sudo pkill subl
+    while [[ ! -e "${d[0]}" ]]; do 
 
+        show "\nOPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        
+        ( nohup subl & ) &> "${u[null]}"
+        
+        sleep 10s
+        
+        sudo pkill subl
+
+    done
 
     # hexed.it: get position and convert to decimal, put in seek
     # Change executable binary sequence
@@ -2112,7 +2118,7 @@ sublime_stuffs() {
         && sudo pkill subl \
         && printf '\00\00\00' | sudo dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
 
-    # Inserindo a chave do produto
+    # Adding license key
     [[ ! $(grep --no-messages Member "${f[license]}") ]] \
         && sudo tee "${f[license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
 Member J2TeaM
@@ -2145,7 +2151,6 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
         && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
-
 
     [[ ! $(grep --no-messages rulers "${f[config]}") ]] \
         && sudo tee "${f[config]}" > "${u[null]}" <<< '{
@@ -2629,9 +2634,9 @@ invoca_funcoes() {
         9|09) minidlna_stuffs && retorna_menu ;;
         10) nvidia_stuffs && retorna_menu ;;
         11) postgres_stuffs && retorna_menu ;;
-        12) py_libraries 1 && retorna_menu ;;
-        13) upgrade_py 1 && retorna_menu ;;
-        14) sublime_stuffs 1 && retorna_menu ;;
+        12) py_libraries && retorna_menu ;;
+        13) upgrade_py && retorna_menu ;;
+        14) sublime_stuffs && retorna_menu ;;
         15) upgrade && retorna_menu ;;
         16) tmate_stuffs 1 && retorna_menu ;;
         17) usefull_pkgs 1 && retorna_menu ;;
