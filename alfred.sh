@@ -1487,7 +1487,7 @@ minidlna_stuffs() {
 
         sudo sed -i 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
 
-        [[ $(systemctl is-active minidlna.service) = 'active' ]] \
+        [[ $(systemctl is-active minidlna.service) = active ]] \
             && sudo service minidlna restart \
             && sudo service minidlna force-reload \
             || sudo service minidlna start
@@ -1859,7 +1859,7 @@ postgres_stuffs() {
 
     fi
 
-    [[ $(systemctl is-active postgresql.service) = 'active' ]] \
+    [[ $(systemctl is-active postgresql.service) = active ]] \
         && sudo service postgresql restart \
         || sudo service postgresql start
 
