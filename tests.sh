@@ -73,7 +73,13 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-sudo rm --force --recursive "${d[0]}"
+#sudo -u postgres psql --command "CREATE DATABASE teste"
+#sudo -u postgres psql --command "CREATE USER gabriel"
+sudo -u postgres psql -d curso_em_video --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gabriel"
+# sudo -u postgres psql -d curso_em_video --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO gabriel"
+#sudo -u postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE curso_em_video TO gabriel"
+
+# show "${c[RED]}=======================================================" 1
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
