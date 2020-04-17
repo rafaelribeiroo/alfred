@@ -1678,11 +1678,15 @@ postgres_stuffs() {
         [ppa]=/etc/apt/sources.list.d/pgdg.list
         [config]=/etc/postgresql/11/main/postgresql.conf
         [postgres_hba]=/etc/postgresql/11/main/pg_hba.conf
+        [pspg_postgres]=/var/lib/postgresql/.psqlrc
+        [pspg_user]=~/.psqlrc
+        [pspg]=/usr/bin/pspg
     )
 
     l+=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
         'https://www.postgresql.org/download/linux/ubuntu/'  # 1
+        'https://www.linuxmint.com/download_all.php'  # 2
     )
 
     m+=(
@@ -1691,10 +1695,15 @@ postgres_stuffs() {
         'postgresql-contrib-9.6'  # 2
         'libpq-dev'  # 3
         'pgadmin4'  # 4
+        'pspg'  # 5
     )
 
     # Wait postgresql upgrade from 11 to (12??) to check how we gonna do
     # latest=$(curl --silent "${l[1]}" | grep 'scope="row"' | head -1 | awk --field-separator=- '{print $3}' | sed 's|</th>||')
+
+    check_name=$(lsb_release -cs)
+            
+    check_version=$(curl --silent "${l[2]}" | grep -1 "${check_version^}" | tail -1 | awk '{print $2}' | sed 's|</TD>||')
 
     if [[ $(dpkg -l | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
@@ -1743,8 +1752,8 @@ postgres_stuffs() {
         [[ ! $(sudo apt-key list 2> "${u[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${u[null]}"
 
-    	[[ ! $(grep --no-messages bionic-pgdg "${f[ppa]}") ]] \
-    		&& sudo tee "${f[ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
+    	[[ ! $(grep --no-messages "${check_version}" "${f[ppa]}") ]] \
+    		&& sudo tee "${f[ppa]}" > "${u[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_version,}-pgdg main" \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" && echo
@@ -1773,12 +1782,55 @@ postgres_stuffs() {
             password=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
             sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${u[null]}"
-
+            
             sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'" &> "${u[null]}"
 
             sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'" &> "${u[null]}"
 
             sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${u[null]}"
+
+            read -p $'\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
+
+                    read -p $'\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
+
+                    [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+                        && show "\nUSER ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
+                        && break
+
+                    sudo -u postgres psql --command "CREATE DATABASE ${database}" &> "${u[null]}"
+
+                    sudo -u postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE ${database} TO ${user}" &> "${u[null]}"
+
+                    sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}"
+
+                    install_packages "${m[5]}"
+
+                    [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
+                        && tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${u[null]}" <<< "\pset linestyle unicode
+\pset border 2
+\setenv PAGER '${f[pspg]} -bX --no-mouse'" \
+                        && sudo chown postgres:postgres "${f[pspg_postgres]}"
+                        && sudo chown "${user}":"${user}" "${f[pspg_user]}"
+
+                    break
+
+                elif [[ ${option:0:1} = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read resposta
+
+                fi
+
+            done
 
             break
 
