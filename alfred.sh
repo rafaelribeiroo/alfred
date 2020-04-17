@@ -1807,13 +1807,14 @@ postgres_stuffs() {
 
                     sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}"
 
+                    # Check this resource running: "psql -U <user> -d <database>" and selecting all data from a specific column.
                     install_packages "${m[5]}"
 
                     [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
                         && tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${u[null]}" <<< "\pset linestyle unicode
 \pset border 2
 \setenv PAGER '${f[pspg]} -bX --no-mouse'" \
-                        && sudo chown postgres:postgres "${f[pspg_postgres]}"
+                        && sudo chown postgres:postgres "${f[pspg_postgres]}" \
                         && sudo chown "${user}":"${user}" "${f[pspg_user]}"
 
                     break
@@ -2448,19 +2449,17 @@ usefull_pkgs() {
         'vlc'  # 1
         'vim'  # 2
         'easytag'  # 3
+        'telegram'  # 4
         'usefull packages'  # 4
     )
 
     if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
         && $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 \
         && $(dpkg -l | awk "/${m[2]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg -l | awk "/${m[3]}/ {print }" | wc -l) -ge 1 ]]; then
+        && $(dpkg -l | awk "/${m[3]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg -l | awk "/${m[4]}/ {print }" | wc -l) -ge 1 ]]; then
 
-        for package in "${m[@]}"; do
-
-            show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
-
-        done
+        show "\n${c[GREEN]}${m[5]^^} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
 
         read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -2468,9 +2467,12 @@ usefull_pkgs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]} AND ${c[RED]}${m[3]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]}, ${c[RED]}${m[3]^^}${c[WHITE]} AND ${c[RED]}${m[4]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${u[null]}"
+
+                [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[4]}") ]] \
+                    && sudo add-apt-repository --remove -y ppa:atareao/telegram &> "${u[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
@@ -2498,10 +2500,14 @@ usefull_pkgs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" && echo
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
+
+        [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[4]}") ]] \
+            && sudo add-apt-repository -y ppa:atareao/telegram &> "${u[null]}"
+
+        update && install_packages "${m[4]}" && echo
 
     fi
 
