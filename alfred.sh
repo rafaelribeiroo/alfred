@@ -74,14 +74,13 @@ e=(
     $'\360\237\220\230'  # 11 (elefante): postgres
     $'\360\237\220\215'  # 12 (cobra): py libraries/upgrade
     $'\360\237\224\244'  # 13 (letras): sublime
-    $'\360\237\220\247'  # 14 (pinguim): system upgrade
-    $'\360\237\247\262'  # 15 (imã): tmate
-    $'\360\237\222\216'  # 16 (diamante): usefull programs
-    $'\360\237\222\274'  # 17 (maleta): workspace
-    $'\360\237\220\213'  # 18 (baleia): all
-    $'\360\237\224\245'  # 19 (fogo): some men...
-    $'\360\237\231\212'  # 20 (macaco calado): password
-    $'\360\237\246\207'  # 21 (morcego): why do we fall...
+    $'\360\237\247\262'  # 14 (imã): tmate
+    $'\360\237\222\216'  # 15 (diamante): usefull programs
+    $'\360\237\222\274'  # 16 (maleta): workspace
+    $'\360\237\220\213'  # 17 (baleia): all
+    $'\360\237\224\245'  # 18 (fogo): some men...
+    $'\360\237\231\212'  # 19 (macaco calado): password
+    $'\360\237\246\207'  # 20 (morcego): why do we fall...
 )
 
 # usefull files
@@ -124,7 +123,7 @@ check_distro() {
 
     if [[ "${check_os}" != 'Mint' ]]; then
 
-        show "\n   ${e[21]} ${c[RED]}WHY WE FALL ${name[random]}? ${e[21]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
+        show "\n   ${e[20]} ${c[RED]}WHY DO WE FALL ${name[random]}? ${e[20]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
 
         show "${c[RED]}YOU MUST RUN AT GOTHAM FOR A BETTER EXPERIENCE ${c[GREEN]}\n\t\t(MINT)\n"
 
@@ -144,7 +143,7 @@ check_distro() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U WANNA CONTINUE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U WANNA CONTINUE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -191,7 +190,7 @@ check_pkg() {
 check_source() {
 
     # If script is not being sourced
-    if [[ ${BASH_SOURCE[0]} -ef $0 ]]; then
+    if [[ ${BASH_SOURCE[0]} -ef "${0}" ]]; then
 
         show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" 1 && exit
 
@@ -231,7 +230,7 @@ show() {
 
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
-    # Se passar 1, não "dorme"
+    # If second parameter don't was 1, don't sleep
     [[ "${2}" -ne 1 ]] && take_a_break
 
 }
@@ -337,7 +336,7 @@ uninstall_or_configure() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I COMEBACK TO STATUS QUO?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I COMEBACK TO STATUS QUO?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -422,7 +421,7 @@ bash_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -549,7 +548,7 @@ deezloader_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -621,7 +620,7 @@ deezloader_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO U HAVE COMPLETE LOGIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO U HAVE COMPLETE LOGIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -706,7 +705,7 @@ dualmonitor_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -865,7 +864,7 @@ github_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -888,7 +887,7 @@ github_stuffs() {
     # from: https://swcarpentry.github.io/git-novice/02-setup/
     [[ ! $(grep --no-messages @ "${f[config]}") ]] \
         && read -p $'\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
-        && read -p $'\033[1;37mNAME '"${e[20]}"$': \033[m' nome \
+        && read -p $'\033[1;37mNAME '"${e[19]}"$': \033[m' nome \
         && git config --global user.email "${email}" \
         && git config --global user.name "${nome}" \
         && git config --global core.editor "vim" \
@@ -1024,7 +1023,7 @@ chrome_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1126,7 +1125,7 @@ flameshot_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1249,7 +1248,7 @@ heroku_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1294,7 +1293,7 @@ heroku_stuffs() {
 
 	    else
 
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT YOU AUTHENTICATE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT YOU AUTHENTICATE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
@@ -1359,7 +1358,7 @@ hide_devices() {
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I SHOW THEM AGAIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I SHOW THEM AGAIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read option
 
@@ -1448,7 +1447,7 @@ minidlna_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1572,7 +1571,7 @@ nvidia_stuffs() {
 
                         else
 
-                            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                            echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                             read option
 
@@ -1592,7 +1591,7 @@ nvidia_stuffs() {
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTORE DEFAULT DRIVER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTORE DEFAULT DRIVER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read option
 
@@ -1639,7 +1638,7 @@ alias lbm-nouveau off'
 
     	    else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1685,21 +1684,18 @@ postgres_stuffs() {
 
     l+=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
-        'https://www.postgresql.org/download/linux/ubuntu/'  # 1
+        'https://www.postgresql.org/'  # 1
         'https://www.linuxmint.com/download_all.php'  # 2
     )
 
     m+=(
-        'postgresql-11'  # 0
-        'postgresql-client-11'  # 1
-        'postgresql-contrib-9.6'  # 2
+        'postgresql'  # 0
+        'postgresql-client'  # 1
+        'postgresql-contrib'  # 2
         'libpq-dev'  # 3
         'pgadmin4'  # 4
         'pspg'  # 5
     )
-
-    # Wait postgresql upgrade from 11 to (12??) to check how we gonna do
-    # latest=$(curl --silent "${l[1]}" | grep 'scope="row"' | head -1 | awk --field-separator=- '{print $3}' | sed 's|</th>||')
 
     check_name=$(lsb_release -cs)
             
@@ -1735,7 +1731,7 @@ postgres_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1763,6 +1759,14 @@ postgres_stuffs() {
     show "INITIALIZING CONFIGS..."
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
+
+    latest=$(curl --silent "${l[1]}" | grep '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
+
+    # Match perhaps with -10 or -11 etc (fixed installation)
+    local=$(apt version "${m[0]}"???)
+
+    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
+        && 
 
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
@@ -1825,7 +1829,7 @@ postgres_stuffs() {
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read resposta
 
@@ -1841,7 +1845,7 @@ postgres_stuffs() {
 
         else
 
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read resposta
 
@@ -1913,7 +1917,7 @@ py_libraries() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2015,7 +2019,7 @@ upgrade_py() {
 
             else
 
-                echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[WHITE]}[Y/N] R: "${c[FIM]}
+                echo -ne ${c[VERMELHO]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[WHITE]}[Y/N] R: "${c[FIM]}
 
                 read option
 
@@ -2123,7 +2127,7 @@ sublime_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2319,7 +2323,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         	    else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read option
 
@@ -2361,12 +2365,14 @@ upgrade() {
         [apt_history]=/var/log/apt/history.log
     )
 
-    # Filtra a última data em que foram realizadas atualizações
-    last=$(grep Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
+    # Get last upgrades
+    last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
 
-    # Modifica o formato de data pro BR
+    # Best data format, dd/mm/yyyy
     date=$(date -d "${last}" +"%d/%m/%Y")
-    show "OH ${name[random]}, LAST TIME WE'VE SEEN YOU WAS IN\n\t\t${c[CYAN]}${date}\n\n${c[WHITE]}UPGRADING..."
+
+    [[ -e "${f[apt_history]}" ]] && show "\nUPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
+        || show "\nUPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}TODAY${c[WHITE]})"
 
     sudo apt update &> "${u[null]}"; sudo apt upgrade -y &> "${u[null]}"
 
@@ -2408,7 +2414,7 @@ tmate_stuffs() {  # Okzão
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2494,7 +2500,7 @@ usefull_pkgs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2601,7 +2607,7 @@ workspace_stuffs() {  # Okzão
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2666,7 +2672,7 @@ workspace_stuffs() {  # Okzão
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2703,11 +2709,10 @@ invoca_funcoes() {
         12) py_libraries && retorna_menu ;;
         13) upgrade_py && retorna_menu ;;
         14) sublime_stuffs && retorna_menu ;;
-        15) upgrade && retorna_menu ;;
-        16) tmate_stuffs 1 && retorna_menu ;;
-        17) usefull_pkgs 1 && retorna_menu ;;
-        18) workspace_stuffs 1 && retorna_menu ;;
-        19) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
+        15) tmate_stuffs 1 && retorna_menu ;;
+        16) usefull_pkgs 1 && retorna_menu ;;
+        17) workspace_stuffs 1 && retorna_menu ;;
+        18) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
         d+=(
             ~/.local/share/cinnamon/applets  # 0
@@ -2812,7 +2817,6 @@ activate-numlock=true'
         nvidia_stuffs
         postgres_stuffs
         py_libraries
-        upgrade_py
         sublime_stuffs
         upgrade
         tmate_stuffs
@@ -2857,7 +2861,7 @@ application/x-subrip=sublime_text.desktop;'
 
         encerra_menu ;;
 
-        *) echo -ne ${c[RED]}"\n   ${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[WHITE]}\n\t\t  PLEASE, ONLY NUMBERS!\n"${c[END]}
+        *) echo -ne ${c[RED]}"\n   ${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}${c[WHITE]}\n\t\t  PLEASE, ONLY NUMBERS!\n"${c[END]}
         retorna_menu ;;
         # take_a_break &&
 
@@ -2893,11 +2897,10 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
         sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
         sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}SUBLIME TEXT ${e[13]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SYSTEM UPGRADE ${e[14]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}TMATE ${e[15]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}ALL ${e[18]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}TMATE ${e[14]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}USEFULL PROGRAMS ${e[15]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}WORKSPACE ${e[16]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}ALL ${e[17]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' escolha
@@ -2906,7 +2909,7 @@ menu() {
         echo
 
 		[[ "${escolha}" =~ ^[[:alpha:]]$ ]] \
-			&& echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
+			&& echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
 			&& read digitou_bobeira || invoca_funcoes "${escolha}"
 
 			[[ "${digitou_bobeira:0:1}" == @(s|S|y|Y) ]] && retorna_menu \
