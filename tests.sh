@@ -13,7 +13,7 @@ show() {
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
     # Se passar 1, não "dorme"
-    [[ "${2}" -eq 1 ]] || take_a_break
+    [[ "${2}" -eq "1" ]] || take_a_break
 
 }
 
@@ -36,6 +36,10 @@ declare -A u=(
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d
 )
+
+[[ ! -d ~/Downloads/Rafa ]] \
+    && show "\ncriando diretório\n" "1" \
+    || show "\nCriado"
 
 #show "${c[RED]}=======================================================" 1
 
