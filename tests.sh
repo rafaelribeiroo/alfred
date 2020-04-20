@@ -32,7 +32,7 @@ e=(
     $'\360\237\214\211'  #  3 (paisagem): dualmonitor
     $'\360\237\220\231'  #  4 (polvo): git
     $'\360\237\214\215'  #  5 (globo): chrome
-    $'\360\237\223\266'  #  6 (gráfico): conky
+    $'\360\237\223\267'  #  6 (câmera): flameshot
     $'\360\237\232\200'  #  7 (foguete): heroku
     $'\360\237\231\210'  #  8 (macaco vendado): hide devices
     $'\360\237\215\277'  #  9 (pipoca): minidlna
@@ -40,15 +40,13 @@ e=(
     $'\360\237\220\230'  # 11 (elefante): postgres
     $'\360\237\220\215'  # 12 (cobra): py libraries/upgrade
     $'\360\237\224\244'  # 13 (letras): sublime
-    $'\360\237\220\247'  # 14 (pinguim): system upgrade
-    $'\360\237\247\262'  # 15 (imã): tmate
-    $'\360\237\222\216'  # 16 (diamante): usefull programs
-    $'\360\237\222\274'  # 17 (maleta): workspace
-    $'\360\237\220\213'  # 18 (baleia): all
-    $'\360\237\224\245'  # 19 (fogo): some men...
-    $'\360\237\231\212'  # 20 (macaco calado): password
-    $'\360\237\246\207'  # 21 (morcego): why do we fall...
-    $'\360\237\223\267'  # 22 (câmera): flameshot
+    $'\360\237\247\262'  # 14 (imã): tmate
+    $'\360\237\222\216'  # 15 (diamante): usefull programs
+    $'\360\237\222\274'  # 16 (maleta): workspace
+    $'\360\237\220\213'  # 17 (baleia): all
+    $'\360\237\224\245'  # 18 (fogo): some men...
+    $'\360\237\231\212'  # 19 (macaco calado): password
+    $'\360\237\246\207'  # 20 (morcego): why do we fall...
 )
 
 logo=(
@@ -73,8 +71,9 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-[[ $(systemctl is-active postgresql.service) = active ]] \
-    && echo ativo || echo nao
+
+#[[ $(systemctl is-active postgresql.service) = active ]] \
+#    && echo ativo || echo nao
 
 # show "${c[RED]}=======================================================" 1
 
