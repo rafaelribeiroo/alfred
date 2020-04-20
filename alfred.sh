@@ -2231,8 +2231,35 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
     "wrap_width": 80
 }'
 
+    while true; do
 
-    for (( ; ; )); do
+        ( nohup subl & ) &> "${u[null]}"
+
+        echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                sudo pkill subl && break
+
+            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                echo && show "I'LL RESTART... \n(RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
+
+                sudo pkill subl && ( nohup subl & ) &> "${u[null]}"
+
+                echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
 
         if [[ -e "${f[anaconda]}" ]]; then
 
@@ -2242,37 +2269,38 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
             sudo tee "${f[keymap]}" > "${u[null]}" <<< '[
+    // Key binding to run scripts py
     { "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
-                "id": "repl_python_run", "file": "config/Python/Main.sublime-menu" }
+        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu" }
     },
     // Auto-pair escaped parentheses
     { "keys": ["("], "command": "insert_snippet", "args": {"contents": "($0)"}, "context":
-    [
-        { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
-        { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
-        { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
-    ]
+        [
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+        ]
     },
     // Auto-pair escaped curly brackets
     { "keys": ["{"], "command": "insert_snippet", "args": {"contents": "{$0}"}, "context":
-      [
-        { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
-        { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
-        { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
-    ]
+        [
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+        ]
     },
     // Auto-pair escaped braces
     { "keys": ["["], "command": "insert_snippet", "args": {"contents": "[$0]"}, "context":
-      [
-        { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
-        { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
-        { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
-    ]
+        [
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+        ]
     }
 ]'
 
-			# Removes autocomplete at runtime
-			sudo sed -zi 's|true|false|7' "${f[REPL]}"
+            # Removes autocomplete at runtime
+            sudo sed -zi 's|true|false|7' "${f[REPL]}"
 
             # Reuse same tab for multiple runtimes
             # https://github.com/wuub/SublimeREPL/issues/481
@@ -2303,36 +2331,6 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             sudo sed -zi 's|"python3", |"python", |5' "${f[REPL_pyI]}"
 
             echo && break
-
-        else
-
-            ( nohup subl & ) &> "${u[null]}"
-
-            echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
-
-        	for (( ; ; )); do
-
-        		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                    sudo pkill subl && break
-
-        		elif [[ "${option:0:1}" = @(n|N) ]] ; then
-
-                    echo && show "I'LL RESTART... \n(RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
-
-                    sudo pkill subl && ( nohup subl & ) &> "${u[null]}"
-
-                    echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
-
-        	    else
-
-                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                    read option
-
-            	fi
-
-            done
 
         fi
 
@@ -2733,12 +2731,13 @@ invoca_funcoes() {
             [enabled_applets]=/org/cinnamon/enabled-applets
             [grub]=/boot/grub/grub.cfg
             [home_icon]=/org/nemo/desktop/home-icon-visible
+            [click_policy]=/org/nemo/preferences/click-policy
             [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
             [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
             [numlock]=/etc/lightdm/slick-greeter.conf
             [paste]=/org/gnome/terminal/legacy/keybindings/paste
             [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
-            [show-hidden]=/org/nemo/preferences/show-hidden-files
+            [show_hidden]=/org/nemo/preferences/show-hidden-files
         )
 
         l+=(
@@ -2785,7 +2784,9 @@ activate-numlock=true'
 
         dconf write "${f[automount_open]}" true
 
-        dconf write "${f[show-hidden]}" true
+        dconf write "${f[show_hidden]}" true
+
+        dconf write "${f[click_policy]}" "'single'"
 
         dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
 
