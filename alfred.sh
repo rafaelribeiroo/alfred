@@ -2076,6 +2076,7 @@ sublime_stuffs() {
 
     f+=(
         [config]=~/.config/sublime-text-3/Packages/User/Preferences.sublime-settings
+        [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
         [license]=~/.config/sublime-text-3/Local/License.sublime_license
@@ -2096,13 +2097,13 @@ sublime_stuffs() {
     )
 
     m+=(
-        'sublime-text'  # 0
-        'apt-transport-https'  # 1
+        'apt-transport-https'  # 0
+        'sublime-text'  # 1
     )
 
-	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2110,9 +2111,9 @@ sublime_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[1]}" &> "${u[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -2138,21 +2139,18 @@ sublime_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
 		# 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
 		[[ ! $(sudo apt-key list 2> "${u[null]}" | grep Sublime) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${u[null]}"
 
-        # Dependências
-        install_packages "${m[1]}"
-
         [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
             && sudo tee "${f[ppa]}" > "${u[null]}" <<< "deb ${l[1]}" \
             && update
 
-        install_packages "${m[0]}"
+        install_packages "${m[0]}" "${m[1]}"
 
     fi
 
@@ -2191,8 +2189,12 @@ A684C2DC 0B1583D4 19CBD290 217618CD
 DD9AF44B 99C49590 D2DBDEE1 75860FD2
 8C8BB2AD B2ECE5A4 EFC08AF2 25A9B864
 ------ END LICENSE ------'
+    
+    # 2 simple tricks to block two sublime text servers, hides: "Your license key is not longer valid, and has been removed"
+    [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
+        && sudo sed -i "3 a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
 
-    # Removes file changes history
+    # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
 
     if [[ ! -e "${f[pkg_ctrl]}" ]]; then
