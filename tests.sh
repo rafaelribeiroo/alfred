@@ -71,6 +71,10 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
+read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
+
+[[ -z "${user}" ]] && echo vazia || echo conteudo
+
 
 #[[ $(systemctl is-active postgresql.service) = active ]] \
 #    && echo ativo || echo nao
