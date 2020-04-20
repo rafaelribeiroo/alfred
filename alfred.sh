@@ -1760,13 +1760,14 @@ postgres_stuffs() {
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    latest=$(curl --silent "${l[1]}" | grep '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
+    latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
 
     # Match perhaps with -10 or -11 etc (fixed installation)
     local=$(apt version "${m[0]}"???)
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && 
+        && show "\nPOSTGRES IS IN VERSION ${c[GREEN]}${latest}${c[WHITE]}, NOT IN ${c[RED]}${local:0:2} ${c[WHITE]}ANYMORE.\n" \
+        && upgrade
 
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
@@ -1776,8 +1777,8 @@ postgres_stuffs() {
 
             read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
 
-            # If user don't type anything, create same user of machine
-            [[ "${user}" = '' ]] && user="${USER}"
+            # if empty string
+            [[ -z "${user}" ]] && user="${USER}"
 
             [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                 && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
@@ -1802,7 +1803,7 @@ postgres_stuffs() {
                     read -p $'\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
                     [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
-                        && show "\nUSER ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
+                        && show "\nDATABASE ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                         && break
 
                     sudo -u postgres psql --command "CREATE DATABASE ${database}" &> "${u[null]}"
@@ -1811,7 +1812,7 @@ postgres_stuffs() {
 
                     sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}"
 
-                    # Check this resource running: "psql -U <user> -d <database>" and selecting all data from a specific column.
+                    # Check this resource running: "psql -U <user> -d <database>" and selecting all data from some table.
                     install_packages "${m[5]}"
 
                     [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
@@ -2371,8 +2372,8 @@ upgrade() {
     # Best data format, dd/mm/yyyy
     date=$(date -d "${last}" +"%d/%m/%Y")
 
-    [[ -e "${f[apt_history]}" ]] && show "\nUPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
-        || show "\nUPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}TODAY${c[WHITE]})"
+    [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
+        || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
     sudo apt update &> "${u[null]}"; sudo apt upgrade -y &> "${u[null]}"
 
