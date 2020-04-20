@@ -84,8 +84,8 @@ e=(
     $'\360\237\223\267'  # 22 (câmera): flameshot
 )
 
-# usefull files
-declare -A u=(
+# (usefull) files
+declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
@@ -96,18 +96,6 @@ declare -A u=(
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d
 )
-
-# directories
-d=()
-
-# files
-declare -A f
-
-# links
-l=()
-
-# modules
-m=()
 #======================#
 
 #======================#
@@ -163,14 +151,14 @@ check_distro() {
 check_pkg() {
 
 	# instalado
-	if dpkg-query -s "${1}" &> "${u[null]}"; then
+	if dpkg-query -s "${1}" &> "${f[null]}"; then
 
 		return 0
 
 	else
 
 		# não instalado, porém disponível no registro de pacote
-		if apt-cache show "${1}" &> "${u[null]}"; then
+		if apt-cache show "${1}" &> "${f[null]}"; then
 
 			return 1
 
@@ -190,7 +178,7 @@ check_pkg() {
 check_source() {
 
     [[ ${BASH_SOURCE[0]} -ef "${0}" ]] \
-        && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" 1 \
+        && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" "1" \
         && exit \
         || clear \
         && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n" \
@@ -204,7 +192,7 @@ check_ssh() {
 
     # Generate SSH keys silently. Ignore if exists
     # -N new_passphrase
-    [[ ! -e "${u[public_ssh]}" ]] && yes "" | ssh-keygen -N "" &> "${u[null]}"
+    [[ ! -e "${f[public_ssh]}" ]] && yes "" | ssh-keygen -N "" &> "${f[null]}"
 
 }
 #======================#
@@ -224,8 +212,8 @@ show() {
 
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
-    # Se passar 1, não "dorme"
-    [[ "${2}" -eq 1 ]] || take_a_break
+    # If second parameter don't was 1, sleep
+    [[ "${2}" != "1" ]] && take_a_break
 
 }
 #======================#
@@ -254,7 +242,7 @@ install_packages() {
                     && show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!\n" \
                     || show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!"
 
-                sudo apt install -y "${package}" &> "${u[null]}"
+                sudo apt install -y "${package}" &> "${f[null]}"
 
             fi
 
@@ -268,9 +256,9 @@ install_packages() {
 #======================#
 remove_useless() {
 
-    sudo apt autoremove -y &> "${u[null]}"
+    sudo apt autoremove -y &> "${f[null]}"
 
-    sudo apt autoclean > "${u[null]}"
+    sudo apt autoclean > "${f[null]}"
 
 }
 #======================#
@@ -298,7 +286,7 @@ take_a_break() {
 update() {
 
     # &> redirects stdout and stderr to file
-    sudo apt update &> "${u[null]}"
+    sudo apt update &> "${f[null]}"
 
 }
 #======================#
@@ -306,7 +294,7 @@ update() {
 #======================#
 bash_stuffs() {
 
-    d+=(
+    d=(
         ~/.oh-my-bash  # 0
         ~/.fonts  # 1
         ~/.config/fontconfig/conf.d  # 2
@@ -319,13 +307,13 @@ bash_stuffs() {
         [bkp]=~/.bashrc.pre-oh-my-bash
     )
 
-    l+=(
+    l=(
         'https://raw.github.com/ohmybash/oh-my-bash/master/tools/install.sh'  # 0
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 1
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 2
     )
 
-    m+=(
+    m=(
         'oh-my-bash'  # 0
         'curl'  # 1
         'git'  # 2
@@ -351,9 +339,9 @@ bash_stuffs() {
                 sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
 
                 # Move bkp content to bashrc (oh-my-bash)
-                [[ -e "${f[bkp]}" ]] && sudo mv "${f[bkp]}" "${u[bashrc]}"
+                [[ -e "${f[bkp]}" ]] && sudo mv "${f[bkp]}" "${f[bashrc]}"
 
-                source "${u[bashrc]}"
+                source "${f[bashrc]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -383,7 +371,7 @@ bash_stuffs() {
         show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
         # First /dev/null hide download progress, second hide thirty commands
-        0> "${u[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${u[null]}"
+        0> "${f[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${f[null]}"
 
     fi
 
@@ -394,7 +382,7 @@ bash_stuffs() {
         # Hidden directories are owned by root, we must change owner to bash "read"
         # 2>&- prevent error message: "can't stat: no such file..."
         [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[1]}" > "${u[null]}" \
+            && sudo mkdir -p "${d[1]}" > "${f[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[1]}" # Tranca saída de erro
 
         # --location follows to last URL (github provides a few redirects)
@@ -402,14 +390,14 @@ bash_stuffs() {
         curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
 
         # Update font cache
-        sudo fc-cache -vf "${d[1]}" > "${u[null]}"
+        sudo fc-cache -vf "${d[1]}" > "${f[null]}"
 
     fi
 
     if [[ ! -e "${f[powerline_conf]}" ]]; then
 
         [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[2]}" > "${u[null]}" \
+            && sudo mkdir -p "${d[2]}" > "${f[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[2]%conf.d}"
 
         curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
@@ -421,17 +409,17 @@ bash_stuffs() {
     #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
-    [[ $(grep --files-without-match "DEFAULT_USER" "${u[bashrc]}") ]] \
-        && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< "#DEFAULT_USER=${USER}
+    [[ $(grep --files-without-match "DEFAULT_USER" "${f[bashrc]}") ]] \
+        && sudo tee -a "${f[bashrc]}" > "${f[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     # Install plugins
-    [[ $(grep --files-without-match "agnoster" "${u[bashrc]}") && $(grep --files-without-match "plugins=(git" "${u[bashrc]}") ]] \
-        && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${u[bashrc]}" \
-        && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${u[bashrc]}"
+    [[ $(grep --files-without-match "agnoster" "${f[bashrc]}") && $(grep --files-without-match "plugins=(git" "${f[bashrc]}") ]] \
+        && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
+        && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
     # Load changes
-    source "${u[bashrc]}"
+    source "${f[bashrc]}"
 
     unset d f l m
 
@@ -443,13 +431,13 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 #======================#
 deezloader_stuffs() {
 
-    d+=(
+    d=(
         ~/Deezloader\ Music  # 0
         ~/.config/Deezloader\ Remix  # 1
-        ~/$(cat "${u[user_dirs]}" | awk -F/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
+        ~/$(cat "${f[user_dirs]}" | awk -F/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
     )
 
-    l+=(
+    l=(
         'https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Downloads'  # 0
         'https://notabug.org/RemixDevs/DeezloaderRemix'  # 1
     )
@@ -459,7 +447,7 @@ deezloader_stuffs() {
         [config]=~/.config/Deezloader\ Remix/config.json
     )
 
-    m+=(
+    m=(
         'deezloader'  # 0
         'megatools'  # 1
     )
@@ -531,7 +519,7 @@ deezloader_stuffs() {
     if [[ $(grep --files-without-match "${d[2]#~/}" "${f[config]}") ]]; then
 
         # Run deezloader and free tty
-        ( nohup "${f[file]}" & ) &> "${u[null]}"
+        ( nohup "${f[file]}" & ) &> "${f[null]}"
 
         read -p $'\033[1;37m\nHAVE YOU LOGON? \n[Y/N] R: \033[m' option
 
@@ -551,7 +539,7 @@ deezloader_stuffs() {
 
                     sudo sed -i "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
 
-                    ( nohup "${f[file]}" & ) &> "${u[null]}"
+                    ( nohup "${f[file]}" & ) &> "${f[null]}"
 
                     break
 
@@ -585,7 +573,7 @@ deezloader_stuffs() {
 #======================#
 dualmonitor_stuffs() {
 
-    d+=(
+    d=(
         /usr/share/backgrounds/linuxmint-random  # 0
     )
 
@@ -600,14 +588,14 @@ dualmonitor_stuffs() {
         [delay]=/org/cinnamon/desktop/background/slideshow/delay
     )
 
-    l+=(
+    l=(
         'https://images3.alphacoders.com/673/673177.jpg'  # 0
         'https://images4.alphacoders.com/885/885300.png'  # 1
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-8.jpg'  # 2
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-20.jpg'  # 3
     )
 
-    m+=(
+    m=(
         'wallpapers'  # 0
         'dconf-editor'  # 1
     )
@@ -624,7 +612,7 @@ dualmonitor_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[1]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[1]}" &> "${f[null]}"
 
 
 
@@ -664,7 +652,7 @@ dualmonitor_stuffs() {
     if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
         [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-            && mkdir -p "${d[0]}" > "${u[null]}" \
+            && mkdir -p "${d[0]}" > "${f[null]}" \
             && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
         [[ ! -e "${f[left]}" ]] \
@@ -706,12 +694,12 @@ github_stuffs() {
         [hosts]=~/.ssh/known_hosts
     )
 
-    l+=(
+    l=(
         'https://api.github.com/user/keys'  # 0
         'https://git-scm.com/'  # 1
     )
 
-    m+=(
+    m=(
         'git'  # 0
         'vim'  # 1
         'git-cola'  # 2
@@ -730,12 +718,12 @@ github_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force "${f[config]}"
 
-                [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
-                    && sudo add-apt-repository --remove -y ppa:git-core/ppa &> "${u[null]}"
+                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
+                    && sudo add-apt-repository --remove -y ppa:git-core/ppa &> "${f[null]}"
 
                 sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"
 
@@ -782,11 +770,11 @@ github_stuffs() {
         && git config --global core.editor "vim" \
         && git config --global core.autocrlf input
 
-    [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${u[gtk_theme]}") =~ .*Dark.* ]] \
+    [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
 
-    [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep "${m[0]}") ]] \
-        && sudo add-apt-repository -y ppa:git-core/ppa &> "${u[null]}"
+    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
+        && sudo add-apt-repository -y ppa:git-core/ppa &> "${f[null]}"
 
     local=$(git --version | awk '{print $3}')
 
@@ -794,12 +782,12 @@ github_stuffs() {
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && update \
-        && sudo apt install -y "${m[0]}" &> "${u[null]}"
+        && sudo apt install -y "${m[0]}" &> "${f[null]}"
 
     check_ssh
 
     [[ ! -e "${f[ssh_config]}" || $(grep --files-without-match "github.com" "${f[ssh_config]}") ]] \
-        && sudo tee -a "${f[ssh_config]}" > "${u[null]}" <<< 'Host github.com
+        && sudo tee -a "${f[ssh_config]}" > "${f[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
 
@@ -808,7 +796,7 @@ github_stuffs() {
 
         read -p $'\033[1;37m\nENTER YOUR USERNAME FROM GITHUB: \033[m' user
 
-        password=$("${u[askpass]}" $'\033[1;37mPASSWORD:\033[m')
+        password=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
 
         # Ver se dá pra fazer com awk '{print $2}'
         # Opções curl: s de silent, i de informações a mais, u de usuário
@@ -817,7 +805,7 @@ github_stuffs() {
         # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
         [[ "${check_integrity}" -gt 400 ]] \
-            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
+            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" "1" \
             || break
 
     done
@@ -825,7 +813,7 @@ github_stuffs() {
     # Se não existir nenhuma chave no github
     if [[ -z $(curl --silent --user "${user}":"${password}" "${l[0]}") ]]; then
 
-        curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}"
+        curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
 
         echo
 
@@ -834,18 +822,18 @@ github_stuffs() {
         install_packages "${m[3]}"
 
         [[ \
-            $(cat "${u[public_ssh]}" | awk '{print $2}') != \
+            $(cat "${f[public_ssh]}" | awk '{print $2}') != \
             $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | sed 's/.$//' | awk '{print $2}') \
         ]] \
             && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
             && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
-            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${u[public_ssh]}")"'"}' "${l[0]}" > "${u[null]}" \
+            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}" \
             && echo
 
     fi
 
     [[ ! -e "${f[hosts]}" ]] \
-        && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${u[null]}"
+        && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     unset f l m
 
@@ -857,19 +845,19 @@ github_stuffs() {
 #======================#
 chrome_stuffs() {
 
-    d+=(
+    d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
     )
 
     f+=(
-        [file]=~/$(cat "${u[user_dirs]}" | awk -F/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [file]=~/$(cat "${f[user_dirs]}" | awk -F/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
     )
 
-    l+=(
+    l=(
         'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'  # 0
     )
 
-    m+=(
+    m=(
         'google-chrome'  # 0
         'libappindicator1'  # 1
         'libindicator7'  # 2
@@ -888,9 +876,9 @@ chrome_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[18]}" "${m[1]}" "${m[2]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[18]}" "${m[1]}" "${m[2]}" &> "${f[null]}"
 
-                sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${u[mimeapps]}"
+                sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
 
                 sudo sed -i '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
 
@@ -927,7 +915,7 @@ chrome_stuffs() {
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
 
-        sudo dpkg -i "${f[file]}" &> "${u[null]}"
+        sudo dpkg -i "${f[file]}" &> "${f[null]}"
 
         sudo rm --force "${f[file]}" && echo
 
@@ -935,8 +923,8 @@ chrome_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "google-chrome" "${u[mimeapps]}") ]] \
-        && sudo tee "${u[mimeapps]}" > "${u[null]}" <<< '[Default Applications]
+    [[ ! -e "${f[mimeapps]}" || $(grep --files-without-match "google-chrome" "${f[mimeapps]}") ]] \
+        && sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
 x-scheme-handler/http=google-chrome.desktop
 x-scheme-handler/https=google-chrome.desktop
@@ -962,11 +950,11 @@ conky_stuffs() {
         [conkyrc]=~/.conkyrc
     )
 
-    l+=(
+    l=(
         'https://gist.githubusercontent.com/rafaelribeiroo/81304bc07c7316ba841eacc90caf0564/raw/fa4ee571127b99d38fa93c9f7e0e4288edffd2b0/My%2520conkyrc%2520configs'  # 0
     )
 
-    m+=(
+    m=(
         'conky'  # 0
     )
 
@@ -982,7 +970,7 @@ conky_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force "${f[conkyrc]}"
 
@@ -1030,7 +1018,7 @@ conky_stuffs() {
 #======================#
 flameshot_stuffs() {
 
-    d+=(
+    d=(
         ~/.config/Dharkael  # 0
     )
 
@@ -1044,7 +1032,7 @@ flameshot_stuffs() {
         [custom]=/org/cinnamon/desktop/keybindings/custom-list
     )
 
-    m+=(
+    m=(
         'flameshot'  # 0
         'dconf-editor'  # 1
     )
@@ -1061,7 +1049,7 @@ flameshot_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -1099,7 +1087,7 @@ flameshot_stuffs() {
     dconf write "${f[screenshot]}" "[]"
 
     # -F: field-separator to cut
-    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${u[user_dirs]}" | awk -F/ '/PICTURES/ {print $2}' | sed 's|"||')'"
+    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${f[user_dirs]}" | awk -F/ '/PICTURES/ {print $2}' | sed 's|"||')'"
 
     dconf write "${f[bdg]}" "['Print']"
 
@@ -1110,7 +1098,7 @@ flameshot_stuffs() {
     sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x1\\0\\0\\0\\n)|g' "${f[config]}"
 
     [[ ! -e "${f[dskt]}" || $(grep --files-without-match "flameshot" "${f[dskt]}") ]] \
-        && sudo tee "${f[dskt]}" > "${u[null]}" <<< '[Desktop Entry]
+        && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
 Name=flameshot
 Icon=flameshot
 Exec=flameshot
@@ -1128,7 +1116,7 @@ X-GNOME-Autostart-enabled=true'
 #======================#
 heroku_stuffs() {
 
-    d+=(
+    d=(
         /usr/lib/heroku/  # 0
         ~/.cache/heroku/  # 1
     )
@@ -1138,11 +1126,11 @@ heroku_stuffs() {
         [ppa]=/etc/apt/sources.list.d/heroku.list
     )
 
-    l+=(
+    l=(
         'https://cli-assets.heroku.com/install-ubuntu.sh'  # 0
     )
 
-    m+=(
+    m=(
         'heroku'  # 0
     )
 
@@ -1158,7 +1146,7 @@ heroku_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force "${f[auth]}" "${f[ppa]}"
 
@@ -1191,7 +1179,7 @@ heroku_stuffs() {
 
         show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
-        sh -c "$(curl --silent ${l[0]})" &> "${u[null]}"
+        sh -c "$(curl --silent ${l[0]})" &> "${f[null]}"
 
     fi
 
@@ -1209,7 +1197,7 @@ heroku_stuffs() {
 
                 # https://devcenter.heroku.com/articles/heroku-cli#login-issues
                 [[ -e "${f[auth]}" ]] && break \
-                    || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" 1 \
+                    || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" "1" \
                     && heroku login -i
 
             done
@@ -1240,7 +1228,7 @@ heroku_stuffs() {
 #======================#
 hide_devices() {  # Okzão
 
-    d+=(
+    d=(
         /etc/udev/rules.d  # 0
     )
 
@@ -1248,7 +1236,7 @@ hide_devices() {  # Okzão
         [hide_rules]=/etc/udev/rules.d/99-hide-disks.rules
     )
 
-    m+=(
+    m=(
         'devices'  # 0
     )
 
@@ -1310,13 +1298,13 @@ hide_devices() {  # Okzão
             done
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-                && mkdir -p "${d[0]}" > "${u[null]}" \
+                && mkdir -p "${d[0]}" > "${f[null]}" \
                 && sudo chown -R "${USER}":"${USER}" "${d[0]}"
 
             # Na quantidade de itens em uma lista ele começa do 1
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
 
-                tee -a "${f[hide_rules]}" > "${u[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
+                tee -a "${f[hide_rules]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
 
@@ -1340,8 +1328,8 @@ hide_devices() {  # Okzão
 #======================#
 minidlna_stuffs() {
 
-    d+=(
-        ~/$(cat "${u[user_dirs]}" | awk -F/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
+    d=(
+        ~/$(cat "${f[user_dirs]}" | awk -F/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
     )
 
     f+=(
@@ -1349,7 +1337,7 @@ minidlna_stuffs() {
         [dft]=/etc/default/minidlna
     )
 
-    m+=(
+    m=(
         'minidlna'  # 0
     )
 
@@ -1365,7 +1353,7 @@ minidlna_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force "${f[config]}" "${f[default_minidlna]}"
 
@@ -1467,11 +1455,11 @@ nvidia_stuffs() {
         [hide_driver]=/etc/modprobe.d/blacklist-nouveau.conf
     )
 
-    l+=(
+    l=(
         'https://www.nvidia.com/Download/driverResults.aspx/157462/en-us'  # 0
     )
 
-    m+=(
+    m=(
         'nvidia-driver'  # 0
         'nouveau-driver'  # 1
     )
@@ -1508,8 +1496,8 @@ nvidia_stuffs() {
 
                     show "\n${c[RED]}R${c[WHITE]}ESTORING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                    [[ $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
-                        && sudo add-apt-repository --remove -y ppa:graphics-drivers/ppa &> "${u[null]}"
+                    [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep graphics) ]] \
+                        && sudo add-apt-repository --remove -y ppa:graphics-drivers/ppa &> "${f[null]}"
 
 
 
@@ -1537,7 +1525,7 @@ nvidia_stuffs() {
                 && show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
-                && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}" \
+                && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${f[null]}" \
                 && update
 
             install_packages "${m[0]}-${latest}"
@@ -1552,21 +1540,21 @@ nvidia_stuffs() {
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        [[ ! $(grep ^ "${u[srcs]}" "${u[srcs_list]}"/* | grep graphics) ]] \
-            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${u[null]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep graphics) ]] \
+            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${f[null]}"
 
-        update && sudo apt install -y "${m[0]}" &> "${u[null]}"
+        update && sudo apt install -y "${m[0]}" &> "${f[null]}"
 
     fi
 
     if [[ ! -e "${f[hide_driver]}" || $(grep --files-without-match "nouveau" "${f[hide_driver]}") ]]; then
 
-        sudo tee "${f[hide_driver]}" > "${u[null]}" <<< 'blacklist nouveau
+        sudo tee "${f[hide_driver]}" > "${f[null]}" <<< 'blacklist nouveau
 blacklist lbm-nouveau
 alias nouveau off
 alias lbm-nouveau off'
 
-        sudo update-initramfs -u > "${u[null]}"
+        sudo update-initramfs -u > "${f[null]}"
 
         read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
@@ -1608,11 +1596,11 @@ postgres_stuffs() {
         [postgres_hba]=/etc/postgresql/11/main/pg_hba.conf
     )
 
-    l+=(
+    l=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
     )
 
-    m+=(
+    m=(
         'postgresql-11'  # 0: Núcleo do servidor de banco de dados
         'postgresql-client-11'  # 1: Bibliotecas/binários client
         'postgresql-contrib-9.6'  # 2: Módulos adicionais
@@ -1632,7 +1620,7 @@ postgres_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
 
 
 
@@ -1661,12 +1649,12 @@ postgres_stuffs() {
         [[ "${1}" -eq 1 ]] \
             && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        [[ ! $(sudo apt-key list 2> "${u[null]}" | grep PostgreSQL) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
+            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${f[null]}"
 
         # Apontando o host do postgres no sources.list
     	[[ ! -e "${f[postgres_ppa]}" || $(grep --files-without-match "bionic-pgdg" "${f[postgres_ppa]}") ]] \
-    		&& sudo tee "${f[postgres_ppa]}" > "${u[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
+    		&& sudo tee "${f[postgres_ppa]}" > "${f[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" && echo
@@ -1690,7 +1678,7 @@ postgres_stuffs() {
                 && show "USER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. BREAKING." \
                 && break
 
-            password=$("${u[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
+            password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
             sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'"
 
@@ -1721,9 +1709,9 @@ postgres_stuffs() {
     if [[ $(sudo grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
 
         # Antes de alterar a criptografia do postgres, devemos criar uma senha
-        password=$("${u[askpass]}" $"\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m")  # Change $"..." to $'...'
+        password=$("${f[askpass]}" $"\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m")  # Change $"..." to $'...'
 
-        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${u[null]}"
+        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
         sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
 
@@ -1744,11 +1732,11 @@ postgres_stuffs() {
 #======================#
 py_libraries() {
 
-    l+=(
+    l=(
         'https://pypi.org/project/pip/'  # 0
     )
 
-    m+=(
+    m=(
         'python-pip'  # 0
         'python-dev'  # 1
         'build-essential'  # 2
@@ -1771,18 +1759,18 @@ py_libraries() {
 #======================#
 upgrade_py() {
 
-    l+=(
+    l=(
         'https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer'  # 0
         'https://www.python.org/doc/versions/'  # 1
     )
 
-    d+=(
+    d=(
         ~/.pyenv  # 0
         # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
         ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages "external" | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
-    m+=(
+    m=(
         'pyenv'  # 0
         'python'  # 1
         'curl'  # 2
@@ -1815,9 +1803,9 @@ upgrade_py() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed -zi 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${u[bashrc]}"
+                sudo sed -zi 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
 
-                source "${u[bashrc]}"
+                source "${f[bashrc]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1847,7 +1835,7 @@ upgrade_py() {
 
         [[ ! -d "${d[0]}" ]] \
             && show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-            && bash -c "$(curl --location --silent ${l[0]})" &> "${u[null]}" \
+            && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
             || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
 
         echo
@@ -1856,17 +1844,17 @@ upgrade_py() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ $(grep --files-without-match "pyenv init" "${u[bashrc]}") ]] \
-        && sudo tee -a "${u[bashrc]}" > "${u[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
+    [[ $(grep --files-without-match "pyenv init" "${f[bashrc]}") ]] \
+        && sudo tee -a "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
-        && source "${u[bashrc]}"
+        && source "${f[bashrc]}"
 
     # pyenv versions
     # pyenv install --list
-    [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${u[null]}"
+    [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
-    pyenv global "${latest}" > "${u[null]}"
+    pyenv global "${latest}" > "${f[null]}"
 
     unset l d m
 
@@ -1878,7 +1866,7 @@ eval "$(pyenv virtualenv-init -)"' \
 #======================#
 sublime_stuffs() {
 
-    d+=(
+    d=(
         ~/.config/sublime-text-3  # 0
         ~/.config/sublime-text-3/Installed\ Packages  # 1
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
@@ -1899,13 +1887,13 @@ sublime_stuffs() {
         [recently_used]=~/.local/share/recently-used.xbel
     )
 
-    l+=(
+    l=(
         'https://download.sublimetext.com/sublimehq-pub.gpg'  # 0
         'https://download.sublimetext.com/ apt/stable/'  # 1
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
     )
 
-    m+=(
+    m=(
         'sublime-text'  # 0
         'apt-transport-https'  # 1
     )
@@ -1922,7 +1910,7 @@ sublime_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 remove_useless
 
@@ -1950,14 +1938,14 @@ sublime_stuffs() {
             && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
 		# Verifica certificado de segurança (apt-key list)
-		[[ ! $(apt-key list 2> "${u[null]}" | grep Sublime) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${u[null]}"
+		[[ ! $(apt-key list 2> "${f[null]}" | grep Sublime) ]] \
+            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${f[null]}"
 
         # Dependências
         install_packages "${m[1]}"
 
         [[ ! -e "${f[ppa]}" || $(grep --files-without-match "sublimetext" "${f[ppa]}") ]] \
-            && sudo tee "${f[ppa]}" > "${u[null]}" <<< "deb ${l[1]}" \
+            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[1]}" \
             && update
 
         install_packages "${m[0]}"
@@ -1981,7 +1969,7 @@ sublime_stuffs() {
 
             # Inserindo a chave do produto
             [[ ! -e "${f[license]}" || $(grep --files-without-match "Member" "${f[license]}") ]] \
-                && sudo tee "${f[license]}" > "${u[null]}" <<< '----- BEGIN LICENSE -----
+                && sudo tee "${f[license]}" > "${f[null]}" <<< '----- BEGIN LICENSE -----
 Member J2TeaM
 Single User License
 EA7E-1011316
@@ -1999,12 +1987,12 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             # sudo rm --force "${f[recently_used]}"
 
             [[ ! -e "${f[pkg_ctrl]}" ]] \
-                && sudo mkdir -p "${d[1]}" > "${u[null]}" \
+                && sudo mkdir -p "${d[1]}" > "${f[null]}" \
                 && sudo chown -R "${USER}":"${USER}" "${d[1]}" \
                 && curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
 
             [[ ! -e "${f[pkgs]}" || $(grep --files-without-match "packages" "${f[pkgs]}") ]] \
-                && sudo tee "${f[pkgs]}" > "${u[null]}" <<< '{
+                && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
                 # && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
@@ -2013,7 +2001,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         else
 
-            ( nohup subl & ) &> "${u[null]}"
+            ( nohup subl & ) &> "${f[null]}"
 
             echo && show "OPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
@@ -2030,13 +2018,13 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
-            sudo tee "${f[keymap]}" > "${u[null]}" <<< '{
+            sudo tee "${f[keymap]}" > "${f[null]}" <<< '{
     "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
         "id": "repl_python_run", "file": "config/Python/Main.sublime-menu"
     }
 }'
 
-            sudo tee "${f[config]}" > "${u[null]}" <<< '{
+            sudo tee "${f[config]}" > "${f[null]}" <<< '{
     // default value is []
     "rulers": [80],
 
@@ -2085,7 +2073,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         else
 
-            ( nohup subl & ) &> "${u[null]}"
+            ( nohup subl & ) &> "${f[null]}"
 
             echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
 
@@ -2099,7 +2087,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
                     echo && show "I'LL RESTART... (A RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
 
-                    sudo pkill subl && ( nohup subl & ) &> "${u[null]}"
+                    sudo pkill subl && ( nohup subl & ) &> "${f[null]}"
 
                     echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
 
@@ -2117,8 +2105,8 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     done
 
-    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "sublime" "${u[mimeapps]}") ]] \
-        && sudo tee -a "${u[mimeapps]}" > "${u[null]}" <<< 'text/plain=sublime_text.desktop
+    [[ ! -e "${f[mimeapps]}" || $(grep --files-without-match "sublime" "${f[mimeapps]}") ]] \
+        && sudo tee -a "${f[mimeapps]}" > "${f[null]}" <<< 'text/plain=sublime_text.desktop
 text/csv=sublime_text.desktop
 application/xml=sublime_text.desktop
 text/html=sublime_text.desktop
@@ -2154,7 +2142,7 @@ upgrade() {
     date=$(date -d "${last}" +"%d/%m/%Y")
     show "OH ${name[random]}, LAST TIME WE'VE SEEN YOU WAS IN\n\t\t${c[CYAN]}${date}\n\n${c[WHITE]}UPGRADING..."
 
-    sudo apt update &> "${u[null]}"; sudo apt upgrade -y &> "${u[null]}"
+    sudo apt update &> "${f[null]}"; sudo apt upgrade -y &> "${f[null]}"
 
     unset f
 
@@ -2164,7 +2152,7 @@ upgrade() {
 #======================#
 tmate_stuffs() {  # Okzão
 
-    m+=(
+    m=(
         'tmate'  # 0
     )
 
@@ -2180,7 +2168,7 @@ tmate_stuffs() {  # Okzão
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
 
                 remove_useless
 
@@ -2230,7 +2218,7 @@ usefull_pkgs() {
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
-    m+=(
+    m=(
         'tree'  # 0
         'vlc'  # 1
         'vim'  # 2
@@ -2257,11 +2245,11 @@ usefull_pkgs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]} AND ${c[RED]}${m[3]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" &> "${u[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
-                sudo sed -zi 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${u[mimeapps]}"
+                sudo sed -zi 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
 
                 remove_useless
 
@@ -2294,12 +2282,12 @@ usefull_pkgs() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${u[mimeapps]}" || $(grep --files-without-match "vlc" "${u[mimeapps]}") ]] \
-        && sudo tee -a "${u[mimeapps]}" > "${u[null]}" <<< 'video/x-matroska=vlc.desktop
+    [[ ! -e "${f[mimeapps]}" || $(grep --files-without-match "vlc" "${f[mimeapps]}") ]] \
+        && sudo tee -a "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop'
 
-    [[ ! -e "${f[vimrc]}" || $(grep --files-without-match "set number" "${u[mimeapps]}") ]] \
-        && sudo tee "${f[vimrc]}" > "${u[null]}" <<< 'set encoding=UTF-8
+    [[ ! -e "${f[vimrc]}" || $(grep --files-without-match "set number" "${f[mimeapps]}") ]] \
+        && sudo tee "${f[vimrc]}" > "${f[null]}" <<< 'set encoding=UTF-8
 syntax on
 set autoread
 set wildmenu
@@ -2323,7 +2311,7 @@ set background=dark'
 #======================#
 workspace_stuffs() {  # Okzão
 
-    d+=(
+    d=(
         /workspace  # 0
     )
 
@@ -2331,11 +2319,11 @@ workspace_stuffs() {  # Okzão
         [bookmarks]=~/.config/gtk-3.0/bookmarks
     )
 
-    l+=(
+    l=(
         git@github.com:rafaelribeiroo/  # 0
     )
 
-    m+=(
+    m=(
         'workspace'  # 0
     )
 
@@ -2385,10 +2373,10 @@ workspace_stuffs() {  # Okzão
     else
 
         [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1 \
+            && show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" "1" \
             || show "${c[GREEN]}\nC${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
-        sudo mkdir -p "${d[0]}" > "${u[null]}"
+        sudo mkdir -p "${d[0]}" > "${f[null]}"
 
         sudo chown -R ${USER}:${USER} "${d[0]}"
 
@@ -2397,7 +2385,7 @@ workspace_stuffs() {  # Okzão
     show "INITIALIZING CONFIGS..."
 
     [[ ! -e "${f[bookmarks]}" || $(grep --files-without-match "workspace" "${f[bookmarks]}") ]] \
-        && sudo tee -a "${f[bookmarks]}" > "${u[null]}" <<< 'file:///workspace workspace'
+        && sudo tee -a "${f[bookmarks]}" > "${f[null]}" <<< 'file:///workspace workspace'
 
     if [[ ! -d "${d[0]}"/"${r[0]}" \
         && ! -d "${d[0]}"/"${r[1]}" \
@@ -2455,7 +2443,7 @@ invoca_funcoes() {
 
     case "${escolha}" in
 
-        0|00) encerra_menu > "${u[null]}" ;;
+        0|00) encerra_menu > "${f[null]}" ;;
         1|01) bash_stuffs 1 && retorna_menu ;;
         2|02) deezloader_stuffs 1 && retorna_menu ;;
         3|03) dualmonitor_stuffs 1 && retorna_menu ;;
@@ -2477,7 +2465,7 @@ invoca_funcoes() {
         19) workspace_stuffs 1 && retorna_menu ;;
         20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
-        d+=(
+        d=(
             ~/.local/share/cinnamon/applets/pomodoro@gregfreeman.org  # 0
             ~/.local/share/cinnamon/applets/betterlock  # 1
             ~/.local/share/cinnamon/applets  # 2
@@ -2505,7 +2493,7 @@ invoca_funcoes() {
             [thumbnail_limit]=/org/nemo/preferences/thumbnail-limit
         )
 
-        m+=(
+        m=(
             'dconf-editor'  # 0
             'numlockx'  # 1
         )
@@ -2516,7 +2504,7 @@ invoca_funcoes() {
         if [[ ! -e "${f[capslock]}" && ! -e "${f[pomodoro]}" ]]; then
 
             [[ ! -d "${d[13]}" || $(stat -c "%U" "${d[13]}" 2>&-) != ${USER} ]] \
-                && sudo mkdir -p "${d[13]}" > "${u[null]}" \
+                && sudo mkdir -p "${d[13]}" > "${f[null]}" \
                 && sudo chown -R ${USER}:${USER} "${d[13]}"
 
             wget --quiet "${l[22]}" --output-document "${f[capslock]}"
@@ -2526,7 +2514,7 @@ invoca_funcoes() {
         fi
 
         [[ ! -d "${d[0]}" && ! -d "${d[1]}" ]] \
-            && unzip "${d[2]}"/*.zip -d "${d[2]}" &> "${u[null]}" \
+            && unzip "${d[2]}"/*.zip -d "${d[2]}" &> "${f[null]}" \
             && sudo rm --force "${f[capslock]}" "${f[pomodoro]}" # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
@@ -2551,7 +2539,7 @@ invoca_funcoes() {
             && dconf write "${f[default_sort_reverse]}" false \
             && dconf write "${f[thumbnail_limit]}" "34359738368" \
             && dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:13', 'panel1:left:1:show-desktop@cinnamon.org:14', 'panel1:right:11:systray@cinnamon.org:16', 'panel1:right:12:notifications@cinnamon.org:18', 'panel1:right:13:printers@cinnamon.org:19', 'panel1:right:14:removable-drives@cinnamon.org:20', 'panel1:right:15:keyboard@cinnamon.org:21', 'panel1:right:16:network@cinnamon.org:22', 'panel1:right:17:sound@cinnamon.org:23', 'panel1:right:18:power@cinnamon.org:24', 'panel1:right:10:xapp-status@cinnamon.org:26', 'panel1:right:19:calendar@cinnamon.org:28', 'panel1:right:6:betterlock:31', 'panel1:left:2:grouped-window-list@cinnamon.org:35', 'panel1:right:1:pomodoro@gregfreeman.org:36']" \
-            && dconf write "${u[gtk_theme]}" "'Mint-Y-Dark-Red'" \
+            && dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'" \
             && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
             && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
 
@@ -2581,7 +2569,7 @@ invoca_funcoes() {
         workspace_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FINISH THIS SHIT"
 
         echo; show "INITIALIZING CONFIGS..."; echo
-        sudo tee "${u[mimeapps]}" > "${u[null]}" <<< '[Default Applications]
+        sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
 x-scheme-handler/http=google-chrome.desktop
 x-scheme-handler/https=google-chrome.desktop
