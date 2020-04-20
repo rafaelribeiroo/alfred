@@ -2439,6 +2439,10 @@ tmate_stuffs() {  # Okzão
 #======================#
 usefull_pkgs() {
 
+    d+=(
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
+    )
+
     f+=(
         [vimrc]=~/.vimrc
     )
@@ -2532,7 +2536,11 @@ set laststatus=2 "Setting the size for the command area, and airline status bar
 set cmdheight=1
 set background=dark'
 
-    unset f m
+    # Nomenclature icon arrangement
+    [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
+        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t\t\t"telegramdesktop.desktop",|g' "${d[0]}"/*.json
+
+    unset d f m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
