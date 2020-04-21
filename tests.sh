@@ -75,8 +75,6 @@ f+=(
     [bookmarks]=~/.config/gtk-3.0/bookmarks
 )
 
-sudo tee -a "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
-
 #[[ $(systemctl is-active postgresql.service) = active ]] \
 #    && echo ativo || echo nao
 
