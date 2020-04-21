@@ -88,7 +88,6 @@ declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
-    [hosts]=~/.ssh/known_hosts
     [mimeapps]=~/.config/mimeapps.list
     [null]=/dev/null
     [public_ssh]=~/.ssh/id_rsa.pub
@@ -946,7 +945,7 @@ github_stuffs() {
 
     fi
 
-    [[ ! -e "${f[hosts]}" ]] \
+    [[ ! $(ssh -T git@github.com 2> "${f[null]}" | grep successfully) ]] \
         && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     unset f l m
@@ -2634,17 +2633,11 @@ workspace_stuffs() {
 
             if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-                if [[ ! -e "${f[hosts]}" ]]; then
+                [[ ! $(ssh -T git@github.com 2> "${f[null]}" | grep successfully) ]] \
+                    && echo && show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" "1" \
+                    && github_stuffs
 
-                    echo; show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" 1
-
-                    github_stuffs
-
-                fi
-
-                # First time running git clone through ssh could receiver message:
-                # permanently added to the list of known hosts
-                git clone -q "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}" 2> "${f[null]}"
+                git clone -q "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
 
                 git clone -q "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}"
 
