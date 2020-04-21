@@ -395,7 +395,7 @@ bash_stuffs() {
 
                 # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
                 # disk and maintain home intact, returns error
-                cp "${f[original]}" ~/ &> "${f[null]}"
+                cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
 
                 source "${f[bashrc]}"
 
