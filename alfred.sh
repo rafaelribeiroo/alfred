@@ -2619,8 +2619,9 @@ workspace_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
+    # Lost your bookmarks? Run xdg-user-dirs-gtk-update
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
-        && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< 'file:///workspace Workspace'
+        && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
     if [[ ! -d "${d[0]}"/"${r[0]}" \
         && ! -d "${d[0]}"/"${r[1]}" \
