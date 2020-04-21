@@ -150,19 +150,19 @@ check_distro() {
 #======================#
 check_pkg() {
 
-	# instalado
+	# installed
 	if dpkg-query -s "${1}" &> "${f[null]}"; then
 
 		return 0
 
 	else
 
-		# não instalado, porém disponível no registro de pacote
+		# installed and available
 		if apt-cache show "${1}" &> "${f[null]}"; then
 
 			return 1
 
-		# não instalado/disponível
+		# not installed/available
 		else
 
 			return 2
