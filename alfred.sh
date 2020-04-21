@@ -465,7 +465,7 @@ bash_stuffs() {
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
     [[ ! $(grep --no-messages DEFAULT_USER "${f[bashrc]}") ]] \
-        && sudo tee -a "${f[bashrc]}" > "${f[null]}" <<< "#DEFAULT_USER=${USER}
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
@@ -900,7 +900,7 @@ github_stuffs() {
     check_ssh
 
     [[ ! $(grep --no-messages github "${f[config-ssh]}") ]] \
-        && sudo tee -a "${f[config-ssh]}" > "${f[null]}" <<< 'Host github.com
+        && sudo tee --append "${f[config-ssh]}" > "${f[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
 
@@ -1370,7 +1370,7 @@ hide_devices() {
 
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
 
-                tee -a "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
+                tee --append "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
 
@@ -2035,7 +2035,7 @@ upgrade_py() {
     show "INITIALIZING CONFIGS..."
 
     [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
-        && sudo tee -a "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
         && source "${f[bashrc]}"
@@ -2325,7 +2325,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
     done
 
     [[ ! $(grep --no-messages sublime "${f[mimeapps]}") ]] \
-        && sudo tee -a "${f[mimeapps]}" > "${f[null]}" <<< 'text/plain=sublime_text.desktop
+        && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'text/plain=sublime_text.desktop
 text/csv=sublime_text.desktop
 application/xml=sublime_text.desktop
 text/html=sublime_text.desktop
@@ -2513,7 +2513,7 @@ usefull_pkgs() {
     show "INITIALIZING CONFIGS..."
 
     [[ ! $(grep --no-messages vlc "${f[mimeapps]}") ]] \
-        && sudo tee -a "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
+        && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop'
 
     [[ ! $(grep --no-messages "syntax" "${f[vimrc]}") ]] \
@@ -2567,6 +2567,7 @@ workspace_stuffs() {
         releasing_linux  # 2
         coffee_warm  # 3
         instrutions_sql  # 4
+        alfred  # 5
     )
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
@@ -2619,7 +2620,7 @@ workspace_stuffs() {
     show "INITIALIZING CONFIGS..."
 
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
-        && sudo tee -a "${f[bookmarks]}" > "${f[null]}" <<< 'file:///workspace Workspace'
+        && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< 'file:///workspace Workspace'
 
     if [[ ! -d "${d[0]}"/"${r[0]}" \
         && ! -d "${d[0]}"/"${r[1]}" \
@@ -2637,15 +2638,17 @@ workspace_stuffs() {
                     && echo && show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" "1" \
                     && github_stuffs
 
-                git clone -q "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
+                git clone --quiet "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
 
-                git clone -q "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}"
+                git clone --quiet "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}"
 
-                git clone -q "${l[0]}${r[2]}".git "${d[0]}"/"${r[2]}"
+                git clone --quiet "${l[0]}${r[2]}".git "${d[0]}"/"${r[2]}"
 
-                git clone -q "${l[0]}${r[3]}".git "${d[0]}"/"${r[3]}"
+                git clone --quiet "${l[0]}${r[3]}".git "${d[0]}"/"${r[3]}"
 
-                git clone -q "${l[0]}${r[4]}".git "${d[0]}"/"${r[4]}"
+                git clone --quiet "${l[0]}${r[4]}".git "${d[0]}"/"${r[4]}"
+
+                git clone --quiet "${l[0]}${r[5]}".git "${d[0]}"/"${r[5]}"
 
                 echo && break
 
