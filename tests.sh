@@ -71,8 +71,6 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-cp /etc/skel/.bashrc ~/Downloads/
-
 #[[ $(systemctl is-active postgresql.service) = active ]] \
 #    && echo ativo || echo nao
 
