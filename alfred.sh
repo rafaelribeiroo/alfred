@@ -219,7 +219,7 @@ show() {
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
     # Don't sleep if 2ø parameter contains 1
-    [[ "${2}" -ne 1 ]] && take_a_break
+    [[ "${2}" != "1" ]] && take_a_break
 
 }
 #======================#
@@ -359,6 +359,7 @@ bash_stuffs() {
     f+=(
         [powerline_otf]=~/.fonts/PowerlineSymbols.otf
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
+        [original]=/etc/skel/.bashrc
         [config]=~/.oh-my-bash/oh-my-bash.sh
         [bkp]=~/.bashrc.pre-oh-my-bash
     )
@@ -385,17 +386,17 @@ bash_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                # lost your .bashrc accidentally? Runs: cp /etc/skel/.bashrc ~/
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bkp]}" "${f[bashrc]}"
 
-                # Move bkp content to bashrc (oh-my-bash)
-                [[ -e "${f[bkp]}" ]] && sudo mv "${f[bkp]}" "${f[bashrc]}"
+                # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
+                # disk and maintain home intact, returns error
+                cp "${f[original]}" ~/ &> "${f[null]}"
 
                 source "${f[bashrc]}"
 
@@ -899,7 +900,7 @@ github_stuffs() {
 
     check_ssh
 
-    [[ ! $(grep --no-messages github.com "${f[config-ssh]}") ]] \
+    [[ ! $(grep --no-messages github "${f[config-ssh]}") ]] \
         && sudo tee -a "${f[config-ssh]}" > "${f[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
@@ -918,7 +919,7 @@ github_stuffs() {
         # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
         [[ "${check_integrity}" -gt 400 ]] \
-            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
+            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" "1" \
             || break
 
     done
@@ -2606,9 +2607,9 @@ workspace_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1 \
-            || show "${c[GREEN]}\nC${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
+
+        show "${c[GREEN]}\nC${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
         sudo mkdir -p "${d[0]}" > "${f[null]}"
 
@@ -2700,7 +2701,7 @@ invoca_funcoes() {
         14) sublime_stuffs && retorna_menu ;;
         15) tmate_stuffs 1 && retorna_menu ;;
         16) usefull_pkgs 1 && retorna_menu ;;
-        17) workspace_stuffs 1 && retorna_menu ;;
+        17) workspace_stuffs && retorna_menu ;;
         18) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
         d=(
