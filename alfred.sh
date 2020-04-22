@@ -2636,23 +2636,22 @@ workspace_stuffs() {
 
             if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
+                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+
                 [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
                     && github_stuffs
 
-                git clone --quiet "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
+                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                git clone --quiet "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}"
-
-                git clone --quiet "${l[0]}${r[2]}".git "${d[0]}"/"${r[2]}"
-
-                git clone --quiet "${l[0]}${r[3]}".git "${d[0]}"/"${r[3]}"
-
-                git clone --quiet "${l[0]}${r[4]}".git "${d[0]}"/"${r[4]}"
-
-                git clone --quiet "${l[0]}${r[5]}".git "${d[0]}"/"${r[5]}"
-
-                echo && break
+                [[ $(cat "${f[ssh]}" | grep successfully) ]] \
+                    && git clone --quiet "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}" \
+                    && git clone --quiet "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}" \
+                    && git clone --quiet "${l[0]}${r[2]}".git "${d[0]}"/"${r[2]}" \
+                    && git clone --quiet "${l[0]}${r[3]}".git "${d[0]}"/"${r[3]}" \
+                    && git clone --quiet "${l[0]}${r[4]}".git "${d[0]}"/"${r[4]}" \
+                    && git clone --quiet "${l[0]}${r[5]}".git "${d[0]}"/"${r[5]}" \
+                    && echo && break
 
             elif [[ ${option:0:1} = @(n|N) ]] ; then
 
@@ -2755,7 +2754,7 @@ invoca_funcoes() {
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
         [[ ! -e "${f[numlock]}" ]] \
-            && sudo tee "${u[numlock]}" > "${f[null]}" <<< '[Greeter]
+            && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
 activate-numlock=true'
 
         [[ $(grep --no-messages false "${f[numlock]}") ]] \
