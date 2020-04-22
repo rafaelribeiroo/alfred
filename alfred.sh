@@ -94,6 +94,7 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d
+    [ssh]=/tmp/check_connection
 )
 #======================#
 
@@ -437,8 +438,8 @@ bash_stuffs() {
         # Hidden directories are owned by root, we must change owner to bash "read"
         # 2>&- hides: "can't stat: no such file..."
         [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[1]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[1]}" # Tranca saída de erro
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}" # Close error output
 
         # --location follows to last URL (github provides a few redirects)
         # --output write content to file
@@ -452,8 +453,8 @@ bash_stuffs() {
     if [[ ! -e "${f[powerline_conf]}" ]]; then
 
         [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[2]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[2]%conf.d}"
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
 
         curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
 
@@ -716,8 +717,8 @@ dualmonitor_stuffs() {
     if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
         [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[0]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[0]}"
+            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
         [[ ! -e "${f[left]}" ]] \
             && curl --silent --output "${f[starwars]}" --create-dirs "${l[0]}"
@@ -945,8 +946,8 @@ github_stuffs() {
 
     fi
 
-    [[ ! $(ssh -T git@github.com 2> "${f[null]}" | grep successfully) ]] \
-        && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
+    [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com
 
     unset f l m
 
@@ -1365,8 +1366,8 @@ hide_devices() {
             done
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-                && mkdir -p "${d[0]}" > "${f[null]}" \
-                && sudo chown -R "${USER}":"${USER}" "${d[0]}"
+                && mkdir --parents "${d[0]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
 
@@ -2188,8 +2189,8 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
     if [[ ! -e "${f[pkg_ctrl]}" ]]; then
 
         [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[1]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[1]}"
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
         curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
 
@@ -2572,7 +2573,7 @@ workspace_stuffs() {
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
@@ -2585,7 +2586,7 @@ workspace_stuffs() {
                 sudo rm --force --recursive "${d[0]}"
 
                 [[ $(grep --no-messages workspace "${f[bookmarks]}") ]] \
-                    && sudo sed -i 's|file:///workspace Workspace||g' "${f[bookmarks]}"
+                    && sudo sed -i $'s|file:///workspace \360\237\221\211 Workspace||g' "${f[bookmarks]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2609,11 +2610,11 @@ workspace_stuffs() {
 
         show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" "1"
 
-        show "${c[GREEN]}\nC${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
 
-        sudo mkdir -p "${d[0]}" > "${f[null]}"
+        sudo mkdir --parents "${d[0]}" > "${f[null]}"
 
-        sudo chown -R ${USER}:${USER} "${d[0]}"
+        sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
     fi
 
@@ -2635,8 +2636,8 @@ workspace_stuffs() {
 
             if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-                [[ ! $(ssh -T git@github.com 2> "${f[null]}" | grep successfully) ]] \
-                    && echo && show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" "1" \
+                [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
                     && github_stuffs
 
                 git clone --quiet "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
