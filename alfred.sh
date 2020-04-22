@@ -919,7 +919,7 @@ github_stuffs() {
         # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
         [[ "${check_integrity}" -gt 400 ]] \
-            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" "1" \
+            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" \
             || break
 
     done
