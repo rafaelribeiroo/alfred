@@ -904,22 +904,20 @@ github_stuffs() {
 
         password=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
 
-        # Ver se dá pra fazer com awk '{print $2}'
-        # Opções curl: s de silent, i de informações a mais, u de usuário
         check_integrity=$(curl --silent --include --user "${user}":"${password}" "${l[0]}" | grep Status | awk '{print $2}')
 
-        # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
+        # Don't need condition below, once error messages are between 200 & 226
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
-        [[ "${check_integrity}" -gt 400 ]] \
-            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" "1" \
-            || break
+        [[ "${check_integrity}" -le 226 ]] \
+            && break \
+            || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" "1"
 
     done
 
     # Se não existir nenhuma chave no github
     if [[ -z $(curl --silent --user "${user}":"${password}" "${l[0]}") ]]; then
 
-        curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
+        curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
 
         echo
 
@@ -933,7 +931,7 @@ github_stuffs() {
         ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
             && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
-            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}" \
+            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}" \
             && echo
 
     fi
@@ -2870,4 +2868,4 @@ menu() {
 }
 #======================#
 
-check_source
+menu
