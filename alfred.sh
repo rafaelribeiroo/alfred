@@ -348,7 +348,7 @@ uninstall_or_configure() {
 #======================#
 bash_stuffs() {
 
-    d=(
+    local -a d=(
         ~/.oh-my-bash  # 0
         ~/.fonts  # 1
         ~/.config/fontconfig/conf.d  # 2
@@ -362,13 +362,13 @@ bash_stuffs() {
         [bkp]=~/.bashrc.pre-oh-my-bash
     )
 
-    l=(
+    local -a l=(
         'https://raw.github.com/ohmybash/oh-my-bash/master/tools/install.sh'  # 0
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 1
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 2
     )
 
-    m=(
+    local -a m=(
         'oh-my-bash'  # 0
         'curl'  # 1
         'git'  # 2
@@ -482,13 +482,13 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 #======================#
 deezloader_stuffs() {
 
-    d=(
+    local -a d=(
         ~/Deezloader\ Music  # 0
         ~/.config/Deezloader\ Remix  # 1
         ~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
     )
 
-    l=(
+    local -a l=(
         'https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Downloads'  # 0
         'https://notabug.org/RemixDevs/DeezloaderRemix'  # 1
     )
@@ -498,7 +498,7 @@ deezloader_stuffs() {
         [config]=~/.config/Deezloader\ Remix/config.json
     )
 
-    m=(
+    local -a m=(
         'deezloader'  # 0
         'megatools'  # 1
         # If preview not show, try run: rm -rf ~/.cache/thumbnails/fail*
@@ -623,7 +623,7 @@ deezloader_stuffs() {
 #======================#
 dualmonitor_stuffs() {
 
-    d=(
+    local -a d=(
         /usr/share/backgrounds/linuxmint-random  # 0
     )
 
@@ -642,14 +642,14 @@ dualmonitor_stuffs() {
     )
 
     # 3840x1080 wallpaper
-    l=(
+    local -a l=(
         'https://images3.alphacoders.com/673/673177.jpg'  # 0
         'https://images4.alphacoders.com/885/885300.png'  # 1
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-8.jpg'  # 2
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-20.jpg'  # 3
     )
 
-    m=(
+    local -a m=(
         'wallpapers'  # 0
         'dconf-editor'  # 1
     )
@@ -741,7 +741,7 @@ dualmonitor_stuffs() {
 <!DOCTYPE wallpapers SYSTEM "cinnamon-wp-list.dtd">
 <wallpapers>
 
-<wallpaper deleted="false">
+<wallpaper deletelocal -a d="false">
     <name>Jedi vs Sith</name>
     <filename>/usr/share/backgrounds/linuxmint-random/sw.jpg</filename>
     <options>spanned</options>
@@ -750,7 +750,7 @@ dualmonitor_stuffs() {
     <scolor>#333333</scolor>
     <artist>Torino GT</artist>
 </wallpaper>
-<wallpaper deleted="false">
+<wallpaper deletelocal -a d="false">
     <name>Stormtrooper</name>
     <filename>/usr/share/backgrounds/linuxmint-random/st.jpg</filename>
     <options>spanned</options>
@@ -759,7 +759,7 @@ dualmonitor_stuffs() {
     <scolor>#333333</scolor>
     <artist>Duane</artist>
 </wallpaper>
-<wallpaper deleted="false">
+<wallpaper deletelocal -a d="false">
     <name>Fight Club</name>
     <filename>/usr/share/backgrounds/linuxmint-random/cl.jpg</filename>
     <options>spanned</options>
@@ -768,7 +768,7 @@ dualmonitor_stuffs() {
     <scolor>#333333</scolor>
     <artist>Joker Boy</artist>
 </wallpaper>
-<wallpaper deleted="false">
+<wallpaper deletelocal -a d="false">
     <name>Kylo Ren</name>
     <filename>/usr/share/backgrounds/linuxmint-random/kr.jpg</filename>
     <options>spanned</options>
@@ -799,12 +799,12 @@ github_stuffs() {
         [config-ssh]=~/.ssh/config
     )
 
-    l=(
+    local -a local -a l=(
         'https://api.github.com/user/keys'  # 0
         'https://git-scm.com/'  # 1
     )
 
-    m=(
+    local -a m=(
         'git'  # 0
         'vim'  # 1
         'git-cola'  # 2
@@ -902,11 +902,11 @@ github_stuffs() {
 
         read -p $'\033[1;37m\nENTER YOUR USERNAME FROM GITHUB: \033[m' user
 
-        password=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
+        passworlocal -a d=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
 
         check_integrity=$(curl --silent --include --user "${user}":"${password}" "${l[0]}" | grep Status | awk '{print $2}')
 
-        # Don't need condition below, once error messages are between 200 & 226
+        # Success messages are between 200 & 226 and error between 400 & 451
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
         [[ "${check_integrity}" -le 226 ]] \
             && break \
@@ -936,6 +936,8 @@ github_stuffs() {
 
     fi
 
+    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+
     [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
         && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
@@ -947,7 +949,7 @@ github_stuffs() {
 #======================#
 chrome_stuffs() {
 
-    d=(
+    local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
     )
 
@@ -956,11 +958,11 @@ chrome_stuffs() {
         [garbage]=/etc/default/google-chrome
     )
 
-    l=(
+    local -a l=(
         'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'  # 0
     )
 
-    m=(
+    local -a m=(
         'google-chrome-stable'  # 0
         'libappindicator1'  # 1
         'libindicator7'  # 2
@@ -1053,7 +1055,7 @@ x-scheme-handler/mailto=google-chrome.desktop'
 #======================#
 flameshot_stuffs() {
 
-    d=(
+    local -a d=(
         ~/.config/Dharkael  # 0
     )
 
@@ -1068,7 +1070,7 @@ flameshot_stuffs() {
         [custom]=/org/cinnamon/desktop/keybindings/custom-list
     )
 
-    m=(
+    local -a m=(
         'flameshot'  # 0
         'dconf-editor'  # 1
     )
@@ -1166,7 +1168,7 @@ Icon=flameshot
 Exec=flameshot
 Terminal=false
 Type=Application
-X-GNOME-Autostart-enabled=true'
+X-GNOME-Autostart-enablelocal -a d=true'
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1176,7 +1178,7 @@ X-GNOME-Autostart-enabled=true'
 #======================#
 heroku_stuffs() {
 
-    d=(
+    local -a d=(
         /usr/lib/heroku/  # 0
         ~/.cache/heroku/  # 1
     )
@@ -1186,11 +1188,11 @@ heroku_stuffs() {
         [ppa]=/etc/apt/sources.list.d/heroku.list
     )
 
-    l=(
+    local -a l=(
         'https://cli-assets.heroku.com/install-ubuntu.sh'  # 0
     )
 
-    m=(
+    local -a m=(
         'heroku'  # 0
     )
 
@@ -1285,7 +1287,7 @@ heroku_stuffs() {
 #======================#
 hide_devices() {
 
-    d=(
+    local -a d=(
         /etc/udev/rules.d  # 0
     )
 
@@ -1293,7 +1295,7 @@ hide_devices() {
         [config]=/etc/udev/rules.d/99-hide-disks.rules
     )
 
-    m=(
+    local -a m=(
         'devices'  # 0
     )
 
@@ -1378,7 +1380,7 @@ hide_devices() {
 #======================#
 minidlna_stuffs() {
 
-    d=(
+    local -a d=(
         ~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
     )
 
@@ -1387,7 +1389,7 @@ minidlna_stuffs() {
         [dft]=/etc/default/minidlna
     )
 
-    m=(
+    local -a m=(
         'minidlna'  # 0
     )
 
@@ -1479,11 +1481,11 @@ nvidia_stuffs() {
         [config]=/etc/modprobe.d/blacklist-nouveau.conf
     )
 
-    l=(
+    local -a l=(
         'https://www.nvidia.com/Download/driverResults.aspx/157462/en-us'  # 0
     )
 
-    m=(
+    local -a m=(
         'nvidia-driver'  # 0
         'nouveau-driver'  # 1
         'nvidia-settings'  # 2
@@ -1637,7 +1639,7 @@ alias lbm-nouveau off'
 #======================#
 postgres_stuffs() {
 
-    d=(
+    local -a d=(
         /etc/postgresql/  # 0
     )
 
@@ -1650,13 +1652,13 @@ postgres_stuffs() {
         [pspg]=/usr/bin/pspg
     )
 
-    l=(
+    local -a l=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
         'https://www.postgresql.org/'  # 1
         'https://www.linuxmint.com/download_all.php'  # 2
     )
 
-    m=(
+    local -a m=(
         'postgresql'  # 0
         'postgresql-client'  # 1
         'postgresql-contrib'  # 2
@@ -1752,7 +1754,7 @@ postgres_stuffs() {
                 && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
-            password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
+            passworlocal -a d=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
             sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
@@ -1825,7 +1827,7 @@ postgres_stuffs() {
     if [[ ! $(sudo grep --no-messages 'local   all             postgres                                md5' "${f[postgres_hba]}") ]]; then
 
         # Before change cryptography, we need add a password for postgres
-        password=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
+        passworlocal -a d=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
 
         sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
@@ -1845,11 +1847,11 @@ postgres_stuffs() {
 #======================#
 py_libraries() {
 
-    l=(
+    local -a l=(
         'https://pypi.org/project/pip/'  # 0
     )
 
-    m=(
+    local -a m=(
         'python-pip'  # 0
         'python-dev'  # 1
         'build-essential'  # 2
@@ -1917,18 +1919,18 @@ py_libraries() {
 #======================#
 upgrade_py() {
 
-    l=(
+    local -a l=(
         'https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer'  # 0
         'https://www.python.org/doc/versions/'  # 1
     )
 
-    d=(
+    local -a d=(
         ~/.pyenv  # 0
         # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
         ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
-    m=(
+    local -a m=(
         'pyenv'  # 0
         'python'  # 1
         'curl'  # 2
@@ -2030,7 +2032,7 @@ eval "$(pyenv virtualenv-init -)"' \
 #======================#
 sublime_stuffs() {
 
-    d=(
+    local -a d=(
         ~/.config/sublime-text-3  # 0
         ~/.config/sublime-text-3/Installed\ Packages  # 1
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
@@ -2052,13 +2054,13 @@ sublime_stuffs() {
         [recently_used]=~/.local/share/recently-used.xbel
     )
 
-    l=(
+    local -a l=(
         'https://download.sublimetext.com/sublimehq-pub.gpg'  # 0
         'https://download.sublimetext.com/ apt/stable/'  # 1
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
     )
 
-    m=(
+    local -a m=(
         'apt-transport-https'  # 0
         'sublime-text'  # 1
     )
@@ -2343,7 +2345,7 @@ upgrade() {
 #======================#
 tmate_stuffs() {  # Okzão
 
-    m=(
+    local -a m=(
         'tmate'  # 0
     )
 
@@ -2402,7 +2404,7 @@ tmate_stuffs() {  # Okzão
 #======================#
 usefull_pkgs() {
 
-    d=(
+    local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
     )
 
@@ -2411,7 +2413,7 @@ usefull_pkgs() {
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
-    m=(
+    local -a m=(
         'tree'  # 0
         'vlc'  # 1
         'vim'  # 2
@@ -2497,7 +2499,7 @@ set autoindent
 set smartindent
 set laststatus=2 "Setting the size for the command area, and airline status bar
 set cmdheight=1
-set background=dark'
+set backgrounlocal -a d=dark'
 
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
@@ -2511,7 +2513,7 @@ set background=dark'
 #======================#
 workspace_stuffs() {
 
-    d=(
+    local -a d=(
         /workspace/  # 0
     )
 
@@ -2519,7 +2521,12 @@ workspace_stuffs() {
         [bookmarks]=~/.config/gtk-3.0/bookmarks
     )
 
-    r=(
+    # only here is global because invokes a new function
+    l=(
+        git@github.com:rafaelribeiroo/
+    )
+
+    local -a r=(
         scripts_py  # 0
         connecting_networks  # 1
         releasing_linux  # 2
@@ -2593,27 +2600,22 @@ workspace_stuffs() {
 
             if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+                for (( ; ; )); do
 
-                [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
-                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
-                    && github_stuffs
+                    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                # Let this array here, to not be overried by github "l" array
-                l=(
-                    git@github.com:rafaelribeiroo/  # 0
-                )
+                    [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+                        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
+                        && github_stuffs \
+                        || git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
+                        && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
+                        && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
+                        && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
+                        && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
+                        && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
+                        && echo && break && break
 
-                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
-
-                [[ $(cat "${f[ssh]}" | grep successfully) ]] \
-                    && git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
-                    && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
-                    && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
-                    && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
-                    && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
-                    && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
-                    && echo && break
+                done
 
             elif [[ ${option:0:1} = @(n|N) ]] ; then
 
@@ -2661,7 +2663,7 @@ invoca_funcoes() {
         17) workspace_stuffs && retorna_menu ;;
         18) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
-        d=(
+        local -a d=(
             ~/.local/share/cinnamon/applets  # 0
             ~/.local/share/cinnamon/applets/betterlock  # 1
         )
@@ -2686,11 +2688,11 @@ invoca_funcoes() {
             [show_hidden]=/org/nemo/preferences/show-hidden-files
         )
 
-        l=(
+        local -a l=(
             'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
         )
 
-        m=(
+        local -a m=(
             'dconf-editor'  # 0
             'numlockx'  # 1
         )
