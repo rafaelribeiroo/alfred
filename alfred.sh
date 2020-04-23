@@ -799,7 +799,7 @@ github_stuffs() {
         [config-ssh]=~/.ssh/config
     )
 
-    local -a local -a l=(
+    local -a l=(
         'https://api.github.com/user/keys'  # 0
         'https://git-scm.com/'  # 1
     )
@@ -902,7 +902,7 @@ github_stuffs() {
 
         read -p $'\033[1;37m\nENTER YOUR USERNAME FROM GITHUB: \033[m' user
 
-        passworlocal -a d=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
+        password=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
 
         check_integrity=$(curl --silent --include --user "${user}":"${password}" "${l[0]}" | grep Status | awk '{print $2}')
 
@@ -1754,7 +1754,7 @@ postgres_stuffs() {
                 && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
-            passworlocal -a d=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
+            password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
             sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
@@ -1827,7 +1827,7 @@ postgres_stuffs() {
     if [[ ! $(sudo grep --no-messages 'local   all             postgres                                md5' "${f[postgres_hba]}") ]]; then
 
         # Before change cryptography, we need add a password for postgres
-        passworlocal -a d=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
+        password=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
 
         sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
