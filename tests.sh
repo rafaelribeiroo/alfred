@@ -13,12 +13,8 @@ show() {
 
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
-    # Se passar 1, não "dorme"
-<<<<<<< HEAD
-    [[ "${2}" -eq "1" ]] || take_a_break
-=======
-    [[ "${2}" -ne 1 ]] && take_a_break
->>>>>>> build
+    # Don't sleep if 2ø parameter contains 1
+    [[ "${2}" -ne 1 ]] && take_a_break || return 0
 
 }
 
@@ -75,22 +71,8 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-<<<<<<< HEAD
-[[ ! -d ~/Downloads/Rafa ]] \
-    && show "\ncriando diretório\n" "1" \
-    || show "\nCriado"
-
-#show "${c[RED]}=======================================================" 1
-=======
-f+=(
-    [bookmarks]=~/.config/gtk-3.0/bookmarks
-)
->>>>>>> build
-
-#[[ $(systemctl is-active postgresql.service) = active ]] \
-#    && echo ativo || echo nao
-
-# show "${c[RED]}=======================================================" 1
+show "${c[RED]}=======================================================" 1
+show "\n\t\t   ${c[RED]}FOR YOUR OWN SAKE,\n\t      ${c[CYAN]}THERE IS NO TURNING BACK...\n" 1
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
