@@ -10,8 +10,6 @@
 #==========TRY=========#
 # find . -type d -name '.git' | while read dir ; do sh -c "cd $dir/../ && echo -e \"\nGIT STATUS IN ${dir//\.git/}\" && git status -s" ; done
 # Se não aparecer imagens nos arquivos de música
-# rm -rf ~/.cache/thumbnails/fail*
-# sudo apt install -y xplayer
 #======================#
 
 #======================#
@@ -21,6 +19,7 @@
 #======================#
 
 #======================#
+linen='-----------------------------------------'
 linei='------------------------------------------'
 lineu='-------------------------------------------'
 linec='--------------------------------------------'
@@ -40,11 +39,13 @@ random=$(shuf -i 0-$((${#name[@]}-1)) -n 1)
 
 # Associative array
 declare -A c=(
-    [WHITE]='\033[1;37m'  # 0
-    [RED]='\033[31;1m'  # 1
-    [GREEN]='\033[1;32m'  # 2
-    [CYAN]='\033[1;36m'  # 3 CYAN
-    [END]='\e[0m'  # 5 Sem mudança
+    [WHITE]='\033[1;37m'
+    [RED]='\033[31;1m'
+    [RED-BLINK]='\033[31;1;5m'
+    [GREEN]='\033[1;32m'
+    [YELLOW]='\033[1;33m'
+    [CYAN]='\033[1;36m'
+    [END]='\e[0m'
 )
 
 logo=(
@@ -65,7 +66,7 @@ e=(
     $'\360\237\214\211'  #  3 (paisagem): dualmonitor
     $'\360\237\220\231'  #  4 (polvo): git
     $'\360\237\214\215'  #  5 (globo): chrome
-    $'\360\237\223\266'  #  6 (gráfico): conky
+    $'\360\237\223\267'  #  6 (câmera): flameshot
     $'\360\237\232\200'  #  7 (foguete): heroku
     $'\360\237\231\210'  #  8 (macaco vendado): hide devices
     $'\360\237\215\277'  #  9 (pipoca): minidlna
@@ -73,18 +74,16 @@ e=(
     $'\360\237\220\230'  # 11 (elefante): postgres
     $'\360\237\220\215'  # 12 (cobra): py libraries/upgrade
     $'\360\237\224\244'  # 13 (letras): sublime
-    $'\360\237\220\247'  # 14 (pinguim): system upgrade
-    $'\360\237\247\262'  # 15 (imã): tmate
-    $'\360\237\222\216'  # 16 (diamante): usefull programs
-    $'\360\237\222\274'  # 17 (maleta): workspace
-    $'\360\237\220\213'  # 18 (baleia): all
-    $'\360\237\224\245'  # 19 (fogo): some men...
-    $'\360\237\231\212'  # 20 (macaco calado): password
-    $'\360\237\246\207'  # 21 (morcego): why do we fall...
-    $'\360\237\223\267'  # 22 (câmera): flameshot
+    $'\360\237\247\262'  # 14 (imã): tmate
+    $'\360\237\222\216'  # 15 (diamante): usefull programs
+    $'\360\237\222\274'  # 16 (maleta): workspace
+    $'\360\237\220\213'  # 17 (baleia): all
+    $'\360\237\224\245'  # 18 (fogo): some men...
+    $'\360\237\231\212'  # 19 (macaco calado): password
+    $'\360\237\246\207'  # 20 (morcego): why do we fall...
 )
 
-# (usefull) files
+# usefull files
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
@@ -95,6 +94,7 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d
+    [ssh]=/tmp/check_connection
 )
 #======================#
 
@@ -105,13 +105,11 @@ check_distro() {
         [os_release]=/etc/os-release
     )
 
-    check_os=$(cat "${f[os_release]}" | grep -w NAME | awk '{print $2}' | sed 's|"||')
-
-    unset f
+    check_os=$(cat "${f[os_release]}" | grep --word-regexp NAME | awk '{print $2}' | sed 's|"||')
 
     if [[ "${check_os}" != 'Mint' ]]; then
 
-        show "\n   ${e[21]} ${c[RED]}WHY WE FALL ${name[random]}? ${e[21]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
+        show "\n   ${e[20]} ${c[RED]}WHY DO WE FALL ${name[random]}? ${e[20]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
 
         show "${c[RED]}YOU MUST RUN AT GOTHAM FOR A BETTER EXPERIENCE ${c[GREEN]}\n\t\t(MINT)\n"
 
@@ -131,7 +129,7 @@ check_distro() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U WANNA CONTINUE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U WANNA CONTINUE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -150,19 +148,19 @@ check_distro() {
 #======================#
 check_pkg() {
 
-	# instalado
+	# installed
 	if dpkg-query -s "${1}" &> "${f[null]}"; then
 
 		return 0
 
 	else
 
-		# não instalado, porém disponível no registro de pacote
+		# installed and available
 		if apt-cache show "${1}" &> "${f[null]}"; then
 
 			return 1
 
-		# não instalado/disponível
+		# not installed/available
 		else
 
 			return 2
@@ -177,12 +175,18 @@ check_pkg() {
 #======================#
 check_source() {
 
-    [[ ${BASH_SOURCE[0]} -ef "${0}" ]] \
-        && show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" "1" \
-        && exit \
-        || clear \
-        && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n" \
-        && clear; menu
+    # If script is not being sourced
+    if [[ ${BASH_SOURCE[0]} -ef "${0}" ]]; then
+
+        show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" "1" && exit
+
+    else
+
+        clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
+
+        clear && menu
+
+    fi
 
 }
 #======================#
@@ -212,7 +216,7 @@ show() {
 
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
-    # If second parameter don't was 1, sleep
+    # Don't sleep if 2ø parameter contains 1
     [[ "${2}" != "1" ]] && take_a_break
 
 }
@@ -221,26 +225,18 @@ show() {
 #======================#
 install_packages() {
 
-    # $@: Truque para "desempacotar" todos os valores recebidos, tipo PY
+    # $@: Trick to unpack all received values
     for package in "$@"; do
 
     	if check_pkg "${package}"; then
 
-            # Por que não colocar as inúmeras validações se o pacote já existe
-            # e se o usuário deseja desinstalar aqui pra economizar linha?
-            # Porque se for várias dependências, ele vai perguntar uma a uma
-            # ao invés de desinstalar o conjunto como um todo.
-            [[ "${#}" -eq 1 ]] \
-                && show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]\n" \
-                || show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
+            echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
         else
 
             if test "${?}" -eq 1; then
 
-                [[ "${#}" -eq 1 ]] \
-                    && show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!\n" \
-                    || show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${package^^}${c[WHITE]}!"
+                echo && show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
 
                 sudo apt install -y "${package}" &> "${f[null]}"
 
@@ -282,11 +278,69 @@ take_a_break() {
 }
 #======================#
 
+thatsallfolks() {
+
+    unset d f l m
+
+    show "\nOPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
+
+    [[ "${1}" -ne 1 ]] && show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${escolha} ${c[RED]}––––––––––––––––––––––––" "1"
+
+}
+
 #======================#
 update() {
 
     # &> redirects stdout and stderr to file
     sudo apt update &> "${f[null]}"
+
+}
+#======================#
+
+#======================#
+uninstall_or_configure() {
+
+    echo; show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${escolha} ${c[RED]}–––––––––––––––––––" "1"
+
+    if [[ "${1}" ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!"
+
+                return 0
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                echo && break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I COMEBACK TO STATUS QUO?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        "${2}" "1"
+
+        "${3}"
+
+    fi
+
+    show "INITIALIZING CONFIGS..."
+
+    return 1
 
 }
 #======================#
@@ -303,6 +357,7 @@ bash_stuffs() {
     f+=(
         [powerline_otf]=~/.fonts/PowerlineSymbols.otf
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
+        [original]=/etc/skel/.bashrc
         [config]=~/.oh-my-bash/oh-my-bash.sh
         [bkp]=~/.bashrc.pre-oh-my-bash
     )
@@ -321,7 +376,7 @@ bash_stuffs() {
 
     if [[ -d "${d[0]}" ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -329,17 +384,17 @@ bash_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                # lost your .bashrc accidentally? Runs: cp /etc/skel/.bashrc ~/
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bkp]}" "${f[bashrc]}"
 
-                # Move bkp content to bashrc (oh-my-bash)
-                [[ -e "${f[bkp]}" ]] && sudo mv "${f[bkp]}" "${f[bashrc]}"
+                # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
+                # disk and maintain home intact, returns error
+                cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
 
                 source "${f[bashrc]}"
 
@@ -353,7 +408,7 @@ bash_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -363,12 +418,11 @@ bash_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
         install_packages "${m[1]}" "${m[2]}"
 
-        show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         # First /dev/null hide download progress, second hide thirty commands
         0> "${f[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${f[null]}"
@@ -380,10 +434,10 @@ bash_stuffs() {
     if [[ ! -e "${f[powerline_otf]}" ]]; then
 
         # Hidden directories are owned by root, we must change owner to bash "read"
-        # 2>&- prevent error message: "can't stat: no such file..."
+        # 2>&- hides: "can't stat: no such file..."
         [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[1]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[1]}" # Tranca saída de erro
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}" # Close error output
 
         # --location follows to last URL (github provides a few redirects)
         # --output write content to file
@@ -397,31 +451,28 @@ bash_stuffs() {
     if [[ ! -e "${f[powerline_conf]}" ]]; then
 
         [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir -p "${d[2]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[2]%conf.d}"
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
 
         curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
 
     fi
 
     # If show error when open oh-my-base, run command below
-    # [[ $(grep --files-with-matches "check_for_upgrade.sh" "${f[config]}") ]] \
+    # [[ $(grep --no-messages "check_for_upgrade.sh" "${f[config]}") ]] \
     #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
-    [[ $(grep --files-without-match "DEFAULT_USER" "${f[bashrc]}") ]] \
-        && sudo tee -a "${f[bashrc]}" > "${f[null]}" <<< "#DEFAULT_USER=${USER}
+    [[ ! $(grep --no-messages DEFAULT_USER "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "#DEFAULT_USER=${USER}
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
-    # Install plugins
-    [[ $(grep --files-without-match "agnoster" "${f[bashrc]}") && $(grep --files-without-match "plugins=(git" "${f[bashrc]}") ]] \
+    [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
         && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
         && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
     # Load changes
     source "${f[bashrc]}"
-
-    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -434,7 +485,7 @@ deezloader_stuffs() {
     d=(
         ~/Deezloader\ Music  # 0
         ~/.config/Deezloader\ Remix  # 1
-        ~/$(cat "${f[user_dirs]}" | awk -F/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
+        ~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
     )
 
     l=(
@@ -450,13 +501,15 @@ deezloader_stuffs() {
     m=(
         'deezloader'  # 0
         'megatools'  # 1
+        # If preview not show, try run: rm -rf ~/.cache/thumbnails/fail*
+        'xplayer'  # 2
     )
 
-    link_latest=$(curl --location --silent "${l[0]}" | grep -6 "Linux x64" | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
+    link_latest=$(curl --silent "${l[0]}" | grep -6 'Linux x64' | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
 
     if [[ -e "${f[file]}" ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -480,7 +533,7 @@ deezloader_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -490,12 +543,11 @@ deezloader_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
-        install_packages "${m[1]}"
+        install_packages "${m[1]}" "${m[2]}"
 
-        show "${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         megadl --no-progress "${link_latest}" --path "${d[2]}"
 
@@ -516,7 +568,7 @@ deezloader_stuffs() {
         && sudo rm --force "${d[2]}"Deez* \
         && megadl --no-progress "${link_latest}" --path "${d[2]}"
 
-    if [[ $(grep --files-without-match "${d[2]#~/}" "${f[config]}") ]]; then
+    if [[ ! $(grep --no-messages "${d[2]#~/}" "${f[config]}") ]]; then
 
         # Run deezloader and free tty
         ( nohup "${f[file]}" & ) &> "${f[null]}"
@@ -535,7 +587,7 @@ deezloader_stuffs() {
 
                 else
 
-                    kill -9 $(ps -aux | grep "/tmp/.mount_Deez" | grep "Sl" | head -1 | awk '{print $2}')
+                    kill -9 $(ps -aux | grep --no-messages "Deezlo0" | head -1 | awk '{print $2}')
 
                     sudo sed -i "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
 
@@ -553,7 +605,7 @@ deezloader_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO U HAVE COMPLETE LOGIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO U HAVE COMPLETE LOGIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -562,8 +614,6 @@ deezloader_stuffs() {
         done
 
     fi
-
-    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -580,7 +630,10 @@ dualmonitor_stuffs() {
     f+=(
         [starwars]=/usr/share/backgrounds/linuxmint-random/sw.jpg
         [stormtrooper]=/usr/share/backgrounds/linuxmint-random/st.jpg
-        [clubeluta]=/usr/share/backgrounds/linuxmint-random/cl.jpg
+        [fightclub]=/usr/share/backgrounds/linuxmint-random/cl.png
+        [kyloren]=/usr/share/backgrounds/linuxmint-random/kr.jpg
+        [default]=/usr/share/backgrounds/linuxmint/default_background.jpg
+        [src]=/usr/share/cinnamon-background-properties/linuxmint-random.xml
         [picture]=/org/cinnamon/desktop/background/picture-uri
         [option]=/org/cinnamon/desktop/background/picture-options
         [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
@@ -588,6 +641,7 @@ dualmonitor_stuffs() {
         [delay]=/org/cinnamon/desktop/background/slideshow/delay
     )
 
+    # 3840x1080 wallpaper
     l=(
         'https://images3.alphacoders.com/673/673177.jpg'  # 0
         'https://images4.alphacoders.com/885/885300.png'  # 1
@@ -600,9 +654,11 @@ dualmonitor_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+        && $(dconf read "${f[option]}" 2>&-) = "'spanned'" ]]; then
+        # 2>&- if dconf not installed
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -612,11 +668,15 @@ dualmonitor_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[1]}" &> "${f[null]}"
+                sudo rm --force --recursive "${d[0]}"
 
+                sudo rm --force "${f[src]}"
 
+                dconf write "${f[picture]}" "'${f[default]}'"
 
-                remove_useless
+                dconf write "${f[option]}" "'zoom'"
+
+                dconf write "${f[slideshow]}" false
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -628,7 +688,7 @@ dualmonitor_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -638,10 +698,9 @@ dualmonitor_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
-        install_packages "${m[1]}"
+        install_packages "${m[1]}" && echo
 
     fi
 
@@ -652,33 +711,80 @@ dualmonitor_stuffs() {
     if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
         [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-            && mkdir -p "${d[0]}" > "${f[null]}" \
-            && sudo chown -R "${USER}":"${USER}" "${d[0]}"
+            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
         [[ ! -e "${f[left]}" ]] \
             && curl --silent --output "${f[starwars]}" --create-dirs "${l[0]}"
 
-        [[ ! -e "${f[clubeluta]}" ]] \
-            && curl --silent --output "${f[clubeluta]}" --create-dirs "${l[1]}"
+        [[ ! -e "${f[fightclub]}" ]] \
+            && curl --silent --output "${f[fightclub]}" --create-dirs "${l[1]}"
 
         [[ ! -e "${f[stormtrooper]}" ]] \
             && curl --silent --output "${f[stormtrooper]}" --create-dirs "${l[2]}"
 
-        dconf write "${f[picture]}" "'/usr/share/backgrounds/linuxmint-random/sw.jpg'"
+        [[ ! -e "${f[kyloren]}" ]] \
+            && curl --silent --output "${f[kyloren]}" --create-dirs "${l[3]}"
+
+        dconf write "${f[picture]}" "'${f[starwars]}'"
 
         dconf write "${f[option]}" "'spanned'"
 
         dconf write "${f[slideshow]}" true
 
-        dconf write "${f[source]}" "'xml:///usr/share/cinnamon-background-properties/linuxmint-random.xml'"
+        dconf write "${f[source]}" "'xml://${f[src]}'"
 
         dconf write "${f[delay]}" 15
 
+        [[ ! -e "${f[src]}" ]] \
+            && sudo tee "${f[src]}" > "${f[null]}" <<< '<?xml version="1.0"?>
+<!DOCTYPE wallpapers SYSTEM "cinnamon-wp-list.dtd">
+<wallpapers>
+
+<wallpaper deleted="false">
+    <name>Jedi vs Sith</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/sw.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Torino GT</artist>
+</wallpaper>
+<wallpaper deleted="false">
+    <name>Stormtrooper</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/st.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Duane</artist>
+</wallpaper>
+<wallpaper deleted="false">
+    <name>Fight Club</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/cl.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Joker Boy</artist>
+</wallpaper>
+<wallpaper deleted="false">
+    <name>Kylo Ren</name>
+    <filename>/usr/share/backgrounds/linuxmint-random/kr.jpg</filename>
+    <options>spanned</options>
+    <shade_type>solid</shade_type>
+    <pcolor>#000000</pcolor>
+    <scolor>#333333</scolor>
+    <artist>Duane</artist>
+</wallpaper>
+
+</wallpapers>'
+
+    else
+
+        show "\nYOU DON'T HAVE DUAL MONITOR SETUP. EXITING..."
+
     fi
-
-
-
-    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -690,8 +796,7 @@ github_stuffs() {
 
     f+=(
         [config]=~/.gitconfig
-        [ssh_config]=~/.ssh/config
-        [hosts]=~/.ssh/known_hosts
+        [config-ssh]=~/.ssh/config
     )
 
     l=(
@@ -706,9 +811,10 @@ github_stuffs() {
         'jq'  # 3
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -718,14 +824,14 @@ github_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
 
                 sudo rm --force "${f[config]}"
 
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
                     && sudo add-apt-repository --remove -y ppa:git-core/ppa &> "${f[null]}"
 
-                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[ssh_config]}"
+                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
 
                 remove_useless
 
@@ -739,7 +845,7 @@ github_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -749,45 +855,45 @@ github_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
 
     fi
 
-    show "INITIALIZING CONFIGS..." 1
+    show "INITIALIZING CONFIGS..."
 
     # Any changes pushed to GitHub, BitBucket, GitLab or another Git host
     # server in a later lesson will include this information.
     # from: https://swcarpentry.github.io/git-novice/02-setup/
-    # -L: files-without-match if don't exist this pattern is true
-    [[ ! -e "${f[config]}" || $(grep --files-without-match "@" "${f[config]}") ]] \
+    [[ ! $(grep --no-messages @ "${f[config]}") ]] \
         && read -p $'\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
-        && read -p $'\033[1;37mNAME '"${e[20]}"$': \033[m' nome \
+        && read -p $'\033[1;37mNAME '"${e[19]}"$': \033[m' nome \
         && git config --global user.email "${email}" \
         && git config --global user.name "${nome}" \
         && git config --global core.editor "vim" \
         && git config --global core.autocrlf input
 
-    [[ $(grep --files-without-match "dark" "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
+    [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
-
-    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
-        && sudo add-apt-repository -y ppa:git-core/ppa &> "${f[null]}"
 
     local=$(git --version | awk '{print $3}')
 
     latest=$(curl --silent "${l[1]}" | grep -1 '<span class="version">' | tail -1 | awk '{print $1}')
 
-    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && update \
-        && sudo apt install -y "${m[0]}" &> "${f[null]}"
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
+            && sudo add-apt-repository -y ppa:git-core/ppa &> "${f[null]}"
+
+        update && sudo apt install -y "${m[0]}" &> "${f[null]}"
+
+    fi
 
     check_ssh
 
-    [[ ! -e "${f[ssh_config]}" || $(grep --files-without-match "github.com" "${f[ssh_config]}") ]] \
-        && sudo tee -a "${f[ssh_config]}" > "${f[null]}" <<< 'Host github.com
+    [[ ! $(grep --no-messages github "${f[config-ssh]}") ]] \
+        && sudo tee --append "${f[config-ssh]}" > "${f[null]}" <<< 'Host github.com
     Hostname ssh.github.com
     Port 443'
 
@@ -823,19 +929,17 @@ github_stuffs() {
 
         [[ \
             $(cat "${f[public_ssh]}" | awk '{print $2}') != \
-            $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | sed 's/.$//' | awk '{print $2}') \
+            $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
         ]] \
-            && show "THERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
+            && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
             && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
             && curl --silent --include --user "${user}":"${password}" --data '{"title": "Enviado do meu iPhone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}" \
             && echo
 
     fi
 
-    [[ ! -e "${f[hosts]}" ]] \
-        && ssh -T -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
-
-    unset f l m
+    [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -850,7 +954,8 @@ chrome_stuffs() {
     )
 
     f+=(
-        [file]=~/$(cat "${f[user_dirs]}" | awk -F/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [file]=~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [garbage]=/etc/default/google-chrome
     )
 
     l=(
@@ -858,15 +963,15 @@ chrome_stuffs() {
     )
 
     m=(
-        'google-chrome'  # 0
+        'google-chrome-stable'  # 0
         'libappindicator1'  # 1
         'libindicator7'  # 2
         'libxss1'  # 3
     )
 
-	if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -876,11 +981,14 @@ chrome_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[18]}" "${m[1]}" "${m[2]}" &> "${f[null]}"
+                # Only libappindicator1 doesn't come default in debian distros
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" &> "${f[null]}"
 
                 sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
 
                 sudo sed -i '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
+
+                sudo rm --force "${f[garbage]}"
 
                 remove_useless
 
@@ -894,7 +1002,7 @@ chrome_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -904,26 +1012,25 @@ chrome_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
         # Dependências
         install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
-        show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
 
         sudo dpkg -i "${f[file]}" &> "${f[null]}"
 
-        sudo rm --force "${f[file]}" && echo
+        sudo rm --force "${f[file]}"
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${f[mimeapps]}" || $(grep --files-without-match "google-chrome" "${f[mimeapps]}") ]] \
+    [[ ! $(grep --no-messages google-chrome "${f[mimeapps]}") ]] \
         && sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
 x-scheme-handler/http=google-chrome.desktop
@@ -932,83 +1039,13 @@ x-scheme-handler/about=google-chrome.desktop
 x-scheme-handler/unknown=google-chrome.desktop
 x-scheme-handler/mailto=google-chrome.desktop'
 
-    [[ $(grep --files-without-match "google-chrome" "${d[0]}"/*.json) ]] \
-        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",|g' "${d[0]}"/*.json \
-        && sudo sed -zi 's|"firefox.desktop",|"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|2' "${d[0]}"/*.json
-
-    unset d f l m
-
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-}
-#======================#
-
-#======================#
-conky_stuffs() {
-
-    f+=(
-        [conkyrc]=~/.conkyrc
-    )
-
-    l=(
-        'https://gist.githubusercontent.com/rafaelribeiroo/81304bc07c7316ba841eacc90caf0564/raw/fa4ee571127b99d38fa93c9f7e0e4288edffd2b0/My%2520conkyrc%2520configs'  # 0
-    )
-
-    m=(
-        'conky'  # 0
-    )
-
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
-
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
-
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
-
-                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
-
-                sudo rm --force "${f[conkyrc]}"
-
-                remove_useless
-
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-                retorna_menu && break
-
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                echo && break
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    else
-
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
-
-        install_packages "${m[0]}"
-
-    fi
-
-    show "INITIALIZING CONFIGS..."
-
-    [[ ! -e "${f[conkyrc]}" ]] \
-        && curl --silent --output "${f[conkyrc]}" --create-dirs "${l[0]}"
-
-    unset f l m
+    # Nomenclature icon arrangement
+    [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
+        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
+        && sudo sed -i '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
+        && sudo sed -zi 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1026,6 +1063,7 @@ flameshot_stuffs() {
         [config]=~/.config/Dharkael/flameshot.ini
         [dskt]=~/.config/autostart/Flameshot.desktop
         [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
+        [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
         [cmd]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
         [bdg]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
         [name]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
@@ -1037,9 +1075,9 @@ flameshot_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1065,7 +1103,7 @@ flameshot_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1075,8 +1113,7 @@ flameshot_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
         install_packages "${m[0]}" "${m[1]}" && echo
 
@@ -1084,20 +1121,47 @@ flameshot_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    dconf write "${f[screenshot]}" "[]"
+    if [[ $(dconf read "${f[screenshot]}" 2>&-) = "['Print']" ]]; then
 
-    # -F: field-separator to cut
-    dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${f[user_dirs]}" | awk -F/ '/PICTURES/ {print $2}' | sed 's|"||')'"
+        dconf write "${f[screenshot]}" "['']"
 
-    dconf write "${f[bdg]}" "['Print']"
+        dconf write "${f[area_screenshot]}" "['']"
 
-    dconf write "${f[name]}" "'Flameshot'"
+        # -F: field-separator to cut
+        dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')'"
 
-    dconf write "${f[custom]}" "['screenshot']"
+        dconf write "${f[bdg]}" "['Print', '<Shift>Print']"
 
-    sudo sed -i 's|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x13\\0\\0\\0\\0\\0\\0\\0\\x1\\0\\0\\0\\x2\\0\\0\\0\\x3\\0\\0\\0\\x4\\0\\0\\0\\x5\\0\\0\\0\\x6\\0\\0\\0\\x12\\0\\0\\0\\xf\\0\\0\\0\\a\\0\\0\\0\\b\\0\\0\\0\\t\\0\\0\\0\\x10\\0\\0\\0\\n\\0\\0\\0\\v\\0\\0\\0\\f\\0\\0\\0\\r\\0\\0\\0\\xe\\0\\0\\0\\x11)|@Variant(\\0\\0\\0\\x7f\\0\\0\\0\\vQList<int>\\0\\0\\0\\0\\x1\\0\\0\\0\\n)|g' "${f[config]}"
+        dconf write "${f[name]}" "'Flameshot'"
 
-    [[ ! -e "${f[dskt]}" || $(grep --files-without-match "flameshot" "${f[dskt]}") ]] \
+        dconf write "${f[custom]}" "['screenshot']"
+
+    fi
+
+    for (( ; ; )); do
+
+        [[ ! -e "${f[config]}" ]] \
+            && flameshot full -p /tmp/ \
+            && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..." \
+            || break
+
+    done
+
+    # If these instructions below stay in for, don't works
+    sudo pkill flameshot
+
+    take_a_break
+
+    [[ ! $(grep --no-messages disabledTrayIcon "${f[config]}") ]] \
+        && sudo tee "${f[config]}" > "${f[null]}" <<< "[General]
+buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
+contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
+disabledTrayIcon=true
+drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
+drawThickness=0
+savePath=~/$(cat ${f[user_dirs]} | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')/"
+
+    [[ ! $(grep --no-messages flameshot "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
 Name=flameshot
 Icon=flameshot
@@ -1105,8 +1169,6 @@ Exec=flameshot
 Terminal=false
 Type=Application
 X-GNOME-Autostart-enabled=true'
-
-    unset d f m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1134,9 +1196,9 @@ heroku_stuffs() {
         'heroku'  # 0
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1164,7 +1226,7 @@ heroku_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1174,16 +1236,15 @@ heroku_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
-        show "\n${c[GREEN]}I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
 
         sh -c "$(curl --silent ${l[0]})" &> "${f[null]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..." 1
+    show "INITIALIZING CONFIGS..."
 
 	echo; read -p $'\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
 
@@ -1193,12 +1254,12 @@ heroku_stuffs() {
 
     		echo && heroku login -i
 
-            for (( ; ; )); do
+            # https://devcenter.heroku.com/articles/heroku-cli#login-issues
+            while [[ ! -e "${f[auth]}" ]]; do
 
-                # https://devcenter.heroku.com/articles/heroku-cli#login-issues
-                [[ -e "${f[auth]}" ]] && break \
-                    || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" "1" \
-                    && heroku login -i
+                show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" "1"
+
+                heroku login -i
 
             done
 
@@ -1210,7 +1271,7 @@ heroku_stuffs() {
 
 	    else
 
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT YOU AUTHENTICATE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT YOU AUTHENTICATE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
@@ -1218,22 +1279,20 @@ heroku_stuffs() {
 
     done
 
-    unset d f l m
-
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
 
 #======================#
-hide_devices() {  # Okzão
+hide_devices() {
 
     d=(
         /etc/udev/rules.d  # 0
     )
 
     f+=(
-        [hide_rules]=/etc/udev/rules.d/99-hide-disks.rules
+        [config]=/etc/udev/rules.d/99-hide-disks.rules
     )
 
     m=(
@@ -1244,18 +1303,16 @@ hide_devices() {  # Okzão
 
     if [[ -z "${check_devices}" ]]; then
 
-        [[ "${1}" -eq 1 ]] \
-            && show "\n  THERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!" \
-            || show "\nTHERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!"
+        show "\n  THERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!"
 
         retorna_menu
 
     else
 
-        # no messages hide if file don't exists
-        if [[ -e "${f[hide_rules]}" || $(grep --no-messages --files-with-matches "ID_FS_UUID" "${f[hide_rules]}") ]]; then
+        # --no-messages hide if file don't exists
+        if [[ $(grep --no-messages ID_FS_UUID "${f[config]}") ]]; then
 
-            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n"
+            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n" "1"
 
             read -p $'\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
 
@@ -1265,7 +1322,7 @@ hide_devices() {  # Okzão
 
                     show "\n${c[RED]}S${c[WHITE]}HOWING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                    sudo rm --force "${f[hide_rules]}"
+                    sudo rm --force "${f[config]}"
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1277,7 +1334,7 @@ hide_devices() {  # Okzão
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I SHOW THEM AGAIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I SHOW THEM AGAIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read option
 
@@ -1287,9 +1344,7 @@ hide_devices() {  # Okzão
 
         else
 
-            [[ "${1}" -eq 1 ]] \
-                && show "${c[GREEN]}\n\t\t     H${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
-                || show "${c[GREEN]}\nH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} ${c[GREEN]}${m[0]^^}${c[WHITE]}!"
+            show "${c[GREEN]}\n\t\tH${c[WHITE]}IDING ${c[RED]}$((${#check_devices[@]} + 1))${c[WHITE]} WINDOWS ${c[GREEN]}${m[0]^^}${c[WHITE]}!" "1"
 
             for device in "${check_devices}"; do
 
@@ -1298,13 +1353,12 @@ hide_devices() {  # Okzão
             done
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-                && mkdir -p "${d[0]}" > "${f[null]}" \
-                && sudo chown -R "${USER}":"${USER}" "${d[0]}"
+                && mkdir --parents "${d[0]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-            # Na quantidade de itens em uma lista ele começa do 1
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
 
-                tee -a "${f[hide_rules]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
+                tee --append "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
 
@@ -1318,8 +1372,6 @@ hide_devices() {  # Okzão
 
     sudo udevadm control --reload-rules && sudo udevadm trigger
 
-    unset d f m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1329,7 +1381,7 @@ hide_devices() {  # Okzão
 minidlna_stuffs() {
 
     d=(
-        ~/$(cat "${f[user_dirs]}" | awk -F/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
+        ~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
     )
 
     f+=(
@@ -1341,9 +1393,9 @@ minidlna_stuffs() {
         'minidlna'  # 0
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1369,7 +1421,7 @@ minidlna_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1379,16 +1431,15 @@ minidlna_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
-        install_packages "${m[0]}"
+        install_packages "${m[0]}" && echo
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
-    if [[ $(grep --files-without-match "Mídias" "${f[config]}") ]]; then
+    if [[ ! $(grep --no-messages Mídias "${f[config]}") ]]; then
 
         # automatic discover new files
         sudo sed -i "s|#inotify=yes|inotify=yes|g" "${f[config]}"
@@ -1409,38 +1460,14 @@ minidlna_stuffs() {
 
         sudo sed -i 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
 
+        [[ $(systemctl is-active minidlna.service) = active ]] \
+            && sudo service minidlna restart \
+            && sudo service minidlna force-reload \
+            || sudo service minidlna start
+
     fi
 
-	echo; read -p $'\033[1;37mSHOULD I RESTART THE SERVICE SIR? \n[Y/N] R: \033[m' option
-
-	for (( ; ; )); do
-
-		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-            [[ $(systemctl is-active "${m[0]}".service) = 'active' ]] \
-                && sudo service minidlna restart \
-                && sudo service minidlna force-reload \
-                || sudo service minidlna start
-
-            echo && break
-
-		elif [[ "${option:0:1}" = @(n|N) ]] ; then
-
-            echo && break
-
-	    else
-
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-    	fi
-
-    done
-
-    unset d f m
-
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -1449,10 +1476,9 @@ minidlna_stuffs() {
 nvidia_stuffs() {
 
     # The nouveau driver comes by default once linux is installed, but not
-    # extract all resources as nvidia driver (only father knows the kid haha)
-
+    # extract all resources as nvidia driver (only father knows the kid)
     f+=(
-        [hide_driver]=/etc/modprobe.d/blacklist-nouveau.conf
+        [config]=/etc/modprobe.d/blacklist-nouveau.conf
     )
 
     l=(
@@ -1462,6 +1488,7 @@ nvidia_stuffs() {
     m=(
         'nvidia-driver'  # 0
         'nouveau-driver'  # 1
+        'nvidia-settings'  # 2
     )
 
     latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | sed 's| ||g')
@@ -1470,23 +1497,20 @@ nvidia_stuffs() {
     # -class: Show reduced data
     check_nvidia_existence=$(sudo lshw -class display | grep --extended-regexp "fabricante|vendor" | awk '{print $2}')
 
-    if [[ "${check_nvidia_existence}" != "NVIDIA" ]]; then
+    if [[ "${check_nvidia_existence}" != 'NVIDIA' ]]; then
 
-        [[ "${1}" -eq 1 ]] \
-            && show "\n\tTHERE'S NO NVIDIA CARD IN YOUR MACHINE!" \
-            || show "\nTHERE'S NO NVIDIA CARD IN YOUR MACHINE!"
+        show "\n\tTHERE'S NO NVIDIA CARD IN YOUR MACHINE!"
 
         retorna_menu
 
     else
 
-        # Identifica qual o driver está sendo utilizado no momento.
-        # nouveau: o padrão/nvidia_drm: terceiros.
+        # Identify actual driver.
         check_driver=$(lsmod | grep drm_kms_helper | head -1 | awk '{print $4}')
 
         if [[ "${check_driver%%_drm}" = "nvidia" ]]; then
 
-            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
             read -p $'\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
 
@@ -1499,7 +1523,35 @@ nvidia_stuffs() {
                     [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep graphics) ]] \
                         && sudo add-apt-repository --remove -y ppa:graphics-drivers/ppa &> "${f[null]}"
 
+                    sudo apt remove --purge -y "${m[0]}-"* &> "${f[null]}"
 
+                    sudo rm --force "${f[config]}"
+
+                    sudo update-initramfs -u > "${f[null]}"
+
+                    echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+                    for (( ; ; )); do
+
+                        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                            reboot
+
+                        elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                            echo && break
+
+                        else
+
+                            echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                            read option
+
+                        fi
+
+                    done
+
+                    remove_useless
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1511,7 +1563,7 @@ nvidia_stuffs() {
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTORE DEFAULT DRIVER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTORE DEFAULT DRIVER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read option
 
@@ -1521,14 +1573,13 @@ nvidia_stuffs() {
 
         else
 
-            [[ "${1}" -eq 1 ]] \
-                && show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+            show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
                 && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${f[null]}" \
                 && update
 
-            install_packages "${m[0]}-${latest}"
+            install_packages "${m[0]}-${latest}" "${m[2]}" && echo
 
         fi
 
@@ -1536,27 +1587,16 @@ nvidia_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    local=$(apt version "${m[0]}-*")
+    if [[ ! $(grep --no-messages nouveau "${f[config]}") ]]; then
 
-    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
-
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep graphics) ]] \
-            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${f[null]}"
-
-        update && sudo apt install -y "${m[0]}" &> "${f[null]}"
-
-    fi
-
-    if [[ ! -e "${f[hide_driver]}" || $(grep --files-without-match "nouveau" "${f[hide_driver]}") ]]; then
-
-        sudo tee "${f[hide_driver]}" > "${f[null]}" <<< 'blacklist nouveau
+        sudo tee "${f[config]}" > "${f[null]}" <<< 'blacklist nouveau
 blacklist lbm-nouveau
 alias nouveau off
 alias lbm-nouveau off'
 
         sudo update-initramfs -u > "${f[null]}"
 
-        read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+        echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
     	for (( ; ; )); do
 
@@ -1570,7 +1610,7 @@ alias lbm-nouveau off'
 
     	    else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1580,7 +1620,16 @@ alias lbm-nouveau off'
 
     fi
 
-    unset f l m
+    local=$(apt version "${m[0]}-"*)
+
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep graphics) ]] \
+            && sudo add-apt-repository -y ppa:graphics-drivers/ppa &> "${f[null]}"
+
+        update && install_packages "${m[0]}-${latest}"
+
+    fi
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1590,27 +1639,41 @@ alias lbm-nouveau off'
 #======================#
 postgres_stuffs() {
 
+    d=(
+        /etc/postgresql/  # 0
+    )
+
     f+=(
-        [postgres_ppa]=/etc/apt/sources.list.d/pgdg.list
+        [ppa]=/etc/apt/sources.list.d/pgdg.list
         [config]=/etc/postgresql/11/main/postgresql.conf
         [postgres_hba]=/etc/postgresql/11/main/pg_hba.conf
+        [pspg_postgres]=/var/lib/postgresql/.psqlrc
+        [pspg_user]=~/.psqlrc
+        [pspg]=/usr/bin/pspg
     )
 
     l=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
+        'https://www.postgresql.org/'  # 1
+        'https://www.linuxmint.com/download_all.php'  # 2
     )
 
     m=(
-        'postgresql-11'  # 0: Núcleo do servidor de banco de dados
-        'postgresql-client-11'  # 1: Bibliotecas/binários client
-        'postgresql-contrib-9.6'  # 2: Módulos adicionais
-        'libpq-dev'  # 3: Bibliotecas e headers para compilar programas C
-        'pgadmin4'  # 4: Utilitário gráfico administrativo
+        'postgresql'  # 0
+        'postgresql-client'  # 1
+        'postgresql-contrib'  # 2
+        'libpq-dev'  # 3
+        'pgadmin4'  # 4
+        'pspg'  # 5
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    check_name=$(lsb_release -cs)
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+    check_version=$(curl --silent "${l[2]}" | grep -1 "${check_version^}" | tail -1 | awk '{print $2}' | sed 's|</TD>||')
+
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1622,7 +1685,9 @@ postgres_stuffs() {
 
                 sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
 
+                sudo rm --force "${f[ppa]}"
 
+                sudo rm --force --recursive "${d[0]}"
 
                 remove_useless
 
@@ -1636,7 +1701,7 @@ postgres_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1646,15 +1711,15 @@ postgres_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
+        # 2> hides warning
+        # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${f[null]}"
+            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
-        # Apontando o host do postgres no sources.list
-    	[[ ! -e "${f[postgres_ppa]}" || $(grep --files-without-match "bionic-pgdg" "${f[postgres_ppa]}") ]] \
-    		&& sudo tee "${f[postgres_ppa]}" > "${f[null]}" <<< 'deb http://apt.postgresql.org/pub/repos/apt/ bionic-pgdg main' \
+    	[[ ! $(grep --no-messages "${check_version}" "${f[ppa]}") ]] \
+    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_version,}-pgdg main" \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" && echo
@@ -1665,28 +1730,83 @@ postgres_stuffs() {
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    # Usuário: Acesso ao console
+    latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
+
+    # Match perhaps with -10 or -11 etc (fixed installation)
+    local=$(apt version "${m[0]}"???)
+
+    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
+        && show "\nPOSTGRES IS IN VERSION ${c[GREEN]}${latest}${c[WHITE]}, NOT IN ${c[RED]}${local:0:2} ${c[WHITE]}ANYMORE.\n" \
+        && upgrade
+
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-            read -p $'\033[1;37m\nENTER THE USER: \033[m' user
+            read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
 
-            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep registro | awk '{print $1}' | sed 's|(||') -eq 1 ]] \
-                && show "USER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. BREAKING." \
+            # if empty string
+            [[ -z "${user}" ]] && user="${USER}"
+
+            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+                && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
             password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
 
-            sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'"
+            sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'" &> "${f[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'" &> "${f[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'"
+            sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${f[null]}"
+
+            read -p $'\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
+
+                    read -p $'\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
+
+                    [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+                        && show "\nDATABASE ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
+                        && break
+
+                    sudo -u postgres psql --command "CREATE DATABASE ${database}" &> "${f[null]}"
+
+                    sudo -u postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE ${database} TO ${user}" &> "${f[null]}"
+
+                    sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}"
+
+                    # Check this resource running: "psql -U <user> -d <database>" and selecting all data from some table.
+                    install_packages "${m[5]}"
+
+                    [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
+                        && tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${f[null]}" <<< "\pset linestyle unicode
+\pset border 2
+\setenv PAGER '${f[pspg]} -bX --no-mouse'" \
+                        && sudo chown postgres:postgres "${f[pspg_postgres]}" \
+                        && sudo chown "${user}":"${user}" "${f[pspg_user]}"
+
+                    break
+
+                elif [[ ${option:0:1} = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read resposta
+
+                fi
+
+            done
 
             break
 
@@ -1696,7 +1816,7 @@ postgres_stuffs() {
 
         else
 
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read resposta
 
@@ -1704,25 +1824,20 @@ postgres_stuffs() {
 
     done
 
-    : ' If you want more security, uncoment code below.
-    # We could give permission for "${USER}" to read the file below or run with sudo
-    if [[ $(sudo grep --files-without-match "local   all             postgres                                md5" "${f[postgres_hba]}") ]]; then
+    if [[ ! $(sudo grep --no-messages 'local   all             postgres                                md5' "${f[postgres_hba]}") ]]; then
 
-        # Antes de alterar a criptografia do postgres, devemos criar uma senha
-        password=$("${f[askpass]}" $"\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m")  # Change $"..." to $'...'
+        # Before change cryptography, we need add a password for postgres
+        password=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
 
         sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
         sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
 
-    fi'
+    fi
 
-	# Verifica status do postgres
-    [[ $(systemctl is-active postgresql.service) = 'active' ]] \
+    [[ $(systemctl is-active postgresql.service) = active ]] \
         && sudo service postgresql restart \
         || sudo service postgresql start
-
-    unset f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1740,18 +1855,63 @@ py_libraries() {
         'python-pip'  # 0
         'python-dev'  # 1
         'build-essential'  # 2
-        'pip'  # 3
+        'libraries py'  # 3
     )
 
-	install_packages "${m[0]}" "${m[1]}" "${m[2]}"
-	# python-pip: gerenciador de pacotes
-	# build-essential: inclui make, automake, fakerrot etc
-	# python-dev: bibliotecas de compilação (caso algum pacote precise).
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+        && $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+        && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-    latest=$(curl --silent "${l[0]}" | grep -1 '<h1 class="package-header__name">' | tail -1 | awk '{print $2}')
-    "${m[3]}" install -U "${m[3]}"
+        show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" "1"
 
-    unset l m
+        read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]} AND ${c[RED]}${m[2]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" &> "${f[null]}"
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                retorna_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                echo && break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[3]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
+
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
+
+    fi
+
+    show "INITIALIZING CONFIGS..."
+
+    local=$(apt version "${m[0]}")
+
+    latest=$(curl --silent "${l[0]}" | grep --no-messages -2 _le | tail -1  | awk '{print $2}')
+
+    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
+        && pip install --quiet --upgrade pip
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -1767,7 +1927,7 @@ upgrade_py() {
     d=(
         ~/.pyenv  # 0
         # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
-        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages "external" | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
+        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
     m=(
@@ -1783,29 +1943,38 @@ upgrade_py() {
         'libbz2-dev'  # 9
         'libssl-dev'  # 10
         'libffi-dev'  # 11
+        'and'  # 12
     )
 
-    local=$(apt version "${m[1]}")
+    # apt version python don't works, because it shows only packages added by
+    # apt and pyenv download/install packages from curl
+    local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
+    install_packages "${m[1]}"
+
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${lineu:${#m[1]}} [UPGRADED]\n"
+        show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${lineu:${#m[12]}} [UPGRADED]\n" "1"
 
-        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}R${c[WHITE]}ESETING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[VERMELHO]}R${c[WHITE]}ESETING ${c[VERMELHO]}${m[1]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge -y "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
                 sudo sed -zi 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
 
                 source "${f[bashrc]}"
+
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1817,7 +1986,7 @@ upgrade_py() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[VERMELHO]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[WHITE]}[Y/N] R: "${c[FIM]}
 
                 read option
 
@@ -1827,14 +1996,13 @@ upgrade_py() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
-        # Dependências
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
+        # Dependencies
+        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
         [[ ! -d "${d[0]}" ]] \
-            && show "${c[GREEN]}\nI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]}!" \
+            && show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]" \
             && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
             || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
 
@@ -1844,19 +2012,17 @@ upgrade_py() {
 
     show "INITIALIZING CONFIGS..."
 
-    [[ $(grep --files-without-match "pyenv init" "${f[bashrc]}") ]] \
-        && sudo tee -a "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
+    [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
         && source "${f[bashrc]}"
 
     # pyenv versions
-    # pyenv install --list
+    # pyenv install --list | grep " 3\.[678]"
     [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
     pyenv global "${latest}" > "${f[null]}"
-
-    unset l d m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1874,6 +2040,7 @@ sublime_stuffs() {
 
     f+=(
         [config]=~/.config/sublime-text-3/Packages/User/Preferences.sublime-settings
+        [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
         [license]=~/.config/sublime-text-3/Local/License.sublime_license
@@ -1894,13 +2061,13 @@ sublime_stuffs() {
     )
 
     m=(
-        'sublime-text'  # 0
-        'apt-transport-https'  # 1
+        'apt-transport-https'  # 0
+        'sublime-text'  # 1
     )
 
-	if [[ $(dpkg -l | awk "/${m[0]}/" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1908,9 +2075,11 @@ sublime_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge -y "${m[1]}" &> "${f[null]}"
+
+                sudo rm --force --recursive "${d[0]}"
 
                 remove_useless
 
@@ -1924,7 +2093,7 @@ sublime_stuffs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -1934,42 +2103,44 @@ sublime_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" "1"
 
-		# Verifica certificado de segurança (apt-key list)
-		[[ ! $(apt-key list 2> "${f[null]}" | grep Sublime) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - > "${f[null]}"
+		# 2> hides
+        # Warning: apt-key output should not be parsed (stdout is not a terminal)
+		[[ ! $(sudo apt-key list 2> "${f[null]}" | grep Sublime) ]] \
+            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
-        # Dependências
-        install_packages "${m[1]}"
-
-        [[ ! -e "${f[ppa]}" || $(grep --files-without-match "sublimetext" "${f[ppa]}") ]] \
+        [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[1]}" \
             && update
 
-        install_packages "${m[0]}"
+        install_packages "${m[0]}" "${m[1]}"
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
-    # Não sai do loop enquanto o sublime não cria os arquivos padrões
-    for (( ; ; )); do
+    while [[ ! -e "${d[0]}" ]]; do
 
-        if [[ -d "${d[0]}" ]]; then
+        show "\nOPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
-            sudo pkill subl
+        ( nohup subl & ) &> "${f[null]}"
 
-            # hexed.it: get position and convert to decimal, put in seek
-            # Altera sequência binária do executável
-            [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ "97940d" ]] \
-                && sudo pkill subl \
-                && printf '\00\00\00' | dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
+        sleep 10s
 
-            # Inserindo a chave do produto
-            [[ ! -e "${f[license]}" || $(grep --files-without-match "Member" "${f[license]}") ]] \
-                && sudo tee "${f[license]}" > "${f[null]}" <<< '----- BEGIN LICENSE -----
+        sudo pkill subl
+
+    done
+
+    # hexed.it: get position and convert to decimal, put in seek
+    # Change executable binary sequence
+    [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ 97940d ]] \
+        && sudo pkill subl \
+        && printf '\00\00\00' | sudo dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
+
+    # Adding license key
+    [[ ! $(grep --no-messages Member "${f[license]}") ]] \
+        && sudo tee "${f[license]}" > "${f[null]}" <<< '----- BEGIN LICENSE -----
 Member J2TeaM
 Single User License
 EA7E-1011316
@@ -1983,64 +2154,117 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 8C8BB2AD B2ECE5A4 EFC08AF2 25A9B864
 ------ END LICENSE ------'
 
-            # Remove histórico de modificações no arquivo
-            # sudo rm --force "${f[recently_used]}"
+    # 2 simple tricks to block two sublime text servers, hides: "Your license key is not longer valid, and has been removed"
+    [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
+        && sudo sed -i "3 a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
 
-            [[ ! -e "${f[pkg_ctrl]}" ]] \
-                && sudo mkdir -p "${d[1]}" > "${f[null]}" \
-                && sudo chown -R "${USER}":"${USER}" "${d[1]}" \
-                && curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
+    # Remove file changes history
+    # sudo rm --force "${f[recently_used]}"
 
-            [[ ! -e "${f[pkgs]}" || $(grep --files-without-match "packages" "${f[pkgs]}") ]] \
-                && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
+    if [[ ! -e "${f[pkg_ctrl]}" ]]; then
+
+        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
+
+        curl --silent --output "${f[pkg_ctrl]}" --create-dirs "${l[2]}"
+
+    fi
+
+    [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
+        && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
 }'
-                # && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-            break
+    [[ ! $(grep --no-messages rulers "${f[config]}") ]] \
+        && sudo tee "${f[config]}" > "${f[null]}" <<< '{
+    "ensure_newline_at_eof_on_save": true,
+    "font_size": 12,
+    "ignored_packages":
+    [
+        "Vintage"
+    ],
+    "rulers":
+    [
+        80
+    ],
+    "tab_size": 4,
+    "translate_tabs_to_spaces": true,
+    "trim_trailing_white_space_on_save": true,
+    "word_wrap": false,
+    "wrap_width": 80
+}'
 
-        else
+    while true; do
 
-            ( nohup subl & ) &> "${f[null]}"
+        ( nohup subl & ) &> "${f[null]}"
 
-            echo && show "OPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
 
-        fi
+        for (( ; ; )); do
 
-    done
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-    for (( ; ; )); do
+                sudo pkill subl && break
+
+            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                echo && show "I'LL RESTART... \n(RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
+
+                sudo pkill subl && ( nohup subl & ) &> "${f[null]}"
+
+                echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
 
         if [[ -e "${f[anaconda]}" ]]; then
 
-            # Informando ao Anaconda para sublinhar aos códigos específicos do PY 3.6
+            # Lint for python 3.6
             sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
-            sudo tee "${f[keymap]}" > "${f[null]}" <<< '{
-    "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
-        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu"
+            sudo tee "${f[keymap]}" > "${f[null]}" <<< '[
+    // Key binding to run scripts py
+    { "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
+        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu" }
+    },
+    // Auto-pair escaped parentheses
+    { "keys": ["("], "command": "insert_snippet", "args": {"contents": "($0)"}, "context":
+        [
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+        ]
+    },
+    // Auto-pair escaped curly brackets
+    { "keys": ["{"], "command": "insert_snippet", "args": {"contents": "{$0}"}, "context":
+        [
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+        ]
+    },
+    // Auto-pair escaped braces
+    { "keys": ["["], "command": "insert_snippet", "args": {"contents": "[$0]"}, "context":
+        [
+            { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
+            { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
+            { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
+        ]
     }
-}'
+]'
 
-            sudo tee "${f[config]}" > "${f[null]}" <<< '{
-    // default value is []
-    "rulers": [80],
-
-    "ignored_packages":	["Vintage"],
-
-    "word_wrap": false,
-    "wrap_width": 80,
-    "tab_size": 4,
-    "translate_tabs_to_spaces": true,
-    "trim_trailing_white_space_on_save": true,
-    "ensure_newline_at_eof_on_save": true,
-    "font_size": 12,
-}'
-
-			# Remover o autocomplete no interpretador
-			sudo sed -zi 's|true|false|7' "${f[REPL]}"
+            # Removes autocomplete at runtime
+            sudo sed -zi 's|true|false|7' "${f[REPL]}"
 
             # Reuse same tab for multiple runtimes
             # https://github.com/wuub/SublimeREPL/issues/481
@@ -2054,59 +2278,30 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             sudo sed -i 's|"D"|"d"|g' "${f[REPL_pyI]}"
 
-            [[ $(grep --files-without-match '"view_id"' "${f[REPL_pyI]}") ]] \
+            [[ ! $(grep --no-messages '"view_id"' "${f[REPL_pyI]}") ]] \
                 && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
 
-            # Seta versão recente do PY para execuções de scripts
+            sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
+
+            # PY don't run if mix tabs with space
+            [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPL_pyII]}") ]] \
+                && sudo sed -i "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPL_pyII]}"
+
+            # Set python3 for runtime
             sudo sed -i 's|"python", |"python3", |g' "${f[REPL_pyI]}"
 
             sudo sed -zi 's|"python3", |"python", |4' "${f[REPL_pyI]}"
 
-            sudo sed -zi 's|"python3", |"python", |6' "${f[REPL_pyI]}"
-
-            sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
-
-            [[ $(grep --files-without-match "focus_view(found)" "${f[REPL_pyII]}") ]] \
-                && sudo sed -i "s|found = view|found = view\n\t\t\t\t\twindow.focus_view(found)|g" "${f[REPL_pyII]}"
+            sudo sed -zi 's|"python3", |"python", |5' "${f[REPL_pyI]}"
 
             echo && break
-
-        else
-
-            ( nohup subl & ) &> "${f[null]}"
-
-            echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
-
-        	for (( ; ; )); do
-
-        		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                    sudo pkill subl && break
-
-        		elif [[ "${option:0:1}" = @(n|N) ]] ; then
-
-                    echo && show "I'LL RESTART... (A RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
-
-                    sudo pkill subl && ( nohup subl & ) &> "${f[null]}"
-
-                    echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
-
-        	    else
-
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SUBLIME ALREADY INSTALL PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                    read option
-
-            	fi
-
-            done
 
         fi
 
     done
 
-    [[ ! -e "${f[mimeapps]}" || $(grep --files-without-match "sublime" "${f[mimeapps]}") ]] \
-        && sudo tee -a "${f[mimeapps]}" > "${f[null]}" <<< 'text/plain=sublime_text.desktop
+    [[ ! $(grep --no-messages sublime "${f[mimeapps]}") ]] \
+        && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'text/plain=sublime_text.desktop
 text/csv=sublime_text.desktop
 application/xml=sublime_text.desktop
 text/html=sublime_text.desktop
@@ -2118,10 +2313,8 @@ text/x-python=sublime_text.desktop
 application/x-shellscript=sublime_text.desktop
 application/x-subrip=sublime_text.desktop'
 
-    [[ $(grep --files-without-match "subl" "${d[2]}"/*.json) ]] \
+    [[ ! $(grep --no-messages sublime_text "${d[2]}"/*.json) ]] \
         && sudo sed -i 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
-
-    unset d f l m
 
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2135,16 +2328,16 @@ upgrade() {
         [apt_history]=/var/log/apt/history.log
     )
 
-    # Filtra a última data em que foram realizadas atualizações
-    last=$(grep "Start-Date" "${f[apt_history]}" | tail -1 | awk '{print $2}')
+    # Get last upgrades
+    last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
 
-    # Modifica o formato de data pro BR
+    # Best data format, dd/mm/yyyy
     date=$(date -d "${last}" +"%d/%m/%Y")
-    show "OH ${name[random]}, LAST TIME WE'VE SEEN YOU WAS IN\n\t\t${c[CYAN]}${date}\n\n${c[WHITE]}UPGRADING..."
+
+    [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
+        || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
     sudo apt update &> "${f[null]}"; sudo apt upgrade -y &> "${f[null]}"
-
-    unset f
 
 }
 #======================#
@@ -2156,7 +2349,7 @@ tmate_stuffs() {  # Okzão
         'tmate'  # 0
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
 
@@ -2182,7 +2375,7 @@ tmate_stuffs() {  # Okzão
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2193,7 +2386,7 @@ tmate_stuffs() {  # Okzão
     else
 
         [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
         install_packages "${m[0]}"
 
@@ -2203,8 +2396,6 @@ tmate_stuffs() {  # Okzão
 
     check_ssh
 
-    unset m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -2212,6 +2403,10 @@ tmate_stuffs() {  # Okzão
 
 #======================#
 usefull_pkgs() {
+
+    d=(
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
+    )
 
     f+=(
         [vimrc]=~/.vimrc
@@ -2223,19 +2418,17 @@ usefull_pkgs() {
         'vlc'  # 1
         'vim'  # 2
         'easytag'  # 3
+        'telegram'  # 4
         'usefull packages'  # 4
     )
 
-    if [[ $(dpkg -l | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg -l | awk "/${m[1]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg -l | awk "/${m[2]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg -l | awk "/${m[3]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg --list | awk "/${m[1]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg --list | awk "/${m[2]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg --list | awk "/${m[3]}/ {print }" | wc -l) -ge 1 \
+        && $(dpkg --list | awk "/${m[4]}/ {print }" | wc -l) -ge 1 ]]; then
 
-        for package in "${m[@]}"; do
-
-            show "\n${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
-
-        done
+        show "\n${c[GREEN]}${m[5]^^} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
 
         read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -2243,9 +2436,12 @@ usefull_pkgs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]} AND ${c[RED]}${m[3]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]}, ${c[RED]}${m[3]^^}${c[WHITE]} AND ${c[RED]}${m[4]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
+                sudo apt remove --purge -y "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
+
+                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
+                    && sudo add-apt-repository --remove -y ppa:atareao/telegram &> "${f[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
@@ -2263,7 +2459,7 @@ usefull_pkgs() {
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2273,20 +2469,24 @@ usefull_pkgs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" "1"
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"; echo
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
+
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
+            && sudo add-apt-repository -y ppa:atareao/telegram &> "${f[null]}"
+
+        update && install_packages "${m[4]}" && echo
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${f[mimeapps]}" || $(grep --files-without-match "vlc" "${f[mimeapps]}") ]] \
-        && sudo tee -a "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
+    [[ ! $(grep --no-messages vlc "${f[mimeapps]}") ]] \
+        && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop'
 
-    [[ ! -e "${f[vimrc]}" || $(grep --files-without-match "set number" "${f[mimeapps]}") ]] \
+    [[ ! $(grep --no-messages "syntax" "${f[vimrc]}") ]] \
         && sudo tee "${f[vimrc]}" > "${f[null]}" <<< 'set encoding=UTF-8
 syntax on
 set autoread
@@ -2301,7 +2501,9 @@ set laststatus=2 "Setting the size for the command area, and airline status bar
 set cmdheight=1
 set background=dark'
 
-    unset f m
+    # Nomenclature icon arrangement
+    [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
+        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t\t\t"telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2309,22 +2511,14 @@ set background=dark'
 #======================#
 
 #======================#
-workspace_stuffs() {  # Okzão
+workspace_stuffs() {
 
     d=(
-        /workspace  # 0
+        /workspace/  # 0
     )
 
     f+=(
         [bookmarks]=~/.config/gtk-3.0/bookmarks
-    )
-
-    l=(
-        git@github.com:rafaelribeiroo/  # 0
-    )
-
-    m=(
-        'workspace'  # 0
     )
 
     r=(
@@ -2333,11 +2527,12 @@ workspace_stuffs() {  # Okzão
         releasing_linux  # 2
         coffee_warm  # 3
         instrutions_sql  # 4
+        alfred  # 5
     )
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n"
+        show "\n${c[GREEN]}${d[0]^^} ${c[WHITE]}${linec:${#d[0]}} [CREATED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
@@ -2349,8 +2544,8 @@ workspace_stuffs() {  # Okzão
 
                 sudo rm --force --recursive "${d[0]}"
 
-                [[ $(grep --files-with-matches "workspace" "${f[bookmarks]}") ]] \
-                    && sudo sed -i 's|file:///workspace workspace||g' "${f[bookmarks]}"
+                [[ $(grep --no-messages workspace "${f[bookmarks]}") ]] \
+                    && sudo sed -i $'s|file:///workspace \360\237\221\211 Workspace||g' "${f[bookmarks]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2362,7 +2557,7 @@ workspace_stuffs() {  # Okzão
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2372,20 +2567,21 @@ workspace_stuffs() {  # Okzão
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" "1" \
-            || show "${c[GREEN]}\nC${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" "1"
 
-        sudo mkdir -p "${d[0]}" > "${f[null]}"
+        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]}!\n"
 
-        sudo chown -R ${USER}:${USER} "${d[0]}"
+        sudo mkdir --parents "${d[0]}" > "${f[null]}"
+
+        sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
     fi
 
     show "INITIALIZING CONFIGS..."
 
-    [[ ! -e "${f[bookmarks]}" || $(grep --files-without-match "workspace" "${f[bookmarks]}") ]] \
-        && sudo tee -a "${f[bookmarks]}" > "${f[null]}" <<< 'file:///workspace workspace'
+    # Lost your bookmarks? Run xdg-user-dirs-gtk-update
+    [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
+        && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
     if [[ ! -d "${d[0]}"/"${r[0]}" \
         && ! -d "${d[0]}"/"${r[1]}" \
@@ -2399,21 +2595,27 @@ workspace_stuffs() {  # Okzão
 
             if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-                echo; show "FIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" 1
+                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                github_stuffs
+                [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
+                    && github_stuffs
 
-                git clone -q "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}"
+                # Let this array here, to not be overried by github "l" array
+                l=(
+                    git@github.com:rafaelribeiroo/  # 0
+                )
 
-                git clone -q "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}"
+                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                git clone -q "${l[0]}${r[2]}".git "${d[0]}"/"${r[2]}"
-
-                git clone -q "${l[0]}${r[3]}".git "${d[0]}"/"${r[3]}"
-
-                git clone -q "${l[0]}${r[4]}".git "${d[0]}"/"${r[4]}"
-
-                echo && break
+                [[ $(cat "${f[ssh]}" | grep successfully) ]] \
+                    && git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
+                    && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
+                    && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
+                    && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
+                    && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
+                    && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
+                    && echo && break
 
             elif [[ ${option:0:1} = @(n|N) ]] ; then
 
@@ -2421,7 +2623,7 @@ workspace_stuffs() {  # Okzão
 
             else
 
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2430,8 +2632,6 @@ workspace_stuffs() {  # Okzão
         done
 
     fi
-
-    unset d f l m r
 
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2444,32 +2644,28 @@ invoca_funcoes() {
     case "${escolha}" in
 
         0|00) encerra_menu > "${f[null]}" ;;
-        1|01) bash_stuffs 1 && retorna_menu ;;
-        2|02) deezloader_stuffs 1 && retorna_menu ;;
-        3|03) dualmonitor_stuffs 1 && retorna_menu ;;
-        4|04) github_stuffs 1 && retorna_menu ;;
-        5|05) chrome_stuffs 1 && retorna_menu ;;
-        6|06) conky_stuffs 1 && retorna_menu ;;
-        7|07) flameshot_stuffs 1 && retorna_menu ;;
-        8|08) heroku_stuffs 1 && retorna_menu ;;
-        9|09) hide_devices 1 && retorna_menu ;;
-        10) minidlna_stuffs 1 && retorna_menu ;;
-        11) nvidia_stuffs 1 && retorna_menu ;;
-        12) postgres_stuffs 1 && retorna_menu ;;
-        13) py_libraries && retorna_menu ;;
-        14) upgrade_py 1 && retorna_menu ;;
-        15) sublime_stuffs 1 && retorna_menu ;;
-        16) upgrade && retorna_menu ;;
-        17) tmate_stuffs 1 && retorna_menu ;;
-        18) usefull_pkgs 1 && retorna_menu ;;
-        19) workspace_stuffs 1 && retorna_menu ;;
-        20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        1|01) bash_stuffs && retorna_menu ;;
+        2|02) deezloader_stuffs && retorna_menu ;;
+        3|03) dualmonitor_stuffs && retorna_menu ;;
+        4|04) github_stuffs && retorna_menu ;;
+        5|05) chrome_stuffs && retorna_menu ;;
+        6|06) flameshot_stuffs && retorna_menu ;;
+        7|07) heroku_stuffs && retorna_menu ;;
+        8|08) hide_devices && retorna_menu ;;
+        9|09) minidlna_stuffs && retorna_menu ;;
+        10) nvidia_stuffs && retorna_menu ;;
+        11) postgres_stuffs && retorna_menu ;;
+        12) py_libraries && retorna_menu ;;
+        13) upgrade_py && retorna_menu ;;
+        14) sublime_stuffs && retorna_menu ;;
+        15) tmate_stuffs 1 && retorna_menu ;;
+        16) usefull_pkgs 1 && retorna_menu ;;
+        17) workspace_stuffs && retorna_menu ;;
+        18) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
         d=(
-            ~/.local/share/cinnamon/applets/pomodoro@gregfreeman.org  # 0
+            ~/.local/share/cinnamon/applets  # 0
             ~/.local/share/cinnamon/applets/betterlock  # 1
-            ~/.local/share/cinnamon/applets  # 2
-            ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 3
         )
 
         f+=(
@@ -2483,14 +2679,17 @@ invoca_funcoes() {
             [enabled_applets]=/org/cinnamon/enabled-applets
             [grub]=/boot/grub/grub.cfg
             [home_icon]=/org/nemo/desktop/home-icon-visible
+            [click_policy]=/org/nemo/preferences/click-policy
             [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
             [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
             [numlock]=/etc/lightdm/slick-greeter.conf
             [paste]=/org/gnome/terminal/legacy/keybindings/paste
-            [pomodoro]=~/.local/share/cinnamon/applets/pomodoro@gregfreeman.org.zip
             [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
-            [show-hidden]=/org/nemo/preferences/show-hidden-files
-            [thumbnail_limit]=/org/nemo/preferences/thumbnail-limit
+            [show_hidden]=/org/nemo/preferences/show-hidden-files
+        )
+
+        l=(
+            'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
         )
 
         m=(
@@ -2501,72 +2700,78 @@ invoca_funcoes() {
         install_packages "${m[0]}" "${m[1]}"
 
         # START APPLETS STUFFS
-        if [[ ! -e "${f[capslock]}" && ! -e "${f[pomodoro]}" ]]; then
+        if [[ ! -e "${f[capslock]}" ]]; then
 
-            [[ ! -d "${d[13]}" || $(stat -c "%U" "${d[13]}" 2>&-) != ${USER} ]] \
-                && sudo mkdir -p "${d[13]}" > "${f[null]}" \
-                && sudo chown -R ${USER}:${USER} "${d[13]}"
+            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
+                && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-            wget --quiet "${l[22]}" --output-document "${f[capslock]}"
-
-            wget --quiet "${l[23]}" --output-document "${f[pomodoro]}"
+            wget --quiet "${l[0]}" --output-document "${f[capslock]}"
 
         fi
 
-        [[ ! -d "${d[0]}" && ! -d "${d[1]}" ]] \
-            && unzip "${d[2]}"/*.zip -d "${d[2]}" &> "${f[null]}" \
-            && sudo rm --force "${f[capslock]}" "${f[pomodoro]}" # END APPLETS
+        [[ ! -d "${d[1]}" ]] \
+            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && sudo rm --force "${f[capslock]}" # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-        [[ $(grep --files-with-matches "false" "${f[numlock]}") ]] \
+        [[ ! -e "${f[numlock]}" ]] \
+            && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
+activate-numlock=true'
+
+        [[ $(grep --no-messages false "${f[numlock]}") ]] \
             && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
-        # START ICONS PANEL ARRANGEMENT
-        sudo sed -i 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|g' "${d[3]}"/*.json
-        sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[3]}"/*.json
-        sudo sed -zi 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|4' "${d[3]}"/*.json  # END ARRANGEMENT
+        dconf write "${f[paste]}" "'<Ctrl>v'"
 
-        [[ $(dconf read "${f[paste]}") =~ '<Ctrl><Shift>v' ]] \
-            && dconf write "${f[paste]}" "'<Ctrl>v'" \
-            && dconf write "${f[computer_icon]}" false \
-            && dconf write "${f[home_icon]}" false \
-            && dconf write "${f[automount]}" true \
-            && dconf write "${f[automount_open]}" true \
-            && dconf write "${f[show-hidden]}" true \
-            && dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']" \
-            && dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']" \
-            && dconf write "${f[default_sort_order]}" "'name'" \
-            && dconf write "${f[default_sort_reverse]}" false \
-            && dconf write "${f[thumbnail_limit]}" "34359738368" \
-            && dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:13', 'panel1:left:1:show-desktop@cinnamon.org:14', 'panel1:right:11:systray@cinnamon.org:16', 'panel1:right:12:notifications@cinnamon.org:18', 'panel1:right:13:printers@cinnamon.org:19', 'panel1:right:14:removable-drives@cinnamon.org:20', 'panel1:right:15:keyboard@cinnamon.org:21', 'panel1:right:16:network@cinnamon.org:22', 'panel1:right:17:sound@cinnamon.org:23', 'panel1:right:18:power@cinnamon.org:24', 'panel1:right:10:xapp-status@cinnamon.org:26', 'panel1:right:19:calendar@cinnamon.org:28', 'panel1:right:6:betterlock:31', 'panel1:left:2:grouped-window-list@cinnamon.org:35', 'panel1:right:1:pomodoro@gregfreeman.org:36']" \
-            && dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'" \
-            && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
-            && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
+        dconf write "${f[computer_icon]}" false
 
-        [[ $(grep --files-with-matches "Boot Manager" "${f[grub]}") ]] \
+        dconf write "${f[home_icon]}" false
+
+        dconf write "${f[automount]}" true
+
+        dconf write "${f[automount_open]}" true
+
+        dconf write "${f[show_hidden]}" true
+
+        dconf write "${f[click_policy]}" "'single'"
+
+        dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
+
+        dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']"
+
+        dconf write "${f[default_sort_order]}" "'name'"
+
+        dconf write "${f[default_sort_reverse]}" false
+
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:13', 'panel1:left:1:show-desktop@cinnamon.org:14', 'panel1:right:11:systray@cinnamon.org:16', 'panel1:right:12:notifications@cinnamon.org:18', 'panel1:right:13:printers@cinnamon.org:19', 'panel1:right:14:removable-drives@cinnamon.org:20', 'panel1:right:15:keyboard@cinnamon.org:21', 'panel1:right:16:network@cinnamon.org:22', 'panel1:right:17:sound@cinnamon.org:23', 'panel1:right:18:power@cinnamon.org:24', 'panel1:right:10:xapp-status@cinnamon.org:26', 'panel1:right:19:calendar@cinnamon.org:28', 'panel1:right:6:betterlock:31', 'panel1:left:2:grouped-window-list@cinnamon.org:35']"
+
+        dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
+
+        dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
+
+        dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
+
+        [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
             && sudo sed -i 's|Boot Manager|10|g' "${f[grub]}"
 
-        echo; show "\n\t  ${c[CYAN]}WE'RE GOING TO BASH COLORFULL"
-
-        bash_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO DEEZLOADER"
-        deezloader_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HYDRAPAPER"
-        dualmonitor_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO GITHUB"
-        github_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CHROME"
-        chrome_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO CONKY"
-        conky_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FLAMESHOT"
-        flameshot_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HEROKU"
-        heroku_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO HIDE SOME DEVICES"
-        hide_devices; show "\n\t  ${c[CYAN]}WE'RE GOING TO MINIDLNA"
-        minidlna_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO NVIDIA"
-        nvidia_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO POSTGRES"
-        postgres_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO PYTHON LIBRARIES"
-        py_libraries; show "\n\t  ${c[CYAN]}WE'RE GOING TO PYTHON UPGRADE"
-        upgrade_py; show "\n\t  ${c[CYAN]}WE'RE GOING TO SUBLIME"
-        sublime_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO UPGRADE THE SYSTEM"
-        upgrade; show "\n\t  ${c[CYAN]}WE'RE GOING TO TMATE"
-        tmate_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO USEFULL PACKAGES"
-        usefull_pkgs; show "\n\t  ${c[CYAN]}WE'RE GOING TO WORKSPACE"
-        workspace_stuffs; show "\n\t  ${c[CYAN]}WE'RE GOING TO FINISH THIS SHIT"
+        bash_stuffs
+        deezloader_stuffs
+        dualmonitor_stuffs
+        github_stuffs
+        chrome_stuffs
+        flameshot_stuffs
+        heroku_stuffs
+        hide_devices
+        minidlna_stuffs
+        nvidia_stuffs
+        postgres_stuffs
+        py_libraries
+        sublime_stuffs
+        upgrade
+        tmate_stuffs
+        usefull_pkgs
+        workspace_stuffs
 
         echo; show "INITIALIZING CONFIGS..."; echo
         sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
@@ -2606,7 +2811,7 @@ application/x-subrip=sublime_text.desktop;'
 
         encerra_menu ;;
 
-        *) echo -ne ${c[RED]}"\n   ${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[WHITE]}\n\t\t  PLEASE, ONLY NUMBERS!\n"${c[END]}
+        *) echo -ne ${c[RED]}"\n   ${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}${c[WHITE]}\n\t\t  PLEASE, ONLY NUMBERS!\n"${c[END]}
         retorna_menu ;;
         # take_a_break &&
 
@@ -2619,36 +2824,34 @@ menu() {
 
 	for (( ; ; )); do
 
-        sleep 0.1s; show "${c[RED]}=======================================================" 1
+        sleep 0.1s; show "${c[RED]}=======================================================" "1"
 
 		for line in "${!logo[@]}"; do
-            show "    ${c[RED]}${logo[${line}]}" 1
+            show "    ${c[RED]}${logo[${line}]}" "1"
             sleep 0.1s
         done
 
-        sleep 0.1s; show "${c[RED]}=======================================================" 1
-        sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" 1
-        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" 1
-        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEZLOADER ${e[2]}" 1
-        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" 1
-        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
-        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" 1
-        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}CONKY ${e[6]}" 1
-        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}FLAMESHOT ${e[22]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HEROKU ${e[7]}" 1
-        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[8]}" 1
-        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}MINIDLNA ${e[9]}" 1
-        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}NVIDIA DRIVER ${e[10]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}POSTGRES ${e[11]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[13]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}SYSTEM UPGRADE ${e[14]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[15]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[18]}" 1
-        sleep 0.1s; show "${c[RED]}=======================================================" 1
+        sleep 0.1s; show "${c[RED]}=======================================================" "1"
+        sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEZLOADER ${e[2]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}FLAMESHOT ${e[6]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}HEROKU ${e[7]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[8]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}MINIDLNA ${e[9]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}NVIDIA DRIVER ${e[10]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}POSTGRES ${e[11]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY UPGRADE ${e[12]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}SUBLIME TEXT ${e[13]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}TMATE ${e[14]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}USEFULL PROGRAMS ${e[15]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}WORKSPACE ${e[16]}" "1"
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}ALL ${e[17]}" "1"
+        sleep 0.1s; show "${c[RED]}=======================================================" "1"
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' escolha
 
@@ -2656,7 +2859,7 @@ menu() {
         echo
 
 		[[ "${escolha}" =~ ^[[:alpha:]]$ ]] \
-			&& echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
+			&& echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
 			&& read digitou_bobeira || invoca_funcoes "${escolha}"
 
 			[[ "${digitou_bobeira:0:1}" == @(s|S|y|Y) ]] && retorna_menu \
