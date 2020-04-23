@@ -125,7 +125,7 @@ check_distro() {
 
                 # Após a invocação de outro chamado, ele não sai completamente
                 # do loop, sendo necessário a invocação e a interrupção do msm
-                encerra_menu && break
+                close_menu && break
 
             else
 
@@ -202,7 +202,7 @@ check_ssh() {
 #======================#
 
 #======================#
-encerra_menu() {
+close_menu() {
 
     show "\n   ${c[RED]}FOR YOUR OWN SAKE,\n${c[CYAN]}THERE IS NO TURNING BACK...\n"
 
@@ -260,7 +260,7 @@ remove_useless() {
 #======================#
 
 #======================#
-retorna_menu() {
+return_menu() {
 
     show "${c[RED]}\n\tWHAT IS THE POINT OF ALL THOSE PUSHUPS?\n ${c[CYAN]}\t  IF YOU CAN'T EVEN LIFT A BLOODY LOG"
 
@@ -284,7 +284,7 @@ thatsallfolks() {
 
     show "\nOPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
 
-    [[ "${1}" -ne 1 ]] && show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${escolha} ${c[RED]}––––––––––––––––––––––––" "1"
+    [[ "${1}" -ne 1 ]] && show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${choice} ${c[RED]}––––––––––––––––––––––––" "1"
 
 }
 
@@ -300,7 +300,7 @@ update() {
 #======================#
 uninstall_or_configure() {
 
-    echo; show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${escolha} ${c[RED]}–––––––––––––––––––" "1"
+    echo; show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${choice} ${c[RED]}–––––––––––––––––––" "1"
 
     if [[ "${1}" ]]; then
 
@@ -400,7 +400,7 @@ bash_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -525,7 +525,7 @@ deezloader_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -680,7 +680,7 @@ dualmonitor_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -837,7 +837,7 @@ github_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -994,7 +994,7 @@ chrome_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1095,7 +1095,7 @@ flameshot_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1218,7 +1218,7 @@ heroku_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1305,7 +1305,7 @@ hide_devices() {
 
         show "\n  THERE'S NO WINDOWS DEVICES FOR YOUR GREATHER GOOD!"
 
-        retorna_menu
+        return_menu
 
     else
 
@@ -1326,7 +1326,7 @@ hide_devices() {
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                    retorna_menu && break
+                    return_menu && break
 
                 elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1413,7 +1413,7 @@ minidlna_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1501,7 +1501,7 @@ nvidia_stuffs() {
 
         show "\n\tTHERE'S NO NVIDIA CARD IN YOUR MACHINE!"
 
-        retorna_menu
+        return_menu
 
     else
 
@@ -1555,7 +1555,7 @@ nvidia_stuffs() {
 
                     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                    retorna_menu && break
+                    return_menu && break
 
                 elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1693,7 +1693,7 @@ postgres_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1878,7 +1878,7 @@ py_libraries() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -1978,7 +1978,7 @@ upgrade_py() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -2085,7 +2085,7 @@ sublime_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -2367,7 +2367,7 @@ tmate_stuffs() {  # Okzão
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -2451,7 +2451,7 @@ usefull_pkgs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -2554,7 +2554,7 @@ workspace_stuffs() {
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-                retorna_menu && break
+                return_menu && break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -2641,26 +2641,26 @@ workspace_stuffs() {
 #======================#
 invoca_funcoes() {
 
-    case "${escolha}" in
+    case "${choice}" in
 
-        0|00) encerra_menu > "${f[null]}" ;;
-        1|01) bash_stuffs && retorna_menu ;;
-        2|02) deezloader_stuffs && retorna_menu ;;
-        3|03) dualmonitor_stuffs && retorna_menu ;;
-        4|04) github_stuffs && retorna_menu ;;
-        5|05) chrome_stuffs && retorna_menu ;;
-        6|06) flameshot_stuffs && retorna_menu ;;
-        7|07) heroku_stuffs && retorna_menu ;;
-        8|08) hide_devices && retorna_menu ;;
-        9|09) minidlna_stuffs && retorna_menu ;;
-        10) nvidia_stuffs && retorna_menu ;;
-        11) postgres_stuffs && retorna_menu ;;
-        12) py_libraries && retorna_menu ;;
-        13) upgrade_py && retorna_menu ;;
-        14) sublime_stuffs && retorna_menu ;;
-        15) tmate_stuffs 1 && retorna_menu ;;
-        16) usefull_pkgs 1 && retorna_menu ;;
-        17) workspace_stuffs && retorna_menu ;;
+        0|00) close_menu > "${f[null]}" ;;
+        1|01) bash_stuffs && return_menu ;;
+        2|02) deezloader_stuffs && return_menu ;;
+        3|03) dualmonitor_stuffs && return_menu ;;
+        4|04) github_stuffs && return_menu ;;
+        5|05) chrome_stuffs && return_menu ;;
+        6|06) flameshot_stuffs && return_menu ;;
+        7|07) heroku_stuffs && return_menu ;;
+        8|08) hide_devices && return_menu ;;
+        9|09) minidlna_stuffs && return_menu ;;
+        10) nvidia_stuffs && return_menu ;;
+        11) postgres_stuffs && return_menu ;;
+        12) py_libraries && return_menu ;;
+        13) upgrade_py && return_menu ;;
+        14) sublime_stuffs && return_menu ;;
+        15) tmate_stuffs 1 && return_menu ;;
+        16) usefull_pkgs 1 && return_menu ;;
+        17) workspace_stuffs && return_menu ;;
         18) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
 
         local -a d=(
@@ -2809,10 +2809,10 @@ application/x-subrip=sublime_text.desktop;'
 
         show "YOU SEE ONLY ONE END TO YOUR JOURNEY..."
 
-        encerra_menu ;;
+        close_menu ;;
 
         *) echo -ne ${c[RED]}"\n   ${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}${c[WHITE]}\n\t\t  PLEASE, ONLY NUMBERS!\n"${c[END]}
-        retorna_menu ;;
+        return_menu ;;
         # take_a_break &&
 
     esac
@@ -2853,17 +2853,17 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}ALL ${e[17]}" "1"
         sleep 0.1s; show "${c[RED]}=======================================================" "1"
 
-        read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' escolha
+        read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
 
         # O read acima é inline, então passamos uma linha vazia para não afetar
         echo
 
-		[[ "${escolha}" =~ ^[[:alpha:]]$ ]] \
+		[[ "${choice}" =~ ^[[:alpha:]]$ ]] \
 			&& echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
-			&& read digitou_bobeira || invoca_funcoes "${escolha}"
+			&& read trash_typed || invoca_funcoes "${choice}"
 
-			[[ "${digitou_bobeira:0:1}" == @(s|S|y|Y) ]] && retorna_menu \
-            || encerra_menu && break
+			[[ "${trash_typed:0:1}" == @(s|S|y|Y) ]] && return_menu \
+            || close_menu && break
 
 	done
 
