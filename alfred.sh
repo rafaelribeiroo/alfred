@@ -1743,7 +1743,7 @@ postgres_stuffs() {
 
     for (( ; ; )); do
 
-        if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
             read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
 
@@ -1768,7 +1768,7 @@ postgres_stuffs() {
 
             for (( ; ; )); do
 
-                if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                     read -p $'\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
@@ -1794,7 +1794,7 @@ postgres_stuffs() {
 
                     break
 
-                elif [[ ${option:0:1} = @(N|n) ]] ; then
+                elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
                     break
 
@@ -1810,7 +1810,7 @@ postgres_stuffs() {
 
             break
 
-        elif [[ ${option:0:1} = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
             break
 
@@ -2600,7 +2600,7 @@ workspace_stuffs() {
 
             for (( ; ; )); do
 
-                if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                     for (( ; ; )); do
 
@@ -2619,7 +2619,7 @@ workspace_stuffs() {
 
                     done
 
-                elif [[ ${option:0:1} = @(n|N) ]] ; then
+                elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
                     echo && break
 
