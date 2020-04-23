@@ -2511,29 +2511,25 @@ set background=dark'
 workspace_stuffs() {
 
     d=(
-        /workspace  # 0
+        /workspace/  # 0
     )
 
     f+=(
         [bookmarks]=~/.config/gtk-3.0/bookmarks
     )
 
-    m=(
-        'workspace'  # 0
-    )
-
     r=(
-        scripts_py  # 0
-        connecting_networks  # 1
-        releasing_linux  # 2
-        coffee_warm  # 3
-        instrutions_sql  # 4
-        alfred  # 5
+        scripts_py.git  # 0
+        connecting_networks.git  # 1
+        releasing_linux.git  # 2
+        coffee_warm.git  # 3
+        instrutions_sql.git  # 4
+        alfred.git  # 5
     )
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n" "1"
+        show "\n${c[GREEN]}${d[0]^^} ${c[WHITE]}${linec:${#d[0]}} [CREATED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
@@ -2568,9 +2564,9 @@ workspace_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" "1"
+        show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" "1"
 
-        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${m[0]^^}${c[WHITE]}!\n"
+        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]}!\n"
 
         sudo mkdir --parents "${d[0]}" > "${f[null]}"
 
@@ -2610,12 +2606,12 @@ workspace_stuffs() {
                 ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
                 [[ $(cat "${f[ssh]}" | grep successfully) ]] \
-                    && git clone --quiet "${l[0]}${r[0]}".git "${d[0]}"/"${r[0]}" \
-                    && git clone --quiet "${l[0]}${r[1]}".git "${d[0]}"/"${r[1]}" \
-                    && git clone --quiet "${l[0]}${r[2]}".git "${d[0]}"/"${r[2]}" \
-                    && git clone --quiet "${l[0]}${r[3]}".git "${d[0]}"/"${r[3]}" \
-                    && git clone --quiet "${l[0]}${r[4]}".git "${d[0]}"/"${r[4]}" \
-                    && git clone --quiet "${l[0]}${r[5]}".git "${d[0]}"/"${r[5]}" \
+                    && git clone --quiet "${l[0]}${r[0]}" "${d[0]}""${r[0]}" 2> "${f[null]}" \
+                    && git clone --quiet "${l[0]}${r[1]}" "${d[0]}""${r[1]}" \
+                    && git clone --quiet "${l[0]}${r[2]}" "${d[0]}""${r[2]}" \
+                    && git clone --quiet "${l[0]}${r[3]}" "${d[0]}""${r[3]}" \
+                    && git clone --quiet "${l[0]}${r[4]}" "${d[0]}""${r[4]}" \
+                    && git clone --quiet "${l[0]}${r[5]}" "${d[0]}""${r[5]}" \
                     && echo && break
 
             elif [[ ${option:0:1} = @(n|N) ]] ; then
