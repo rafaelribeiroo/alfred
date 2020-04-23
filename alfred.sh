@@ -2670,7 +2670,7 @@ invoca_funcoes() {
         15) tmate_stuffs 1 && return_menu ;;
         16) usefull_pkgs 1 && return_menu ;;
         17) workspace_stuffs && return_menu ;;
-        18) echo; show "KNOW YOUR LIMITS ${name[random]}...\n"
+        18) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         local -a d=(
             ~/.local/share/cinnamon/applets  # 0
