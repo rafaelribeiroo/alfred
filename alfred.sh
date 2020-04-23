@@ -1063,6 +1063,7 @@ flameshot_stuffs() {
         [config]=~/.config/Dharkael/flameshot.ini
         [dskt]=~/.config/autostart/Flameshot.desktop
         [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
+        [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
         [cmd]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
         [bdg]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
         [name]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
@@ -1120,14 +1121,16 @@ flameshot_stuffs() {
 
     show "INITIALIZING CONFIGS..."
 
-    if [[ $(dconf read "${f[screenshot]}" 2>&-) != "['']" ]]; then
+    if [[ $(dconf read "${f[screenshot]}" 2>&-) = "['Print']" ]]; then
 
         dconf write "${f[screenshot]}" "['']"
+
+        dconf write "${f[area_screenshot]}" "['']"
 
         # -F: field-separator to cut
         dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')'"
 
-        dconf write "${f[bdg]}" "['Print']"
+        dconf write "${f[bdg]}" "['Print', '<Shift>Print']"
 
         dconf write "${f[name]}" "'Flameshot'"
 
