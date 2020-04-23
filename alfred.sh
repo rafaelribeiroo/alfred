@@ -655,7 +655,7 @@ dualmonitor_stuffs() {
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
-        && $(dconf read "${f[option]}" 2>&-) = "'spanned'" ]]; then
+        && $(dconf read "${f[picture]}" 2>&-) = "'file://${f[starwars]}'" ]]; then
         # 2>&- if dconf not installed
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" 1
@@ -726,7 +726,7 @@ dualmonitor_stuffs() {
         [[ ! -e "${f[kyloren]}" ]] \
             && curl --silent --output "${f[kyloren]}" --create-dirs "${l[3]}"
 
-        dconf write "${f[picture]}" "'${f[starwars]}'"
+        dconf write "${f[picture]}" "'file://${f[starwars]}'"
 
         dconf write "${f[option]}" "'spanned'"
 
