@@ -2588,48 +2588,52 @@ workspace_stuffs() {
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
         && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
-    if [[ ! -d "${d[0]}"/"${r[0]}" \
-        && ! -d "${d[0]}"/"${r[1]}" \
-        && ! -d "${d[0]}"/"${r[2]}" \
-        && ! -d "${d[0]}"/"${r[3]}" \
-        && ! -d "${d[0]}"/"${r[4]}" ]]; then
+    if [[ $(hostname) = brabo && "${USER}" = ribeiro ]]; then
 
-        echo; read -p $'\033[1;37mSHOULD I DOWNLOAD SOME REPOSITORIES? \n[Y/N] R: \033[m' option
+        if [[ ! -d "${d[0]}"/"${r[0]}" \
+            && ! -d "${d[0]}"/"${r[1]}" \
+            && ! -d "${d[0]}"/"${r[2]}" \
+            && ! -d "${d[0]}"/"${r[3]}" \
+            && ! -d "${d[0]}"/"${r[4]}" ]]; then
 
-        for (( ; ; )); do
+            echo; read -p $'\033[1;37mSHOULD I DOWNLOAD SOME REPOSITORIES? \n[Y/N] R: \033[m' option
 
-            if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
+            for (( ; ; )); do
 
-                for (( ; ; )); do
+                if [[ ${option:0:1} = @(s|S|y|Y) ]] ; then
 
-                    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+                    for (( ; ; )); do
 
-                    [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
-                        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
-                        && github_stuffs \
-                        || git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
-                        && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
-                        && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
-                        && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
-                        && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
-                        && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
-                        && echo && break && break
+                        ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                done
+                        [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+                            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
+                            && github_stuffs \
+                            || git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
+                            && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
+                            && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
+                            && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
+                            && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
+                            && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
+                            && echo && break && break
 
-            elif [[ ${option:0:1} = @(n|N) ]] ; then
+                    done
 
-                echo && break
+                elif [[ ${option:0:1} = @(n|N) ]] ; then
 
-            else
+                    echo && break
 
-                echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                else
 
-                read option
+                    echo -ne ${c[RED]}"\n${e[18]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[18]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-            fi
+                    read option
 
-        done
+                fi
+
+            done
+
+        fi
 
     fi
 
