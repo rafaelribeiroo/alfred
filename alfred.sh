@@ -204,7 +204,7 @@ check_ssh() {
 #======================#
 close_menu() {
 
-    show "\n   ${c[RED]}FOR YOUR OWN SAKE,\n${c[CYAN]}THERE IS NO TURNING BACK...\n"
+    show "\n\t\t   ${c[RED]}FOR YOUR OWN SAKE,\n\t      ${c[CYAN]}THERE IS NO TURNING BACK...\n"
 
     [[ "${BASH_SOURCE[0]}" -ef "${0}" ]] && exit || return 0
 
