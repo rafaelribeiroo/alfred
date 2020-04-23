@@ -107,8 +107,6 @@ check_distro() {
 
     check_os=$(cat "${f[os_release]}" | grep --word-regexp NAME | awk '{print $2}' | sed 's|"||')
 
-    unset f
-
     if [[ "${check_os}" != 'Mint' ]]; then
 
         show "\n   ${e[20]} ${c[RED]}WHY DO WE FALL ${name[random]}? ${e[20]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
@@ -476,8 +474,6 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
     # Load changes
     source "${f[bashrc]}"
 
-    unset d f l m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -618,8 +614,6 @@ deezloader_stuffs() {
         done
 
     fi
-
-    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -792,8 +786,6 @@ dualmonitor_stuffs() {
 
     fi
 
-    unset d f l m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -919,7 +911,7 @@ github_stuffs() {
         # Poupamos a condição abaixo, já que as mensagens de sucesso é 200 até 226
         # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
         [[ "${check_integrity}" -gt 400 ]] \
-            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" \
+            && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" "1" \
             || break
 
     done
@@ -947,9 +939,7 @@ github_stuffs() {
     fi
 
     [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
-        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com
-
-    unset f l m
+        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1056,8 +1046,6 @@ x-scheme-handler/mailto=google-chrome.desktop'
         && sudo sed -i '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
         && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
         && sudo sed -zi 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
-
-    unset d f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1179,8 +1167,6 @@ Terminal=false
 Type=Application
 X-GNOME-Autostart-enabled=true'
 
-    unset d f m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1290,8 +1276,6 @@ heroku_stuffs() {
 
     done
 
-    unset d f l m
-
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1384,8 +1368,6 @@ hide_devices() {
     show "INITIALIZING CONFIGS..."
 
     sudo udevadm control --reload-rules && sudo udevadm trigger
-
-    unset d f m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1481,8 +1463,6 @@ minidlna_stuffs() {
             || sudo service minidlna start
 
     fi
-
-    unset d f m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1647,8 +1627,6 @@ alias lbm-nouveau off'
         update && install_packages "${m[0]}-${latest}"
 
     fi
-
-    unset f l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1858,8 +1836,6 @@ postgres_stuffs() {
         && sudo service postgresql restart \
         || sudo service postgresql start
 
-    unset d f l m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -1931,8 +1907,6 @@ py_libraries() {
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && pip install --quiet --upgrade pip
-
-    unset l m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2046,8 +2020,6 @@ eval "$(pyenv virtualenv-init -)"' \
     [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
     pyenv global "${latest}" > "${f[null]}"
-
-    unset l d m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2341,8 +2313,6 @@ application/x-subrip=sublime_text.desktop'
     [[ ! $(grep --no-messages sublime_text "${d[2]}"/*.json) ]] \
         && sudo sed -i 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
 
-    unset d f l m
-
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -2365,8 +2335,6 @@ upgrade() {
         || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
     sudo apt update &> "${f[null]}"; sudo apt upgrade -y &> "${f[null]}"
-
-    unset f
 
 }
 #======================#
@@ -2424,8 +2392,6 @@ tmate_stuffs() {  # Okzão
     show "INITIALIZING CONFIGS..."
 
     check_ssh
-
-    unset m
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2536,8 +2502,6 @@ set background=dark'
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
         && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t\t\t"telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
-    unset d f m
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -2552,10 +2516,6 @@ workspace_stuffs() {
 
     f+=(
         [bookmarks]=~/.config/gtk-3.0/bookmarks
-    )
-
-    l=(
-        git@github.com:rafaelribeiroo/  # 0
     )
 
     m=(
@@ -2573,7 +2533,7 @@ workspace_stuffs() {
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [CREATED]\n" "1"
 
         read -p $'\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
@@ -2642,6 +2602,11 @@ workspace_stuffs() {
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
                     && github_stuffs
 
+                # Let this array here, to not be overried by github "l" array
+                l=(
+                    git@github.com:rafaelribeiroo/  # 0
+                )
+
                 ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
                 [[ $(cat "${f[ssh]}" | grep successfully) ]] \
@@ -2668,8 +2633,6 @@ workspace_stuffs() {
         done
 
     fi
-
-    unset d f l m r
 
     show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2792,8 +2755,6 @@ activate-numlock=true'
 
         [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
             && sudo sed -i 's|Boot Manager|10|g' "${f[grub]}"
-
-        unset d f l m
 
         bash_stuffs
         deezloader_stuffs
