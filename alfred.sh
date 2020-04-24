@@ -1134,6 +1134,7 @@ flameshot_stuffs() {
 
         dconf write "${f[name]}" "'Flameshot'"
 
+        # A restart is required after
         dconf write "${f[custom]}" "['screenshot']"
 
     fi
@@ -2616,6 +2617,7 @@ workspace_stuffs() {
                             && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
                             && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
                             && echo && break
+                        # 2> hides permanently added to the list of known hosts
 
                     done
 
