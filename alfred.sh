@@ -87,6 +87,7 @@ e=(
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
+    [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [mimeapps]=~/.config/mimeapps.list
     [null]=/dev/null
@@ -1152,9 +1153,7 @@ flameshot_stuffs() {
     done
 
     # If these instructions below stay in for, don't works
-    sudo pkill flameshot
-
-    take_a_break
+    sudo pkill "${m[0]}" && take_a_break
 
     [[ ! $(grep --no-messages disabledTrayIcon "${f[config]}") ]] \
         && sudo tee "${f[config]}" > "${f[null]}" <<< "[General]
@@ -1479,20 +1478,28 @@ minidlna_stuffs() {
 #======================#
 nvidia_stuffs() {
 
+    local -a d=(
+        ~/.local/share/cinnamon/applets  # 0
+        ~/.local/share/cinnamon/applets/gputemperature@silentage.com  # 1
+    )
+
     # The nouveau driver comes by default once linux is installed, but not
     # extract all resources as nvidia driver (only father knows the kid)
     f+=(
         [config]=/etc/modprobe.d/blacklist-nouveau.conf
+        [temperature]=~/.local/share/cinnamon/applets/gputemperature@silentage.com.zip
     )
 
     local -a l=(
         'https://www.nvidia.com/Download/driverResults.aspx/157462/en-us'  # 0
+        'https://cinnamon-spices.linuxmint.com/files/applets/gputemperature@silentage.com.zip'  # 1
     )
 
     local -a m=(
         'nvidia-driver'  # 0
         'nouveau-driver'  # 1
         'nvidia-settings'  # 2
+        'dconf-editor'  # 3
     )
 
     latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | sed 's| ||g')
@@ -1527,7 +1534,7 @@ nvidia_stuffs() {
                     [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep graphics) ]] \
                         && sudo add-apt-repository --remove -y ppa:graphics-drivers/ppa &> "${f[null]}"
 
-                    sudo apt remove --purge -y "${m[0]}-"* &> "${f[null]}"
+                    sudo apt remove --purge -y "${m[2]}" "${m[0]}-"* &> "${f[null]}"
 
                     sudo rm --force "${f[config]}"
 
@@ -1590,6 +1597,21 @@ nvidia_stuffs() {
     fi
 
     show "INITIALIZING CONFIGS..."
+
+    if [[ ! -d "${d[1]}" ]]; then
+
+        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
+            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+
+        [[ ! -e "${f[capslock]}" ]] \
+            && wget --quiet "${l[1]}" --output-document "${f[temperature]}" \
+            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && sudo rm --force "${f[temperature]}"
+
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:19', 'panel1:left:1:show-desktop@cinnamon.org:20', 'panel1:left:2:grouped-window-list@cinnamon.org:21', 'panel1:right:0:systray@cinnamon.org:22', 'panel1:right:1:xapp-status@cinnamon.org:23', 'panel1:right:2:notifications@cinnamon.org:24', 'panel1:right:3:printers@cinnamon.org:25', 'panel1:right:4:removable-drives@cinnamon.org:26', 'panel1:right:5:keyboard@cinnamon.org:27', 'panel1:right:6:network@cinnamon.org:28', 'panel1:right:7:sound@cinnamon.org:29', 'panel1:right:8:power@cinnamon.org:30', 'panel1:right:9:calendar@cinnamon.org:31', 'panel1:right:7:gputemperature@silentage.com:18']"
+
+    fi
 
     if [[ ! $(grep --no-messages nouveau "${f[config]}") ]]; then
 
@@ -2690,7 +2712,6 @@ invoca_funcoes() {
             [computer_icon]=/org/nemo/desktop/computer-icon-visible
             [default_sort_order]=/org/nemo/preferences/default-sort-order
             [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
-            [enabled_applets]=/org/cinnamon/enabled-applets
             [grub]=/boot/grub/grub.cfg
             [home_icon]=/org/nemo/desktop/home-icon-visible
             [click_policy]=/org/nemo/preferences/click-policy
@@ -2714,19 +2735,18 @@ invoca_funcoes() {
         install_packages "${m[0]}" "${m[1]}"
 
         # START APPLETS STUFFS
-        if [[ ! -e "${f[capslock]}" ]]; then
+        if [[ ! -d "${d[1]}" ]]; then
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
                 && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
                 && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-            wget --quiet "${l[0]}" --output-document "${f[capslock]}"
+            [[ ! -e "${f[capslock]}" ]] \
+                && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
+                && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+                && sudo rm --force "${f[capslock]}"
 
-        fi
-
-        [[ ! -d "${d[1]}" ]] \
-            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
-            && sudo rm --force "${f[capslock]}" # END APPLETS
+        fi # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
         [[ ! -e "${f[numlock]}" ]] \
