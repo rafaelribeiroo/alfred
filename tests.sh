@@ -71,8 +71,7 @@ declare -A u=(
     [srcs_list]=/etc/apt/sources.list.d
 )
 
-show "${c[RED]}=======================================================" 1
-show "\n\t\t   ${c[RED]}FOR YOUR OWN SAKE,\n\t      ${c[CYAN]}THERE IS NO TURNING BACK...\n" 1
+# show "${c[RED]}=======================================================" 1
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
