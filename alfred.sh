@@ -1138,6 +1138,8 @@ flameshot_stuffs() {
         # A restart is required after
         dconf write "${f[custom]}" "['screenshot']"
 
+        ( nohup cinnamon --replace & ) &> "${f[null]}" 2>&-
+
     fi
 
     for (( ; ; )); do
@@ -1713,7 +1715,7 @@ postgres_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -2882,4 +2884,4 @@ menu() {
 }
 #======================#
 
-menu
+check_distro
