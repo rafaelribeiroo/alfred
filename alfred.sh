@@ -1037,7 +1037,8 @@ x-scheme-handler/http=google-chrome.desktop
 x-scheme-handler/https=google-chrome.desktop
 x-scheme-handler/about=google-chrome.desktop
 x-scheme-handler/unknown=google-chrome.desktop
-x-scheme-handler/mailto=google-chrome.desktop'
+x-scheme-handler/mailto=google-chrome.desktop
+application/pdf=google-chrome.desktop'
 
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
