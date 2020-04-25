@@ -1761,7 +1761,7 @@ postgres_stuffs() {
     latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
 
     # Match perhaps with -10 or -11 etc (fixed installation)
-    local=$(apt version "${m[0]}"???)
+    local=$(apt version "${m[0]}")
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && show "\nPOSTGRES IS IN VERSION ${c[GREEN]}${latest}${c[WHITE]}, NOT IN ${c[RED]}${local:0:2} ${c[WHITE]}ANYMORE.\n" \
