@@ -1673,8 +1673,8 @@ postgres_stuffs() {
 
     f+=(
         [ppa]=/etc/apt/sources.list.d/pgdg.list
-        [config]=/etc/postgresql/11/main/postgresql.conf
-        [postgres_hba]=/etc/postgresql/11/main/pg_hba.conf
+        [config]=/etc/postgresql/${check_version:0:2}/main/postgresql.conf
+        [postgres_hba]=/etc/postgresql/${check_version:0:2}/main/pg_hba.conf
         [pspg_postgres]=/var/lib/postgresql/.psqlrc
         [pspg_user]=~/.psqlrc
         [pspg]=/usr/bin/pspg
@@ -1697,7 +1697,7 @@ postgres_stuffs() {
 
     # -i: insensitive search
     # lsb_release get os version name
-    check_version=$(curl --silent "${l[2]}" | grep -i -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||')
+    check_codename=$(curl --silent "${l[2]}" | grep -i -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||')
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
@@ -1746,8 +1746,8 @@ postgres_stuffs() {
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
-    	[[ ! $(grep --no-messages "${check_version,,}" "${f[ppa]}") ]] \
-    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_version,,}-pgdg main" \
+    	[[ ! $(grep --no-messages "${check_codename,,}" "${f[ppa]}") ]] \
+    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_codename,,}-pgdg main" \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
@@ -1755,8 +1755,6 @@ postgres_stuffs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
-
-    sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
 
@@ -1766,6 +1764,10 @@ postgres_stuffs() {
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && show "\nPOSTGRES IS IN VERSION ${c[GREEN]}${latest}${c[WHITE]}, NOT IN ${c[RED]}${local:0:2} ${c[WHITE]}ANYMORE.\n" \
         && upgrade
+
+    check_version=$(apt show "${m[0]}" 2>&- | grep Version | awk '{print $2}')
+
+    sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
