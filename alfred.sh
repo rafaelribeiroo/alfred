@@ -1752,9 +1752,11 @@ postgres_stuffs() {
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
 
+        echo
+
     fi
 
-    echo; show "INITIALIZING CONFIGS..."
+    show "INITIALIZING CONFIGS..."
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
 
@@ -1810,13 +1812,13 @@ postgres_stuffs() {
 
                     sudo -u postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE ${database} TO ${user}" &> "${f[null]}"
 
-                    sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}"
+                    sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}" &> "${f[null]}"
 
                     # Check this resource running: "psql -U <user> -d <database>" and selecting all data from some table.
                     install_packages "${m[5]}"
 
                     [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
-                        && tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${f[null]}" <<< "\pset linestyle unicode
+                        && sudo tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${f[null]}" <<< "\pset linestyle unicode
 \pset border 2
 \setenv PAGER '${f[pspg]} -bX --no-mouse'" \
                         && sudo chown postgres:postgres "${f[pspg_postgres]}" \
