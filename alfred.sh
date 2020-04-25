@@ -2529,7 +2529,7 @@ set backgrounlocal -a d=dark'
 
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
-        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t\t\t"telegramdesktop.desktop",|g' "${d[0]}"/*.json
+        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
