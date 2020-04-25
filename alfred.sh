@@ -1695,9 +1695,9 @@ postgres_stuffs() {
         'pspg'  # 5
     )
 
-    check_name=$(lsb_release -cs)
-
-    check_version=$(curl --silent "${l[2]}" | grep -1 "${check_version^}" | tail -1 | awk '{print $2}' | sed 's|</TD>||')
+    # -i: insensitive search
+    # lsb_release get os version name
+    check_version=$(curl --silent "${l[2]}" | grep -i -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||')
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
@@ -1746,15 +1746,15 @@ postgres_stuffs() {
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
-    	[[ ! $(grep --no-messages "${check_version}" "${f[ppa]}") ]] \
-    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_version,}-pgdg main" \
+    	[[ ! $(grep --no-messages "${check_version,,}" "${f[ppa]}") ]] \
+    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_version,,}-pgdg main" \
             && update
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" && echo
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
