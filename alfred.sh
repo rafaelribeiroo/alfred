@@ -2526,8 +2526,7 @@ set confirm
 set autoindent
 set smartindent
 set laststatus=2 "Setting the size for the command area, and airline status bar
-set cmdheight=1
-set backgrounlocal -a d=dark'
+set cmdheight=1'
 
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
