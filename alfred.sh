@@ -1956,9 +1956,9 @@ upgrade_py() {
         'https://www.python.org/doc/versions/'  # 1
     )
 
+    # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
         ~/.pyenv  # 0
-        # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
         ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
@@ -2064,13 +2064,15 @@ eval "$(pyenv virtualenv-init -)"' \
 #======================#
 sublime_stuffs() {
 
-    local -a d=(
+    declare -a d=(
         ~/.config/sublime-text-3  # 0
         ~/.config/sublime-text-3/Installed\ Packages  # 1
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
+        ~/.pyenv  # 3
     )
 
     f+=(
+        [file]=~/.pyenv/shims/python
         [config]=~/.config/sublime-text-3/Packages/User/Preferences.sublime-settings
         [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
@@ -2081,18 +2083,19 @@ sublime_stuffs() {
         [anaconda]=~/.config/sublime-text-3/Packages/Anaconda/Anaconda.sublime-settings
         [keymap]=~/.config/sublime-text-3/Packages/User/Default\ \(Linux\).sublime-keymap
         [REPL]=~/.config/sublime-text-3/Packages/SublimeREPL/SublimeREPL.sublime-settings
-        [REPL_pyI]=~/.config/sublime-text-3/Packages/SublimeREPL/config/Python/Main.sublime-menu
-        [REPL_pyII]=~/.config/sublime-text-3/Packages/SublimeREPL/sublimerepl.py
+        [REPLPY]=~/.config/sublime-text-3/Packages/SublimeREPL/config/Python/Main.sublime-menu
+        [REPLPYT]=~/.config/sublime-text-3/Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
     )
 
-    local -a l=(
+    declare -a l=(
         'https://download.sublimetext.com/sublimehq-pub.gpg'  # 0
         'https://download.sublimetext.com/ apt/stable/'  # 1
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
+        'https://www.python.org/doc/versions/'  # 3
     )
 
-    local -a m=(
+    declare -a m=(
         'apt-transport-https'  # 0
         'sublime-text'  # 1
     )
@@ -2260,19 +2263,24 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         done
 
-        if [[ -e "${f[anaconda]}" ]]; then
+        if [[ -e "${f[anaconda]}" && -e "${f[REPL]}" && -e "${f[REPLPY]}" \
+            && -e "${f[REPLPY]}" ]]; then
 
-            # Lint for python 3.6
-            sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
+            latest=$(curl --silent "${l[0]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  #  | sed 's|\.||g'
+
+            [[ ! -d "${d[3]}" && ! -e "${f[file]}${latest}" ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+                && upgrade_py
+
+            # With pyenv, the command below is not necessary
+            # sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
             sudo tee "${f[keymap]}" > "${f[null]}" <<< '[
-    // Key binding to run scripts py
     { "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
         "id": "repl_python_run", "file": "config/Python/Main.sublime-menu" }
     },
-    // Auto-pair escaped parentheses
     { "keys": ["("], "command": "insert_snippet", "args": {"contents": "($0)"}, "context":
         [
             { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
@@ -2280,7 +2288,6 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
         ]
     },
-    // Auto-pair escaped curly brackets
     { "keys": ["{"], "command": "insert_snippet", "args": {"contents": "{$0}"}, "context":
         [
             { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
@@ -2288,7 +2295,6 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
         ]
     },
-    // Auto-pair escaped braces
     { "keys": ["["], "command": "insert_snippet", "args": {"contents": "[$0]"}, "context":
         [
             { "key": "setting.auto_match_enabled", "operator": "equal", "operand": true },
@@ -2299,35 +2305,35 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 ]'
 
             # Removes autocomplete at runtime
-            sudo sed -zi 's|true|false|7' "${f[REPL]}"
+            sudo sed -i 's|"auto_complete": true|"auto_complete": false|g' "${f[REPL]}"
 
             # Reuse same tab for multiple runtimes
             # https://github.com/wuub/SublimeREPL/issues/481
-            sudo sed -zi 's|"R"|"r"|1' "${f[REPL_pyI]}"
+            sudo sed -zi 's|"R"|"r"|1' "${f[REPLPY]}"
 
-            sudo sed -i 's|"R"|"d"|g' "${f[REPL_pyI]}"
+            sudo sed -i 's|"R"|"d"|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|"P"|"p"|g' "${f[REPL_pyI]}"
+            sudo sed -i 's|"P"|"p"|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|"I"|"p"|g' "${f[REPL_pyI]}"
+            sudo sed -i 's|"I"|"p"|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|"D"|"d"|g' "${f[REPL_pyI]}"
+            sudo sed -i 's|"D"|"d"|g' "${f[REPLPY]}"
 
-            [[ ! $(grep --no-messages '"view_id"' "${f[REPL_pyI]}") ]] \
-                && sudo sed -i 's|tmLanguage",|tmLanguage",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPL_pyI]}"
+            [[ ! $(grep --no-messages '"view_id"' "${f[REPLPY]}") ]] \
+                && sudo sed -i 's|Language",|Language",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPLPY]}"
 
-            sudo sed -zi 's|view.id|view.name|1' "${f[REPL_pyII]}"
+            sudo sed -i 's|if view.id|if view.name|g' "${f[REPLPYT]}"
 
             # PY don't run if mix tabs with space
-            [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPL_pyII]}") ]] \
-                && sudo sed -i "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPL_pyII]}"
+            [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPLPYT]}") ]] \
+                && sudo sed -i "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPLPYT]}"
 
             # Set python3 for runtime
-            sudo sed -i 's|"python", |"python3", |g' "${f[REPL_pyI]}"
+            #sudo sed -i 's|"python", |"python3", |g' "${f[REPLPY]}"
 
-            sudo sed -zi 's|"python3", |"python", |4' "${f[REPL_pyI]}"
+            #sudo sed -zi 's|"python3", |"python", |4' "${f[REPLPY]}"
 
-            sudo sed -zi 's|"python3", |"python", |5' "${f[REPL_pyI]}"
+            #sudo sed -zi 's|"python3", |"python", |5' "${f[REPLPY]}"
 
             echo && break
 
@@ -2378,7 +2384,7 @@ upgrade() {
 #======================#
 
 #======================#
-tmate_stuffs() {  # Okzão
+tmate_stuffs() {
 
     local -a m=(
         'tmate'  # 0
@@ -2424,6 +2430,8 @@ tmate_stuffs() {  # Okzão
             && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}"
+
+        echo
 
     fi
 
