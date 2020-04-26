@@ -37,16 +37,11 @@ declare -A f=(
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d
     [ssh]=/tmp/check_connection
+    [file]=~/.pyenv/shims/python
 )
 
-m=(
-    'devices'
-)
+# show "${c[RED]}=======================================================" 1
 
-show "${c[RED]}=======================================================" 1
-show "${c[GREEN]}\n\tH${c[WHITE]}IDING ${c[GREEN]}WINDOWS DEVICES${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
-
-show "${c[GREEN]}H${c[WHITE]}IDING ${c[GREEN]}DEVICE${c[WHITE]}\n"
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
 
