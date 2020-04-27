@@ -61,27 +61,27 @@ logo=(
 # Graphemica.com / onlineutf8tools.com/convert-utf8-to-octal
 e=(
     $'\360\237\232\252'  #  0 (door): exit
-    $'\360\237\216\250'  #  1 (painter): bash colorful
+    $'\360\237\216\250'  #  1 (colors): bash colorful
     $'\360\237\216\247'  #  2 (headphone): deezloader
-    $'\360\237\214\211'  #  3 (paisagem): dualmonitor
-    $'\360\237\220\231'  #  4 (polvo): git
-    $'\360\237\214\215'  #  5 (globo): chrome
-    $'\360\237\223\267'  #  6 (câmera): flameshot
-    $'\360\237\232\200'  #  7 (foguete): heroku
-    $'\360\237\231\210'  #  8 (macaco vendado): hide devices
-    $'\360\237\215\277'  #  9 (pipoca): minidlna
+    $'\360\237\214\211'  #  3 (landscape): dualmonitor
+    $'\360\237\220\231'  #  4 (octopus): git
+    $'\360\237\214\215'  #  5 (globe): chrome
+    $'\360\237\223\267'  #  6 (camera): flameshot
+    $'\360\237\232\200'  #  7 (rocket): heroku
+    $'\360\237\231\210'  #  8 (blindfolded monkey): hide devices
+    $'\360\237\215\277'  #  9 (popcorn): minidlna
     $'\360\235\223\235'  # 10 (n): nvidia
-    $'\360\237\220\230'  # 11 (elefante): postgres
-    $'\360\237\220\215'  # 12 (cobra): py libraries/upgrade
-    $'\360\237\214\230'  # 13 (lua): reduce eye strain
-    $'\360\237\224\244'  # 14 (letras): sublime
-    $'\360\237\247\262'  # 15 (imã): tmate
-    $'\360\237\222\216'  # 16 (diamante): usefull programs
-    $'\360\237\222\274'  # 17 (maleta): workspace
-    $'\360\237\220\213'  # 18 (baleia): all
-    $'\360\237\224\245'  # 19 (fogo): some men...
-    $'\360\237\231\212'  # 20 (macaco calado): password
-    $'\360\237\246\207'  # 21 (morcego): why do we fall...
+    $'\360\237\220\230'  # 11 (elephant): postgres
+    $'\360\237\220\215'  # 12 (snake): py libraries/upgrade
+    $'\360\237\214\230'  # 13 (moon): reduce eye strain
+    $'\360\237\224\244'  # 14 (letters): sublime
+    $'\360\237\247\262'  # 15 (magnet): tmate
+    $'\360\237\222\216'  # 16 (diamond): usefull programs
+    $'\360\237\222\274'  # 17 (suitcase): workspace
+    $'\360\237\220\213'  # 18 (whale): all
+    $'\360\237\224\245'  # 19 (fire): some men...
+    $'\360\237\231\212'  # 20 (silent monkey): password
+    $'\360\237\246\207'  # 21 (bat): why do we fall...
 )
 
 # usefull files
@@ -2054,6 +2054,173 @@ eval "$(pyenv virtualenv-init -)"' \
 #======================#
 
 #======================#
+upgrade() {
+
+    f+=(
+        [apt_history]=/var/log/apt/history.log
+    )
+
+    # Get last upgrades
+    last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
+
+    # Best data format, dd/mm/yyyy
+    date=$(date -d "${last}" +"%d/%m/%Y")
+
+    [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
+        || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
+
+    sudo apt update &> "${f[null]}"; sudo apt upgrade --yes &> "${f[null]}"
+
+}
+#======================#
+
+#======================#
+reduceye_stuffs() {
+
+    local -a d=(
+        ~/.config/redshift
+    )
+
+    f+=(
+        [config]=~/.config/redshift/redshift.conf
+    )
+
+    local -a m=(
+        'redshift'  # 0
+        'redshift-gtk'
+    )
+
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
+
+
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                echo && break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+
+        install_packages "${m[0]}" "${m[1]}"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    if [[ ! -e "${f[config]}" ]]; then
+
+        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+
+        tee "${f[config]}" > "${f[null]}" <<< "; Global settings for redshift
+[redshift]
+; Set the day and night screen temperatures
+temp-day=5700
+temp-night=3500
+
+; Disable the smooth fade between temperatures when Redshift starts and stops.
+; 0 will cause an immediate change between screen temperatures.
+; 1 will gradually apply the new screen temperature over a couple of seconds.
+fade=1
+
+; Solar elevation thresholds.
+; By default, Redshift will use the current elevation of the sun to determine
+; whether it is daytime, night or in transition (dawn/dusk). When the sun is
+; above the degrees specified with elevation-high it is considered daytime and
+; below elevation-low it is considered night.
+;elevation-high=3
+;elevation-low=-6
+
+; Custom dawn/dusk intervals.
+; Instead of using the solar elevation, the time intervals of dawn and dusk
+; can be specified manually. The times must be specified as HH:MM in 24-hour
+; format.
+;dawn-time=6:00-7:45
+;dusk-time=18:35-20:15
+
+; Set the screen brightness. Default is 1.0.
+;brightness=0.9
+; It is also possible to use different settings for day and night
+; since version 1.8.
+;brightness-day=0.7
+;brightness-night=0.4
+; Set the screen gamma (for all colors, or each color channel
+; individually)
+gamma=0.8
+;gamma=0.8:0.7:0.8
+; This can also be set individually for day and night since
+; version 1.10.
+;gamma-day=0.8:0.7:0.8
+;gamma-night=0.6
+
+; Set the location-provider: 'geoclue2', 'manual'
+; type 'redshift -l list' to see possible values.
+; The location provider settings are in a different section.
+location-provider=manual
+
+; Set the adjustment-method: 'randr', 'vidmode'
+; type 'redshift -m list' to see all possible values.
+; 'randr' is the preferred method, 'vidmode' is an older API.
+; but works in some cases when 'randr' does not.
+; The adjustment method settings are in a different section.
+adjustment-method=randr
+
+; Configuration of the location-provider:
+; type 'redshift -l PROVIDER:help' to see the settings.
+; ex: 'redshift -l manual:help'
+; Keep in mind that longitudes west of Greenwich (e.g. the Americas)
+; are negative numbers.
+[manual]
+lat=-23.550520
+lon=-46.633308
+
+; Configuration of the adjustment-method
+; type 'redshift -m METHOD:help' to see the settings.
+; ex: 'redshift -m randr:help'
+; In this example, randr is configured to adjust only screen 0.
+; Note that the numbering starts from 0, so this is actually the first screen.
+; If this option is not specified, Redshift will try to adjust _all_ screens.
+[randr]
+screen=0"
+
+    fi
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
 sublime_stuffs() {
 
     declare -a d=(
@@ -2698,11 +2865,12 @@ invoca_funcoes() {
         11) postgres_stuffs && return_menu ;;
         12) py_libraries && return_menu ;;
         13) upgrade_py && return_menu ;;
-        14) sublime_stuffs && return_menu ;;
-        15) tmate_stuffs && return_menu ;;
-        16) usefull_pkgs && return_menu ;;
-        17) workspace_stuffs && return_menu ;;
-        18) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        14) reduceye_stuffs && return_menu ;;
+        15) sublime_stuffs && return_menu ;;
+        16) tmate_stuffs && return_menu ;;
+        17) usefull_pkgs && return_menu ;;
+        18) workspace_stuffs && return_menu ;;
+        19) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         local -a d=(
             ~/.local/share/cinnamon/applets  # 0
@@ -2806,8 +2974,9 @@ activate-numlock=true'
         nvidia_stuffs
         postgres_stuffs
         py_libraries
+        upgrade_py
+        reduceye_stuffs
         sublime_stuffs
-        upgrade
         tmate_stuffs
         usefull_pkgs
         workspace_stuffs
