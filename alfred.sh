@@ -2865,8 +2865,9 @@ menu() {
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
 		for line in "${!logo[@]}"; do
-            show "    ${c[RED]}${logo[${line}]}" 1
-            sleep 0.1s
+
+            show "    ${c[RED]}${logo[${line}]}" 1 && sleep 0.1s
+
         done
 
         sleep 0.1s; show "${c[RED]}=======================================================" 1
@@ -2893,7 +2894,7 @@ menu() {
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
 
-        # O read acima é inline, então passamos uma linha vazia para não afetar
+        # The read command above is inline, so we need this echo to breakline
         echo
 
 		[[ "${choice}" =~ ^[[:alpha:]]$ ]] \
