@@ -2390,9 +2390,9 @@ tmate_stuffs() {
         'tmate'  # 0
     )
 
-    if [[ $(dpkg --list | awk "/${m[0]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n"
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2426,8 +2426,7 @@ tmate_stuffs() {
 
     else
 
-        [[ "${1}" -eq 1 ]] \
-            && show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}"
 
@@ -2710,7 +2709,7 @@ invoca_funcoes() {
         12) py_libraries && return_menu ;;
         13) upgrade_py && return_menu ;;
         14) sublime_stuffs && return_menu ;;
-        15) tmate_stuffs 1 && return_menu ;;
+        15) tmate_stuffs && return_menu ;;
         16) usefull_pkgs 1 && return_menu ;;
         17) workspace_stuffs && return_menu ;;
         18) echo; show "KNOW YOUR LIMITS ${name[random]}..."
