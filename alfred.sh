@@ -2489,6 +2489,8 @@ usefull_pkgs() {
 
                 sudo sed -zi 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
 
+                sudo sed -i '/"telegram.desktop",/d' "${d[0]}"/*.json
+
                 remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
