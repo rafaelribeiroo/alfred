@@ -655,7 +655,7 @@ dualmonitor_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dconf read "${f[picture]}" 2>&-) = "'file://${f[starwars]}'" ]]; then
         # 2>&- if dconf not installed
 
@@ -813,7 +813,7 @@ github_stuffs() {
     )
 
     # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -970,7 +970,7 @@ chrome_stuffs() {
         'libxss1'  # 3
     )
 
-	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1077,7 +1077,7 @@ flameshot_stuffs() {
         'dconf-editor'  # 1
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1199,7 +1199,7 @@ heroku_stuffs() {
         'heroku'  # 0
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1398,7 +1398,7 @@ minidlna_stuffs() {
         'minidlna'  # 0
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1699,7 +1699,7 @@ postgres_stuffs() {
     # lsb_release get os version name
     check_codename=$(curl --silent "${l[2]}" | grep -i -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||')
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1890,9 +1890,9 @@ py_libraries() {
         'libraries py'  # 3
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 \
-        && $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 \
-        && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" 1
 
@@ -2100,7 +2100,7 @@ sublime_stuffs() {
         'sublime-text'  # 1
     )
 
-	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
@@ -2390,7 +2390,7 @@ tmate_stuffs() {
         'tmate'  # 0
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
