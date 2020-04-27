@@ -40,11 +40,17 @@ declare -A f=(
     [file]=~/.pyenv/shims/python
 )
 
-[[ $(dpkg --list | awk "/ii  nodejs[[:space:]]/ {print }") ]] \
-    && echo instalado || echo nao
+show "${c[RED]}=======================================================" 1
 
+declare -A f=(
+    [config]=~/.config/rafa.txt
+)
 
-# show "${c[RED]}=======================================================" 1
+declare -A f=(
+    [config]=~/.config/gabri.txt
+)
+
+echo ${f[config]}
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
