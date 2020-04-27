@@ -423,14 +423,14 @@ bash_stuffs() {
 
         install_packages "${m[1]}" "${m[2]}"
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         # First /dev/null hide download progress, second hide thirty commands
         0> "${f[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${f[null]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     if [[ ! -e "${f[powerline_otf]}" ]]; then
 
@@ -499,10 +499,10 @@ deezloader_stuffs() {
         [config]=~/.config/Deezloader\ Remix/config.json
     )
 
+    # If preview not show, try run: rm -rf ~/.cache/thumbnails/fail*
     local -a m=(
         'deezloader'  # 0
         'megatools'  # 1
-        # If preview not show, try run: rm -rf ~/.cache/thumbnails/fail*
         'xplayer'  # 2
     )
 
@@ -548,13 +548,13 @@ deezloader_stuffs() {
 
         install_packages "${m[1]}" "${m[2]}"
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         megadl --no-progress "${link_latest}" --path "${d[2]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     # Checa permissão. Se não for executável, torna-o
     [[ $(stat -c "%a" "${f[file]}" 2>&-) -ne 755 ]] \
@@ -701,11 +701,11 @@ dualmonitor_stuffs() {
 
         show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[1]}" && echo
+        install_packages "${m[1]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     # --word-regexp don't match with disconnected
     # dual monitor wallpaper
@@ -858,11 +858,11 @@ github_stuffs() {
 
         show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     # Any changes pushed to GitHub, BitBucket, GitLab or another Git host
     # server in a later lesson will include this information.
@@ -920,8 +920,6 @@ github_stuffs() {
 
         curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
 
-        echo
-
     else
 
         install_packages "${m[3]}"
@@ -930,10 +928,9 @@ github_stuffs() {
             $(cat "${f[public_ssh]}" | awk '{print $2}') != \
             $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
         ]] \
-            && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." \
+            && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
             && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
-            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}" \
-            && echo
+            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
 
     fi
 
@@ -942,7 +939,7 @@ github_stuffs() {
     [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
         && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -1018,7 +1015,7 @@ chrome_stuffs() {
         # Dependências
         install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
@@ -1029,7 +1026,7 @@ chrome_stuffs() {
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     [[ ! $(grep --no-messages google-chrome "${f[mimeapps]}") ]] \
         && sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
@@ -1117,11 +1114,11 @@ flameshot_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" && echo
+        install_packages "${m[0]}" "${m[1]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     if [[ $(dconf read "${f[screenshot]}" 2>&-) = "['Print']" ]]; then
 
@@ -1241,13 +1238,13 @@ heroku_stuffs() {
 
         show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]\n"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         sh -c "$(curl --silent ${l[0]})" &> "${f[null]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
 	echo; read -p $'\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
 
@@ -1266,11 +1263,11 @@ heroku_stuffs() {
 
             done
 
-            echo && break
+            break
 
 		elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-            echo && break
+            break
 
 	    else
 
@@ -1282,7 +1279,7 @@ heroku_stuffs() {
 
     done
 
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -1367,13 +1364,11 @@ hide_devices() {
 
             done
 
-            echo
-
         fi
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     sudo udevadm control --reload-rules && sudo udevadm trigger
 
@@ -1438,11 +1433,11 @@ minidlna_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" && echo
+        install_packages "${m[0]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     if [[ ! $(grep --no-messages Mídias "${f[config]}") ]]; then
 
@@ -1592,13 +1587,13 @@ nvidia_stuffs() {
                 && sudo add-apt-repository --yes ppa:graphics-drivers/ppa &> "${f[null]}" \
                 && update
 
-            install_packages "${m[0]}-${latest}" "${m[2]}" && echo
+            install_packages "${m[0]}-${latest}" "${m[2]}"
 
         fi
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     if [[ ! -d "${d[1]}" ]]; then
 
@@ -1752,11 +1747,9 @@ postgres_stuffs() {
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
 
-        echo
-
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
 
@@ -1930,11 +1923,11 @@ py_libraries() {
 
         show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[3]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" && echo
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     local=$(apt version "${m[0]}")
 
@@ -2038,11 +2031,9 @@ upgrade_py() {
             && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
             || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
 
-        echo
-
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
@@ -2151,11 +2142,9 @@ sublime_stuffs() {
 
         install_packages "${m[0]}" "${m[1]}"
 
-        echo
-
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     while [[ ! -e "${d[0]}" ]]; do
 
@@ -2335,7 +2324,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             #sudo sed -zi 's|"python3", |"python", |5' "${f[REPLPY]}"
 
-            echo && break
+            break
 
         fi
 
@@ -2357,7 +2346,7 @@ application/x-subrip=sublime_text.desktop'
     [[ ! $(grep --no-messages sublime_text "${d[2]}"/*.json) ]] \
         && sudo sed -i 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
 
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
@@ -2430,11 +2419,9 @@ tmate_stuffs() {
 
         install_packages "${m[0]}"
 
-        echo
-
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     check_ssh
 
@@ -2520,11 +2507,11 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
             && sudo add-apt-repository --yes ppa:atareao/telegram &> "${f[null]}"
 
-        update && install_packages "${m[4]}" && echo
+        update && install_packages "${m[4]}"
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     [[ ! $(grep --no-messages vlc "${f[mimeapps]}") ]] \
         && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
@@ -2617,7 +2604,7 @@ workspace_stuffs() {
 
         show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
 
-        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]}\n"
+        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]}"
 
         sudo mkdir --parents "${d[0]}" > "${f[null]}"
 
@@ -2625,7 +2612,7 @@ workspace_stuffs() {
 
     fi
 
-    show "INITIALIZING CONFIGS..."
+    echo; show "INITIALIZING CONFIGS..."
 
     # Lost your bookmarks? Run xdg-user-dirs-gtk-update
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
@@ -2658,19 +2645,19 @@ workspace_stuffs() {
                             && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
                             && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
                             && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
-                            && echo && break
+                            && break
                         # 2> hides permanently added to the list of known hosts
 
                     done
 
-                    show "REPOSITORIES DOWNLOADED..."
+                    echo; show "REPOSITORIES DOWNLOADED..."
 
                     # second break is important be outside of loop
-                    echo && break
+                    break
 
                 elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-                    echo && break
+                    break
 
                 else
 
@@ -2686,7 +2673,7 @@ workspace_stuffs() {
 
     fi
 
-    show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
 #======================#
