@@ -2210,7 +2210,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
