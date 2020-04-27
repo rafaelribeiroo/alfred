@@ -40,6 +40,10 @@ declare -A f=(
     [file]=~/.pyenv/shims/python
 )
 
+[[ $(dpkg --list | awk "/ii  nodejs[[:space:]]/ {print }") ]] \
+    && echo instalado || echo nao
+
+
 # show "${c[RED]}=======================================================" 1
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
