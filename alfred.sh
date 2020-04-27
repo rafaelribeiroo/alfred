@@ -2461,16 +2461,16 @@ usefull_pkgs() {
         'vim'  # 2
         'easytag'  # 3
         'telegram'  # 4
-        'usefull packages'  # 4
+        'usefull packages'  # 5
     )
 
-    if [[ $(dpkg --list | awk "/${m[0]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg --list | awk "/${m[1]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg --list | awk "/${m[2]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg --list | awk "/${m[3]}/ {print }" | wc -l) -ge 1 \
-        && $(dpkg --list | awk "/${m[4]}/ {print }" | wc -l) -ge 1 ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[5]^^} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
+        show "\n${c[GREEN]}${m[5]^^} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" 1
 
         read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -2528,6 +2528,10 @@ usefull_pkgs() {
         && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop'
 
+    # Nomenclature icon arrangement
+    [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
+        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
+
     [[ ! $(grep --no-messages "syntax" "${f[vimrc]}") ]] \
         && sudo tee "${f[vimrc]}" > "${f[null]}" <<< 'set encoding=UTF-8
 syntax on
@@ -2541,10 +2545,6 @@ set autoindent
 set smartindent
 set laststatus=2 "Setting the size for the command area, and airline status bar
 set cmdheight=1'
-
-    # Nomenclature icon arrangement
-    [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
-        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2710,7 +2710,7 @@ invoca_funcoes() {
         13) upgrade_py && return_menu ;;
         14) sublime_stuffs && return_menu ;;
         15) tmate_stuffs && return_menu ;;
-        16) usefull_pkgs 1 && return_menu ;;
+        16) usefull_pkgs && return_menu ;;
         17) workspace_stuffs && return_menu ;;
         18) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
