@@ -42,67 +42,44 @@ declare -A f=(
 
 # show "${c[RED]}=======================================================" 1
 
-echo "a data é $(date)"
-
-# systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
-# tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
-
-# sudo rm --force --recursive ~/Downloads/PanGPLinux.tgz
-
-# sudo dpkg -i /tmp/GlobalProtect_deb-* &> /dev/null
-
-#GlobalProtect_deb-5.0.8.0-6.deb
-#GlobalProtect_deb_arm-5.0.8.0-6.deb
-
-: 'l=(
-    http://servidor.utech.com.br/softphone/uTechSoftphone.bin
-    https://fullerton-it-network-public.s3-us-west-2.amazonaws.com/PanGPLinux.tgz
-)
-
-declare -A f=(
-    [bin]=~/Downloads/uTechSoftphone.bin
-)
-
-curl --silent --output "${f[bin]}" --create-dirs "${l[0]}"
-
-sudo rm -rf ~/desktop/uTechSoftphone.desktop '
+git ls-remote git@github.com:rafaelribeiroo/catalina &> /tmp/check_repo
 
 
 : ' ~/.config/uTechSoftphone/contacts.json
 [
     {
         "avatar": "",
-        "extension": "0800151551",
+        "extension": "00800151551",
         "monitor": false,
         "name": "Telefonica"
     },
     {
         "avatar": "",
-        "extension": "0800109036",
+        "extension": "00800109036",
         "monitor": false,
         "name": "Pro-Atividade"
     },
     {
         "avatar": "",
-        "extension": "0800112499",
+        "extension": "00800112499",
         "monitor": false,
         "name": "Gi-Telefonica"
     },
     {
         "avatar": "",
-        "extension": "08009400612",
+        "extension": "008009400612",
         "monitor": false,
         "name": "Algar"
     },
     {
         "avatar": "",
-        "extension": "08002821231",
+        "extension": "008002821231",
         "monitor": false,
         "name": "Oi"
     },
     {
         "avatar": "",
-        "extension": "08007211021",
+        "extension": "008007211021",
         "monitor": false,
         "name": "Embratel"
     }
@@ -421,13 +398,3 @@ sudo rm -rf ~/desktop/uTechSoftphone.desktop '
    }
 }
 '
-
-
-#sudo chmod +x
-#0> /dev/null sudo bash -c ~/Downloads/uTechSoftphone.bin &> /dev/null
-
-#http://servidor.utech.com.br/softphone/uTechSoftphone.bin
-
-# psql postgres -tAc "SELECT 1 FROM pg_roles WHERE rolname='postgres'"
-
-# systemctl list-unit-files --type service -all
