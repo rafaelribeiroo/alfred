@@ -2781,7 +2781,8 @@ workspace_stuffs() {
             && ! -d "${d[0]}"/"${r[1]}" \
             && ! -d "${d[0]}"/"${r[2]}" \
             && ! -d "${d[0]}"/"${r[3]}" \
-            && ! -d "${d[0]}"/"${r[4]}" ]]; then
+            && ! -d "${d[0]}"/"${r[4]}" \
+            && ! -d "${d[0]}"/"${r[5]}" ]]; then
 
             echo; read -p $'\033[1;37mSHOULD I DOWNLOAD SOME REPOSITORIES? \n[Y/N] R: \033[m' option
 
