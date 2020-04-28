@@ -40,17 +40,9 @@ declare -A f=(
     [file]=~/.pyenv/shims/python
 )
 
-show "${c[RED]}=======================================================" 1
+# show "${c[RED]}=======================================================" 1
 
-declare -A f=(
-    [config]=~/.config/rafa.txt
-)
-
-declare -A f=(
-    [config]=~/.config/gabri.txt
-)
-
-echo ${f[config]}
+echo "a data é $(date)"
 
 # systemctl cat systemd-tmpfiles-clean.timer runs on shutdown
 # tar zxvf ~/Downloads/PanGPLinux.tgz --directory /tmp/ &> /dev/null
