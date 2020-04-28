@@ -2426,11 +2426,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             latest=$(curl --silent "${l[0]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  #  | sed 's|\.||g'
 
             [[ ! -d "${d[3]}" && ! -e "${f[file]}${latest}" ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
-                && upgrade_py
-
-            # With pyenv, the command below is not necessary
-            # sudo sed -i 's|"python"|"/usr/bin/python3.6"|g' "${f[anaconda]}"
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE? $(upgrade_py)"
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
@@ -2484,13 +2480,6 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             # PY don't run if mix tabs with space
             [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPLPYT]}") ]] \
                 && sudo sed -i "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPLPYT]}"
-
-            # Set python3 for runtime
-            #sudo sed -i 's|"python", |"python3", |g' "${f[REPLPY]}"
-
-            #sudo sed -zi 's|"python3", |"python", |4' "${f[REPLPY]}"
-
-            #sudo sed -zi 's|"python3", |"python", |5' "${f[REPLPY]}"
 
             break
 
@@ -2805,8 +2794,7 @@ workspace_stuffs() {
                         ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
                         [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
-                            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
-                            && github_stuffs \
+                            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS? $(github_stuffs)" \
                             || git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
                             && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
                             && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
@@ -2982,6 +2970,7 @@ activate-numlock=true'
         workspace_stuffs
 
         echo; show "INITIALIZING CONFIGS..."; echo
+
         sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
 x-scheme-handler/http=google-chrome.desktop
