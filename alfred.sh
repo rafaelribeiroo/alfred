@@ -2869,6 +2869,8 @@ invoca_funcoes() {
         f+=(
             [automount]=/org/cinnamon/desktop/media-handling/automount
             [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
+            [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
+            [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
             [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
             [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
             [computer_icon]=/org/nemo/desktop/computer-icon-visible
@@ -2927,6 +2929,10 @@ activate-numlock=true'
         dconf write "${f[automount]}" true
 
         dconf write "${f[automount_open]}" true
+
+        dconf write "${f[open_folder]}" "['x-content/bootable-media']"
+
+        dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']"
 
         dconf write "${f[show_hidden]}" true
 
