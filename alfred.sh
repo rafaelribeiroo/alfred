@@ -2448,7 +2448,8 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
             latest=$(curl --silent "${l[0]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
             [[ ! -d "${d[3]}" && ! -e "${f[file]}${latest}" ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE? $(upgrade_py)"
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+                && upgrade_py
 
             sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
