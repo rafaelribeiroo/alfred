@@ -406,7 +406,7 @@ bash_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -531,7 +531,7 @@ deezloader_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -686,7 +686,7 @@ dualmonitor_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -843,7 +843,7 @@ github_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -997,7 +997,7 @@ chrome_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -1099,7 +1099,7 @@ flameshot_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -1223,7 +1223,7 @@ heroku_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -1331,7 +1331,7 @@ hide_devices() {
 
                 elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                    echo && break
+                    break
 
                 else
 
@@ -1418,7 +1418,7 @@ minidlna_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -1548,7 +1548,7 @@ nvidia_stuffs() {
 
                         elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-                            echo && break
+                            break
 
                         else
 
@@ -1568,7 +1568,7 @@ nvidia_stuffs() {
 
                 elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                    echo && break
+                    break
 
                 else
 
@@ -1721,7 +1721,7 @@ postgres_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -1908,7 +1908,7 @@ py_libraries() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -2008,7 +2008,7 @@ upgrade_py() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -2114,7 +2114,7 @@ reduceye_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -2283,7 +2283,7 @@ sublime_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -2558,7 +2558,7 @@ tmate_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -2643,7 +2643,7 @@ usefull_pkgs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
@@ -2745,7 +2745,7 @@ workspace_stuffs() {
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                echo && break
+                break
 
             else
 
