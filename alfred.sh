@@ -2729,11 +2729,12 @@ workspace_stuffs() {
 
     f+=(
         [bookmarks]=~/.config/gtk-3.0/bookmarks
+        [check_repo]=/tmp/check_repo
     )
 
     # only here is global because invokes a new function
     l=(
-        git@github.com:rafaelribeiroo/
+        git@github.com:"${user}"/
     )
 
     local -a r=(
@@ -2798,60 +2799,83 @@ workspace_stuffs() {
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
         && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
-    if [[ $(hostname) = brabo && "${USER}" = ribeiro ]]; then
+    echo; read -p $'\033[1;37mSIR, SHOULD I DOWNLOAD SOME REPOSITORY OF YOUR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
 
-        if [[ ! -d "${d[0]}"/"${r[0]}" \
-            && ! -d "${d[0]}"/"${r[1]}" \
-            && ! -d "${d[0]}"/"${r[2]}" \
-            && ! -d "${d[0]}"/"${r[3]}" \
-            && ! -d "${d[0]}"/"${r[4]}" \
-            && ! -d "${d[0]}"/"${r[5]}" ]]; then
+    for (( ; ; )); do
 
-            echo; read -p $'\033[1;37mSHOULD I DOWNLOAD SOME REPOSITORIES? \n[Y/N] R: \033[m' option
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            [[ -z "${user}" ]] \
+                && show "\nWE NEED GITHUB CREDENTIALS, TRANSFERRING TO GITHUB BEFORE PROCEED..." \
+                && github_stuffs
+
+            read -p $'\033[1;37m\nSIR, WHICH REPOSITORY SHOULD I DOWNLOAD?\nR: \033[m' repo
 
             for (( ; ; )); do
 
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                [[ -d "${d[0]}${repo}" ]] \
+                    && show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED" 1 \
+                    && break
 
-                    for (( ; ; )); do
+                git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
 
-                        ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+                if [[ $(cat "${f[check_repo]}" | grep HEAD) ]]; then
 
-                        [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
-                            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS? $(github_stuffs)" \
-                            || git clone --quiet "${l[0]}${r[0]}.git" "${d[0]}""${r[0]}" 2> "${f[null]}" \
-                            && git clone --quiet "${l[0]}${r[1]}.git" "${d[0]}${r[1]}" \
-                            && git clone --quiet "${l[0]}${r[2]}.git" "${d[0]}${r[2]}" \
-                            && git clone --quiet "${l[0]}${r[3]}.git" "${d[0]}${r[3]}" \
-                            && git clone --quiet "${l[0]}${r[4]}.git" "${d[0]}${r[4]}" \
-                            && git clone --quiet "${l[0]}${r[5]}.git" "${d[0]}${r[5]}" \
-                            && break
-                        # 2> hides permanently added to the list of known hosts
+                    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                    done
+                    if [[ $(cat "${f[ssh]}" | grep successfully) ]]; then
 
-                    echo; show "REPOSITORIES DOWNLOADED..."
+                        git clone --quiet "${l[0]}${repo}.git" "${d[0]}${repo}" 2> "${f[null]}"
 
-                    # second break is important be outside of loop
-                    break
+                        read -p $'\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
 
-                elif [[ "${option:0:1}" = @(n|N) ]] ; then
+                        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                    break
+                            true
+
+                        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                            break  # Simillar to pass
+
+                        else
+
+                            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT U DOWNLOAD MORE REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                            read option
+
+                        fi
+
+                        break
+
+                    else
+
+                        show "\nDID YOU MISS SOME CONFIG AT GITHUB? $(github_stuffs)"
+
+                    fi
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t        ${c[WHITE]}REPO DOESN'T EXISTS!\n\nSIR, WHICH REPOSITORY SHOULD I DOWNLOAD?${c[END]}\n${c[WHITE]}R: "${c[END]}
 
-                    read option
+                    read repo
 
                 fi
 
             done
 
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES OF YOUR GITHUB ACCOUNT?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
         fi
 
-    fi
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
