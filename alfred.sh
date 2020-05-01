@@ -2701,7 +2701,7 @@ video/mp4=vlc.desktop'
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
         && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
-    [[ ! $(grep --no-messages "syntax" "${f[vimrc]}") ]] \
+    [[ ! $(grep --no-messages syntax "${f[vimrc]}") ]] \
         && sudo tee "${f[vimrc]}" > "${f[null]}" <<< 'set encoding=UTF-8
 syntax on
 set autoread
