@@ -2078,11 +2078,12 @@ upgrade() {
 reduceye_stuffs() {
 
     local -a d=(
-        ~/.config/redshift
+        ~/.config/redshift/
     )
 
     f+=(
         [config]=~/.config/redshift/redshift.conf
+        [dskt]=~/.config/autostart/redshift-gtk.desktop
     )
 
     local -a m=(
@@ -2104,7 +2105,9 @@ reduceye_stuffs() {
 
                 sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
+                sudo rm --force --recursive "${d[0]}"
 
+                sudo rm --force "${f[dskt]}"
 
                 remove_useless
 
@@ -2214,6 +2217,23 @@ lon=-46.633308
 screen=0"
 
     fi
+
+    [[ ! $(grep --no-messages Redshift "${f[dskt]}") ]] \
+        && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
+Version=1.0
+Name=Redshift
+Name[pt_BR]=Redshift
+GenericName=Color temperature adjustment
+GenericName[es]=Ajuste de la temperatura de color
+Comment=Color temperature adjustment tool
+Exec=redshift-gtk
+Icon=redshift
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=true
+Hidden=false
+X-GNOME-Autostart-enabled=true'
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
