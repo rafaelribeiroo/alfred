@@ -2368,7 +2368,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 8C8BB2AD B2ECE5A4 EFC08AF2 25A9B864
 ------ END LICENSE ------'
 
-    # 2 simple tricks to block two sublime text servers, hides: "Your license key is not longer valid, and has been removed"
+    # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
     [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
         && sudo sed -i "3 a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
 
@@ -2395,6 +2395,8 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
         && sudo tee "${f[config]}" > "${f[null]}" <<< '{
     "ensure_newline_at_eof_on_save": true,
     "font_size": 12,
+    "bold_folder_labels": true,
+    "highlight_line": true,
     "ignored_packages":
     [
         "Vintage"
