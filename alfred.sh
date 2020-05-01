@@ -2445,7 +2445,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
         if [[ -e "${f[anaconda]}" && -e "${f[REPL]}" && -e "${f[REPLPY]}" \
             && -e "${f[REPLPY]}" ]]; then
 
-            latest=$(curl --silent "${l[0]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  #  | sed 's|\.||g'
+            latest=$(curl --silent "${l[0]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
             [[ ! -d "${d[3]}" && ! -e "${f[file]}${latest}" ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE? $(upgrade_py)"
