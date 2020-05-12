@@ -1931,6 +1931,12 @@ py_libraries() {
 
     echo; show "INITIALIZING CONFIGS..."
 
+    local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
+
+    [[ "${local}" =~ 2.7.* ]] \
+        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+        && upgrade_py
+
     local=$(apt version "${m[0]}")
 
     latest=$(curl --silent "${l[0]}" | grep --no-messages -2 _le | tail -1  | awk '{print $2}')
