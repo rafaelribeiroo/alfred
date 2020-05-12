@@ -2942,7 +2942,6 @@ invoca_funcoes() {
             [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
             [grub]=/boot/grub/grub.cfg
             [home_icon]=/org/nemo/desktop/home-icon-visible
-            [click_policy]=/org/nemo/preferences/click-policy
             [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
             [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
             [numlock]=/etc/lightdm/slick-greeter.conf
@@ -2999,8 +2998,6 @@ activate-numlock=true'
         dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']"
 
         dconf write "${f[show_hidden]}" true
-
-        dconf write "${f[click_policy]}" "'single'"
 
         dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
 
