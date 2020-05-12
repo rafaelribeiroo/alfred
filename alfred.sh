@@ -2635,16 +2635,18 @@ usefull_pkgs() {
         'vim'  # 2
         'easytag'  # 3
         'telegram'  # 4
-        'usefull packages'  # 5
+        'bashtop'  # 5
+        'usefull packages'  # 6
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[5]^^} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" 1
+        show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" 1
 
         read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -2654,10 +2656,13 @@ usefull_pkgs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]}, ${c[RED]}${m[3]^^}${c[WHITE]} AND ${c[RED]}${m[4]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" &> "${f[null]}"
 
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
                     && sudo add-apt-repository --remove --yes ppa:atareao/telegram &> "${f[null]}"
+
+                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[5]}") ]] \
+                    && sudo add-apt-repository --remove --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
@@ -2687,14 +2692,17 @@ usefull_pkgs() {
 
     else
 
-        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[6]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
             && sudo add-apt-repository --yes ppa:atareao/telegram &> "${f[null]}"
 
-        update && install_packages "${m[4]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[5]}") ]] \
+            && sudo add-apt-repository --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
+
+        update && install_packages "${m[4]}" "${m[5]}"
 
     fi
 
