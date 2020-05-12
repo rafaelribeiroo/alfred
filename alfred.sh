@@ -2832,13 +2832,13 @@ workspace_stuffs() {
                     && show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED" 1 \
                     && break
 
-                git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
+                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                if [[ $(cat "${f[check_repo]}" | grep HEAD) ]]; then
+                if [[ $(cat "${f[ssh]}" | grep successfully) ]]; then
 
-                    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+                    git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
 
-                    if [[ $(cat "${f[ssh]}" | grep successfully) ]]; then
+                    if [[ $(cat "${f[check_repo]}" | grep HEAD) ]]; then
 
                         git clone --quiet "${l[0]}${repo}.git" "${d[0]}${repo}" 2> "${f[null]}"
 
@@ -2864,15 +2864,17 @@ workspace_stuffs() {
 
                     else
 
-                        show "\nDID YOU MISS SOME CONFIG AT GITHUB? $(github_stuffs)"
+                        echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}REPO DOESN'T EXISTS!\n\nSR. WHICH REPO SHOULD I DOWNLOAD?${c[END]}\n${c[WHITE]}R: "${c[END]}
+
+                        read repo
 
                     fi
 
                 else
 
-                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t        ${c[WHITE]}REPO DOESN'T EXISTS!\n\nSIR, WHICH REPOSITORY SHOULD I DOWNLOAD?${c[END]}\n${c[WHITE]}R: "${c[END]}
+                    show "\nDID YOU MISS SOME CONFIG AT GITHUB?"
 
-                    read repo
+                    github_stuffs
 
                 fi
 
