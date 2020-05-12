@@ -657,7 +657,8 @@ dualmonitor_stuffs() {
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
-        && $(dconf read "${f[picture]}" 2>&-) = "'file://${f[starwars]}'" ]]; then
+        && $(dconf read "${f[picture]}" 2>&-) = "'file://${f[starwars]}'" \
+        && -e "${d[0]}" ]]; then
         # 2>&- if dconf not installed
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" 1
