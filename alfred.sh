@@ -1,15 +1,11 @@
 #!/usr/bin/env bash
 
-# /usr/bin/env no lugar de /bin/bash por causa da portabilidade, já que nem em
-# todas as distros, ele estará em /bin/bash, faço isso pra alcançar mais users
-
 #======================#
 # ALFRED, programa de provisionamento de distro linux.
 #======================#
 
 #==========TRY=========#
 # find . -type d -name '.git' | while read dir ; do sh -c "cd $dir/../ && echo -e \"\nGIT STATUS IN ${dir//\.git/}\" && git status -s" ; done
-# Se não aparecer imagens nos arquivos de música
 #======================#
 
 #======================#
@@ -1608,7 +1604,7 @@ nvidia_stuffs() {
             && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
             && sudo rm --force "${f[temperature]}"
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:19', 'panel1:left:1:show-desktop@cinnamon.org:20', 'panel1:left:2:grouped-window-list@cinnamon.org:21', 'panel1:right:0:systray@cinnamon.org:22', 'panel1:right:1:xapp-status@cinnamon.org:23', 'panel1:right:2:notifications@cinnamon.org:24', 'panel1:right:3:printers@cinnamon.org:25', 'panel1:right:4:removable-drives@cinnamon.org:26', 'panel1:right:5:keyboard@cinnamon.org:27', 'panel1:right:6:network@cinnamon.org:28', 'panel1:right:7:sound@cinnamon.org:29', 'panel1:right:8:power@cinnamon.org:30', 'panel1:right:9:calendar@cinnamon.org:31', 'panel1:right:7:gputemperature@silentage.com:18']"
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:19', 'panel1:left:1:show-desktop@cinnamon.org:20', 'panel1:left:2:grouped-window-list@cinnamon.org:21', 'panel1:right:0:systray@cinnamon.org:22', 'panel1:right:1:xapp-status@cinnamon.org:23', 'panel1:right:2:notifications@cinnamon.org:24', 'panel1:right:3:printers@cinnamon.org:25', 'panel1:right:4:removable-drives@cinnamon.org:26', 'panel1:right:5:keyboard@cinnamon.org:27', 'panel1:right:6:network@cinnamon.org:28', 'panel1:right:7:sound@cinnamon.org:29', 'panel1:right:8:power@cinnamon.org:30', 'panel1:right:9:calendar@cinnamon.org:31']"
 
     fi
 
@@ -3007,7 +3003,7 @@ activate-numlock=true'
 
         dconf write "${f[default_sort_reverse]}" false
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:13', 'panel1:left:1:show-desktop@cinnamon.org:14', 'panel1:right:11:systray@cinnamon.org:16', 'panel1:right:12:notifications@cinnamon.org:18', 'panel1:right:13:printers@cinnamon.org:19', 'panel1:right:14:removable-drives@cinnamon.org:20', 'panel1:right:15:keyboard@cinnamon.org:21', 'panel1:right:16:network@cinnamon.org:22', 'panel1:right:17:sound@cinnamon.org:23', 'panel1:right:18:power@cinnamon.org:24', 'panel1:right:10:xapp-status@cinnamon.org:26', 'panel1:right:19:calendar@cinnamon.org:28', 'panel1:right:6:betterlock:31', 'panel1:left:2:grouped-window-list@cinnamon.org:35']"
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:19', 'panel1:left:1:show-desktop@cinnamon.org:20', 'panel1:left:2:grouped-window-list@cinnamon.org:21', 'panel1:right:1:temperature@fevimu:53', 'panel1:right:3:betterlock:54', 'panel1:right:4:separator@cinnamon.org:55', 'panel1:right:2:separator@cinnamon.org:56', 'panel1:right:5:calendar@cinnamon.org:63']"
 
         dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
 
