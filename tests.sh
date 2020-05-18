@@ -65,6 +65,9 @@ declare -A f=(
     [file]=~/.pyenv/shims/python
 )
 
-show "${c[RED]}=======================================================" 1
+# show "${c[RED]}=======================================================" 1
 
-show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED"
+local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
+
+[[ "${local}" =~ 2.7.* ]] \
+    && echo atualize || echo okzao
