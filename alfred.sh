@@ -4,10 +4,6 @@
 # ALFRED, programa de provisionamento de distro linux.
 #======================#
 
-#==========TRY=========#
-# find . -type d -name '.git' | while read dir ; do sh -c "cd $dir/../ && echo -e \"\nGIT STATUS IN ${dir//\.git/}\" && git status -s" ; done
-#======================#
-
 #======================#
 # Autor: Rafael Ribeiro
 # e-mail <pereiraribeirorafael@gmail.com>
@@ -103,7 +99,7 @@ check_distro() {
         [os_release]=/etc/os-release
     )
 
-    check_os=$(cat "${f[os_release]}" | grep --word-regexp NAME | awk '{print $2}' | sed 's|"||')
+    check_os=$(grep --word-regexp NAME "${f[os_release]}" | awk '{print $2}' | sed 's|"||')
 
     if [[ "${check_os}" != 'Mint' ]]; then
 
@@ -396,6 +392,8 @@ bash_stuffs() {
 
                 source "${f[bashrc]}"
 
+                bash
+
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 return_menu && break
@@ -458,7 +456,7 @@ bash_stuffs() {
 
     # If show error when open oh-my-base, run command below
     # [[ $(grep --no-messages "check_for_upgrade.sh" "${f[config]}") ]] \
-    #     && sudo sed -zi 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
+    #     && sudo sed --null-data --in-place 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
     [[ ! $(grep --no-messages DEFAULT_USER "${f[bashrc]}") ]] \
@@ -466,8 +464,8 @@ bash_stuffs() {
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
-        && sudo sed -i 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
-        && sudo sed -zi 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
+        && sudo sed --in-place 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
+        && sudo sed --null-data --in-place 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
     # Load changes
     source "${f[bashrc]}"
@@ -587,7 +585,7 @@ deezloader_stuffs() {
 
                     kill -9 $(ps -aux | grep --no-messages "Deezlo0" | head -1 | awk '{print $2}')
 
-                    sudo sed -i "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
+                    sudo sed --in-place "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
 
                     ( nohup "${f[file]}" & ) &> "${f[null]}"
 
@@ -830,7 +828,7 @@ github_stuffs() {
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
                     && sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
 
-                sudo sed -zi 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
+                sudo sed --null-data --in-place 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
 
                 remove_useless
 
@@ -934,7 +932,7 @@ github_stuffs() {
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-    [[ ! $(cat "${f[ssh]}" | grep successfully) ]] \
+    [[ ! $(grep successfully "${f[ssh]}") ]] \
         && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
@@ -980,9 +978,9 @@ chrome_stuffs() {
                 # Only libappindicator1 doesn't come default in debian distros
                 sudo apt remove --purge --yes "${m[0]}" "${m[1]}" &> "${f[null]}"
 
-                sudo sed -zi 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
+                sudo sed --null-data --in-place 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
 
-                sudo sed -i '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
+                sudo sed --in-place '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
 
                 sudo rm --force "${f[garbage]}"
 
@@ -1038,11 +1036,11 @@ application/pdf=google-chrome.desktop'
 
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
-        && sudo sed -i 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${d[0]}"/*.json \
-        && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
-        && sudo sed -i '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
-        && sudo sed -zi 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
-        && sudo sed -zi 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
+        && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${d[0]}"/*.json \
+        && sudo sed --null-data --in-place 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
+        && sudo sed --in-place '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
+        && sudo sed --null-data --in-place 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
+        && sudo sed --null-data --in-place 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1297,7 +1295,7 @@ hide_devices() {
         'devices'  # 0
     )
 
-    check_devices=$(sudo fdisk --list | grep --extended-regexp "Microsoft dados básico|Microsoft basic data" | awk '{print $1}')
+    check_devices=$(sudo fdisk --list | egrep "Microsoft dados básico|Microsoft basic data" | awk '{print $1}')
 
     if [[ -z "${check_devices}" ]]; then
 
@@ -1440,23 +1438,23 @@ minidlna_stuffs() {
     if [[ ! $(grep --no-messages Mídias "${f[config]}") ]]; then
 
         # automatic discover new files
-        sudo sed -i "s|#inotify=yes|inotify=yes|g" "${f[config]}"
+        sudo sed --in-place "s|#inotify=yes|inotify=yes|g" "${f[config]}"
 
         # server_name
-        sudo sed -i "s|#friendly_name=|friendly_name=Mídias|g" "${f[config]}"
+        sudo sed --in-place "s|#friendly_name=|friendly_name=Mídias|g" "${f[config]}"
 
         # location database
-        sudo sed -i "s|#db_dir=/var/cache/minidlna|db_dir=...|g" "${f[config]}"
+        sudo sed --in-place "s|#db_dir=/var/cache/minidlna|db_dir=...|g" "${f[config]}"
 
         # location logs
-        sudo sed -i "s|#log_dir=/var/log|log_dir=...|g" "${f[config]}"
+        sudo sed --in-place "s|#log_dir=/var/log|log_dir=...|g" "${f[config]}"
 
         # user to access this database
-        sudo sed -i "s|#user=minidlna|user=root|g" "${f[config]}"
+        sudo sed --in-place "s|#user=minidlna|user=root|g" "${f[config]}"
 
-        sudo sed -zi "s|/var/lib/minidlna|V,${d[0]}|5" "${f[config]}"
+        sudo sed --null-data --in-place "s|/var/lib/minidlna|V,${d[0]}|5" "${f[config]}"
 
-        sudo sed -i 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
+        sudo sed --in-place 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
 
         [[ $(systemctl is-active minidlna.service) = active ]] \
             && sudo service minidlna restart \
@@ -1501,7 +1499,7 @@ nvidia_stuffs() {
 
     # https://4fasters.com.br/2018/04/26/benchmark-nvidia-driver-do-fabricante-vs-driver-open-source-no-linux/
     # -class: Show reduced data
-    check_nvidia_existence=$(sudo lshw -class display | grep --extended-regexp "fabricante|vendor" | awk '{print $2}')
+    check_nvidia_existence=$(sudo lshw -class display | egrep "fabricante|vendor" | awk '{print $2}')
 
     if [[ "${check_nvidia_existence}" != 'NVIDIA' ]]; then
 
@@ -1760,7 +1758,7 @@ postgres_stuffs() {
 
     check_version=$(apt show "${m[0]}" 2>&- | grep Version | awk '{print $2}')
 
-    sudo sed -i "s|#listen_addresses|listen_addresses|g" "${f[config]}"
+    sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
     read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
@@ -1773,7 +1771,7 @@ postgres_stuffs() {
             # if empty string
             [[ -z "${user}" ]] && user="${USER}"
 
-            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                 && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
@@ -1795,7 +1793,7 @@ postgres_stuffs() {
 
                     read -p $'\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
-                    [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | grep --extended-regexp "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+                    [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                         && show "\nDATABASE ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                         && break
 
@@ -1854,7 +1852,7 @@ postgres_stuffs() {
 
         sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
-        sudo sed -i "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
+        sudo sed --in-place "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
 
     fi
 
@@ -1999,7 +1997,7 @@ upgrade_py() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed -zi 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+                sudo sed --null-data --in-place 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
 
                 source "${f[bashrc]}"
 
@@ -2251,6 +2249,7 @@ sublime_stuffs() {
         ~/.config/sublime-text-3/Installed\ Packages  # 1
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
         ~/.pyenv  # 3
+        /.Trash-1000/  # 4
     )
 
     f+=(
@@ -2373,7 +2372,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
     [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
-        && sudo sed -i "3 a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
+        && sudo sed --in-place "3 a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
@@ -2390,9 +2389,13 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "auto-save", "Dracula Color Scheme"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
+
+    [[ ! -d "${d[4]}" ]] \
+        && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
+        && sudo chown "${USER}":"${USER}" "${d[4]}"
 
     [[ ! $(grep --no-messages rulers "${f[config]}") ]] \
         && sudo tee "${f[config]}" > "${f[null]}" <<< '{
@@ -2412,7 +2415,8 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
     "translate_tabs_to_spaces": true,
     "trim_trailing_white_space_on_save": true,
     "word_wrap": false,
-    "wrap_width": 80
+    "wrap_width": 80,
+    "remember_open_files": true
 }'
 
     while true; do
@@ -2454,7 +2458,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
                 && upgrade_py
 
-            sudo sed -i 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
+            sudo sed --in-place 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
             sudo tee "${f[keymap]}" > "${f[null]}" <<< '[
     { "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
@@ -2484,28 +2488,28 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 ]'
 
             # Removes autocomplete at runtime
-            sudo sed -i 's|"auto_complete": true|"auto_complete": false|g' "${f[REPL]}"
+            sudo sed --in-place 's|"auto_complete": true|"auto_complete": false|g' "${f[REPL]}"
 
             # Reuse same tab for multiple runtimes
             # https://github.com/wuub/SublimeREPL/issues/481
-            sudo sed -zi 's|"R"|"r"|1' "${f[REPLPY]}"
+            sudo sed --null-data --in-place 's|"R"|"r"|1' "${f[REPLPY]}"
 
-            sudo sed -i 's|"R"|"d"|g' "${f[REPLPY]}"
+            sudo sed --in-place 's|"R"|"d"|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|"P"|"p"|g' "${f[REPLPY]}"
+            sudo sed --in-place 's|"P"|"p"|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|"I"|"p"|g' "${f[REPLPY]}"
+            sudo sed --in-place 's|"I"|"p"|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|"D"|"d"|g' "${f[REPLPY]}"
+            sudo sed --in-place 's|"D"|"d"|g' "${f[REPLPY]}"
 
             [[ ! $(grep --no-messages '"view_id"' "${f[REPLPY]}") ]] \
-                && sudo sed -i 's|Language",|Language",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPLPY]}"
+                && sudo sed --in-place 's|Language",|Language",\n\t\t\t\t\t\t"view_id": "*REPL* [python]",|g' "${f[REPLPY]}"
 
-            sudo sed -i 's|if view.id|if view.name|g' "${f[REPLPYT]}"
+            sudo sed --in-place 's|if view.id|if view.name|g' "${f[REPLPYT]}"
 
             # PY don't run if mix tabs with space
             [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPLPYT]}") ]] \
-                && sudo sed -i "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPLPYT]}"
+                && sudo sed --in-place "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPLPYT]}"
 
             break
 
@@ -2527,7 +2531,7 @@ application/x-shellscript=sublime_text.desktop
 application/x-subrip=sublime_text.desktop'
 
     [[ ! $(grep --no-messages sublime_text "${d[2]}"/*.json) ]] \
-        && sudo sed -i 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
+        && sudo sed --in-place 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2662,9 +2666,9 @@ usefull_pkgs() {
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
-                sudo sed -zi 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
+                sudo sed --null-data --in-place 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
 
-                sudo sed -i '/"telegram.desktop",/d' "${d[0]}"/*.json
+                sudo sed --in-place '/"telegram.desktop",/d' "${d[0]}"/*.json
 
                 remove_useless
 
@@ -2710,7 +2714,7 @@ video/mp4=vlc.desktop'
 
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
-        && sudo sed -i 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
+        && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
     [[ ! $(grep --no-messages syntax "${f[vimrc]}") ]] \
         && sudo tee "${f[vimrc]}" > "${f[null]}" <<< 'set encoding=UTF-8
@@ -2772,7 +2776,7 @@ workspace_stuffs() {
                 sudo rm --force --recursive "${d[0]}"
 
                 [[ $(grep --no-messages workspace "${f[bookmarks]}") ]] \
-                    && sudo sed -i $'s|file:///workspace \360\237\221\211 Workspace||g' "${f[bookmarks]}"
+                    && sudo sed --in-place $'s|file:///workspace \360\237\221\211 Workspace||g' "${f[bookmarks]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2830,11 +2834,11 @@ workspace_stuffs() {
 
                 ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                if [[ $(cat "${f[ssh]}" | grep successfully) ]]; then
+                if [[ $(grep successfully "${f[ssh]}") ]]; then
 
                     git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
 
-                    if [[ $(cat "${f[check_repo]}" | grep HEAD) ]]; then
+                    if [[ $(grep HEAD "${f[check_repo]}") ]]; then
 
                         git clone --quiet "${l[0]}${repo}.git" "${d[0]}${repo}" 2> "${f[null]}"
 
@@ -2934,6 +2938,7 @@ invoca_funcoes() {
             [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
             [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
             [computer_icon]=/org/nemo/desktop/computer-icon-visible
+            [volumes_icon]=/org/nemo/desktop/volumes-visible
             [default_sort_order]=/org/nemo/preferences/default-sort-order
             [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
             [grub]=/boot/grub/grub.cfg
@@ -2977,11 +2982,15 @@ invoca_funcoes() {
 activate-numlock=true'
 
         [[ $(grep --no-messages false "${f[numlock]}") ]] \
-            && sudo sed -i 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+            && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+
+        # alias show_unstaged='find . -type d -name ".git" | while read dir ; do sh -c "cd $dir/../ && echo -e \"\nGIT STATUS IN ${dir//\.git/}\" && git status -s" ; done'
 
         dconf write "${f[paste]}" "'<Ctrl>v'"
 
         dconf write "${f[computer_icon]}" false
+
+        dconf write "${f[volumes_icon]}" false
 
         dconf write "${f[home_icon]}" false
 
@@ -3012,7 +3021,7 @@ activate-numlock=true'
         dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
 
         [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-            && sudo sed -i 's|Boot Manager|10|g' "${f[grub]}"
+            && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"
 
         bash_stuffs
         deezloader_stuffs
@@ -3119,7 +3128,8 @@ menu() {
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
 
         # The read command above is inline, so we need this echo to breakline
-        echo
+        echoalias c='clear'
+
 
 		[[ "${choice}" =~ ^[[:alpha:]]$ ]] \
 			&& echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
@@ -3134,3 +3144,31 @@ menu() {
 #======================#
 
 check_distro
+
+declare -A c=(
+    [WHITE]="\033[1;37m"
+    [END]="\e[0m"
+)
+
+alias unstaged='find -type d -name .git | while read dir ; do sh -c "cd ${dir}/../ && echo; echo \"${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
+
+git config --global core.quotepath off
+
+alias gs='git status'
+alias ga='git add .'
+alias gb='git branch -v'
+alias gbr="git branch | grep -v "master" | xargs git branch -D"
+alias gbd="git branch --sort=-committerdate"
+alias gc='git commit -m'
+alias gp='git pull'
+alias gout='git checkout '
+alias goutb='git checkout -b'
+alias goutm='git checkout master'
+alias cddk='cd ~/Desktop'
+alias cddl='cd ~/Downloads'
+alias cdp='cd ~/Projects'
+alias ogc='open -a "Google Chrome"'
+alias ngrokmattupham='ngrok http 8082 -subdomain=mattupham'
+alias c='clear'
+alias ll='ls -la'
+alias lg='git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
