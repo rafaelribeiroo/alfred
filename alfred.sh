@@ -811,7 +811,8 @@ github_stuffs() {
     )
 
     # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") && \
+            $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }")]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -1975,13 +1976,13 @@ upgrade_py() {
         'and'  # 12
     )
 
+    install_packages "${m[1]}"
+
     # apt version python don't works, because it shows only packages added by
     # apt and pyenv download/install packages from curl
     local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
-
-    install_packages "${m[1]}"
 
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
