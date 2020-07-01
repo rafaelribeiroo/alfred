@@ -481,7 +481,7 @@ deezloader_stuffs() {
     local -a d=(
         ~/Deezloader\ Music  # 0
         ~/.config/Deezloader\ Remix  # 1
-        ~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/MUSIC/ {print $2}' | sed 's|"||')/  # 2
+        ~/$(awk --field-separator=/ '/MUSIC/ {print $2}' "${f[user_dirs]}" | sed 's|"||')/  # 2
     )
 
     local -a l=(
@@ -806,10 +806,16 @@ github_stuffs() {
         'vim'  # 1
         'git-cola'  # 2
         'jq'  # 3
+        'cryptsetup'  # 4
     )
 
+    show "BEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[4]}"
+
     # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") && \
+        $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -869,7 +875,7 @@ github_stuffs() {
         && git config --global user.email "${email}" \
         && git config --global user.name "${nome}" \
         && git config --global core.editor "vim" \
-        && git config --global core.autocrlf input
+        && git config --global core.quotepath off
 
     [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
@@ -947,20 +953,25 @@ chrome_stuffs() {
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
     )
 
-    f+=(
-        [file]=~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/DOWNLOAD/ {print $2}' | sed 's|"||')/google-chrome-stable_current_amd64.deb
-        [garbage]=/etc/default/google-chrome
-    )
-
-    local -a l=(
-        'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'  # 0
-    )
-
     local -a m=(
         'google-chrome-stable'  # 0
         'libappindicator1'  # 1
         'libindicator7'  # 2
         'libxss1'  # 3
+        'gawk'  # 4
+    )
+
+    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[4]}"
+
+    f+=(
+        [file]=~/$(awk --field-separator=/ '/DOWNLOAD/ {print $2}' "${f[user_dirs]}" | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [garbage]=/etc/default/google-chrome
+    )
+
+    local -a l=(
+        'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'  # 0
     )
 
 	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
@@ -1052,23 +1063,37 @@ flameshot_stuffs() {
 
     local -a d=(
         ~/.config/Dharkael  # 0
+        /tmp/  # 1
     )
 
     f+=(
         [config]=~/.config/Dharkael/flameshot.ini
         [dskt]=~/.config/autostart/Flameshot.desktop
-        [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
-        [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
-        [cmd]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
-        [bdg]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
-        [name]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
-        [custom]=/org/cinnamon/desktop/keybindings/custom-list
+        [screenshot_cinnamon]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
+        [screenshot_gnome]=/org/gnome/settings-daemon/plugins/media-keys/screenshot
+        [area_screenshot_cinnamon]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
+        [area_screenshot_gnome]=/org/gnome/settings-daemon/plugins/media-keys/area-screenshot
+        [cmd_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
+        [cmd_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command
+        [bdg_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
+        [bdg_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding
+        [name_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
+        [name_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name
+        [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list
+        [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
     )
 
     local -a m=(
         'flameshot'  # 0
         'dconf-editor'  # 1
+        'gawk'  # 3
     )
+
+    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[3]}"
+
+    check_gui=$(echo "${XDG_CURRENT_DESKTOP}" | awk --field-separator=: '{print $2}')
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
@@ -1118,28 +1143,28 @@ flameshot_stuffs() {
 
     if [[ $(dconf read "${f[screenshot]}" 2>&-) = "['Print']" ]]; then
 
-        dconf write "${f[screenshot]}" "['']"
+        [[ "${check_gui}" = "GNOME" ]] \
+            && dconf write "${f[screenshot_gnome]}" "['']" \
+            && dconf write "${f[area_screenshot_gnome]}" "['']" \
+            && dconf write "${f[cmd_gnome]}" "'flameshot gui --path /home/${USER}/$(awk --field-separator=/ '/PICTURES/ {print $2}' "${f[user_dirs]}" | sed 's|"||')'" \
+            && dconf write "${f[bdg_gnome]}" "['Print', '<Shift>Print']" \
+            && dconf write "${f[name_gnome]}" "'Flameshot'" \
+            && dconf write "${f[custom_gnome]}" "['custom0']"
 
-        dconf write "${f[area_screenshot]}" "['']"
-
-        # -F: field-separator to cut
-        dconf write "${f[cmd]}" "'flameshot gui --path /home/${USER}/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')'"
-
-        dconf write "${f[bdg]}" "['Print', '<Shift>Print']"
-
-        dconf write "${f[name]}" "'Flameshot'"
-
-        # A restart is required after
-        dconf write "${f[custom]}" "['screenshot']"
-
-        ( nohup cinnamon --replace & ) &> "${f[null]}" 2>&-
+        [[ "${check_gui}" = "CINNAMON" ]] \
+            && dconf write "${f[screenshot_cinnamon]}" "['']" \
+            && dconf write "${f[area_screenshot_cinnamon]}" "['']" \
+            && dconf write "${f[cmd_cinnamon]}" "'flameshot gui --path /home/${USER}/$(awk --field-separator=/ '/PICTURES/ {print $2}' "${f[user_dirs]}" | sed 's|"||')'" \
+            && dconf write "${f[bdg_cinnamon]}" "['Print', '<Shift>Print']" \
+            && dconf write "${f[name_cinnamon]}" "'Flameshot'" \
+            && dconf write "${f[custom_cinnamon]}" "['screenshot']"
 
     fi
 
     for (( ; ; )); do
 
         [[ ! -e "${f[config]}" ]] \
-            && flameshot full -p /tmp/ \
+            && flameshot full -p "${d[1]}" \
             && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..." \
             || break
 
@@ -1155,7 +1180,7 @@ contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
 disabledTrayIcon=true
 drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
 drawThickness=0
-savePath=~/$(cat ${f[user_dirs]} | awk --field-separator=/ '/PICTURES/ {print $2}' | sed 's|"||')/"
+savePath=~/$(awk --field-separator=/ '/PICTURES/ {print $2}' ${f[user_dirs]} | sed 's|"||')"
 
     [[ ! $(grep --no-messages flameshot "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
@@ -1376,17 +1401,22 @@ hide_devices() {
 #======================#
 minidlna_stuffs() {
 
+    local -a m=(
+        'minidlna'  # 0
+        'gawk'  # 1
+    )
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[1]}"
+
     local -a d=(
-        ~/$(cat "${f[user_dirs]}" | awk --field-separator=/ '/VIDEO/ {print $2}' | sed 's|"||')/  # 0
+        ~/$(awk --field-separator=/ '/VIDEO/ {print $2}' "${f[user_dirs]}" | sed 's|"||')/  # 0
     )
 
     f+=(
         [config]=/etc/minidlna.conf
         [dft]=/etc/default/minidlna
-    )
-
-    local -a m=(
-        'minidlna'  # 0
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
@@ -1493,7 +1523,12 @@ nvidia_stuffs() {
         'nouveau-driver'  # 1
         'nvidia-settings'  # 2
         'dconf-editor'  # 3
+        'gawk'  # 4
     )
+
+    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[4]}"
 
     latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | sed 's| ||g')
 
@@ -1684,7 +1719,13 @@ postgres_stuffs() {
         'libpq-dev'  # 3
         'pgadmin4'  # 4
         'pspg'  # 5
+        'gawk'  # 6
+        'cryptsetup'  # 7
     )
+
+    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[6]}" "${m[7]}"
 
     # -i: insensitive search
     # lsb_release get os version name
@@ -1951,12 +1992,6 @@ upgrade_py() {
         'https://www.python.org/doc/versions/'  # 1
     )
 
-    # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
-    local -a d=(
-        ~/.pyenv  # 0
-        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
-    )
-
     local -a m=(
         'pyenv'  # 0
         'python'  # 1
@@ -1971,15 +2006,26 @@ upgrade_py() {
         'libssl-dev'  # 10
         'libffi-dev'  # 11
         'and'  # 12
+        'gawk'  # 13
     )
+
+    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[13]}"
+
+    # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
+    local -a d=(
+        ~/.pyenv  # 0
+        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
+    )
+
+    install_packages "${m[1]}"
 
     # apt version python don't works, because it shows only packages added by
     # apt and pyenv download/install packages from curl
     local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
-
-    install_packages "${m[1]}"
 
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
@@ -2279,7 +2325,12 @@ sublime_stuffs() {
     declare -a m=(
         'apt-transport-https'  # 0
         'sublime-text'  # 1
+        'gawk'  # 2
     )
+
+    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+
+    install_packages "${m[2]}"
 
 	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
@@ -2814,17 +2865,17 @@ workspace_stuffs() {
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
         && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I DOWNLOAD SOME REPOSITORY OF YOUR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
+    echo; read -p $'\033[1;37mSIR, SHOULD I DOWNLOAD ANY REPO FROM UR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
             [[ -z "${user}" ]] \
-                && show "\nWE NEED GITHUB CREDENTIALS, TRANSFERRING TO GITHUB BEFORE PROCEED..." \
+                && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
                 && github_stuffs
 
-            read -p $'\033[1;37m\nSIR, WHICH REPOSITORY SHOULD I DOWNLOAD?\nR: \033[m' repo
+            read -p $'\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
             for (( ; ; )); do
 
@@ -2846,11 +2897,11 @@ workspace_stuffs() {
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                            true
+                            clear && true  # Simillar to pass
 
                         elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-                            break  # Simillar to pass
+                            break
 
                         else
 
@@ -3128,7 +3179,7 @@ menu() {
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
 
         # The read command above is inline, so we need this echo to breakline
-        echoalias c='clear'
+        echo
 
 
 		[[ "${choice}" =~ ^[[:alpha:]]$ ]] \
@@ -3143,32 +3194,9 @@ menu() {
 }
 #======================#
 
-check_distro
+upgrade && check_distro
 
-declare -A c=(
-    [WHITE]="\033[1;37m"
-    [END]="\e[0m"
-)
 
-alias unstaged='find -type d -name .git | while read dir ; do sh -c "cd ${dir}/../ && echo; echo \"${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
-
-git config --global core.quotepath off
-
-alias gs='git status'
-alias ga='git add .'
-alias gb='git branch -v'
-alias gbr="git branch | grep -v "master" | xargs git branch -D"
-alias gbd="git branch --sort=-committerdate"
-alias gc='git commit -m'
-alias gp='git pull'
-alias gout='git checkout '
-alias goutb='git checkout -b'
-alias goutm='git checkout master'
-alias cddk='cd ~/Desktop'
-alias cddl='cd ~/Downloads'
-alias cdp='cd ~/Projects'
-alias ogc='open -a "Google Chrome"'
-alias ngrokmattupham='ngrok http 8082 -subdomain=mattupham'
+: "alias unstaged='find -type d -name .git | while read dir ; do sh -c \"cd ${dir}/../ && echo; echo \"${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
 alias c='clear'
-alias ll='ls -la'
-alias lg='git log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+alias ll='ls -la'"
