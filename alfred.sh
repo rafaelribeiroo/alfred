@@ -99,9 +99,9 @@ check_distro() {
         [os_release]=/etc/os-release
     )
 
-    check_os=$(grep --word-regexp NAME "${f[os_release]}" | awk '{print $2}' | sed 's|"||')
+    source "${f[os_release]}"
 
-    if [[ "${check_os}" != 'Mint' ]]; then
+    if [[ "${NAME}" != 'Linux Mint' ]]; then
 
         show "\n   ${e[21]} ${c[RED]}WHY DO WE FALL ${name[random]}? ${e[21]}\n${c[CYAN]}SO WE CAN LEARN TO PICK OURSELVES UP \n"
 
@@ -392,8 +392,6 @@ bash_stuffs() {
 
                 source "${f[bashrc]}"
 
-                bash
-
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 return_menu && break
@@ -478,138 +476,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 #======================#
 deezloader_stuffs() {
 
-    local -a d=(
-        ~/Deezloader\ Music  # 0
-        ~/.config/Deezloader\ Remix  # 1
-        ~/$(awk --field-separator=/ '/MUSIC/ {print $2}' "${f[user_dirs]}" | sed 's|"||')/  # 2
-    )
 
-    local -a l=(
-        'https://notabug.org/RemixDevs/DeezloaderRemix/wiki/Downloads'  # 0
-        'https://notabug.org/RemixDevs/DeezloaderRemix'  # 1
-    )
-
-    f+=(
-        [file]="${d[2]}"$(curl --silent "${l[1]}" | grep --no-messages 64.AppImage | awk --field-separator='>' '{print $2}' | sed 's|</td||')
-        [config]=~/.config/Deezloader\ Remix/config.json
-    )
-
-    # If preview not show, try run: rm -rf ~/.cache/thumbnails/fail*
-    local -a m=(
-        'deezloader'  # 0
-        'megatools'  # 1
-        'xplayer'  # 2
-    )
-
-    link_latest=$(curl --silent "${l[0]}" | grep -6 'Linux x64' | tail -1 | awk --field-separator='"' '{print $2}' | sed 's|%..|!|g')
-
-    if [[ -e "${f[file]}" ]]; then
-
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
-
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
-
-                sudo rm --force "${f[file]}"
-
-                sudo rm --force --recursive "${d[0]}" "${d[1]}"
-
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-                return_menu && break
-
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                break
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    else
-
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
-
-        install_packages "${m[1]}" "${m[2]}"
-
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
-
-        megadl --no-progress "${link_latest}" --path "${d[2]}"
-
-    fi
-
-    echo; show "INITIALIZING CONFIGS..."
-
-    # Checa permissão. Se não for executável, torna-o
-    [[ $(stat -c "%a" "${f[file]}" 2>&-) -ne 755 ]] \
-        && sudo chmod +x "${f[file]}"
-
-    local=$(stat -c "%n" "${d[2]}"Deez* | awk --field-separator=_ '{print $3}' | sed 's|-x86||')
-
-    latest=$(curl --silent "${l[0]}" | grep -1 "markdown" | tail -1 | awk '{print $3}' | sed 's|</h2>||')
-
-    # Remove old deezloader and updates
-    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && sudo rm --force "${d[2]}"Deez* \
-        && megadl --no-progress "${link_latest}" --path "${d[2]}"
-
-    if [[ ! $(grep --no-messages "${d[2]#~/}" "${f[config]}") ]]; then
-
-        # Run deezloader and free tty
-        ( nohup "${f[file]}" & ) &> "${f[null]}"
-
-        read -p $'\033[1;37m\nHAVE YOU LOGON? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                if [[ ! -e "${f[config]}" ]]; then
-
-                    echo -ne ${c[WHITE]}"\nNO, YOU DON'T\n[Y/N] R: "${c[END]}
-
-                    read option
-
-                else
-
-                    kill -9 $(ps -aux | grep --no-messages "Deezlo0" | head -1 | awk '{print $2}')
-
-                    sudo sed --in-place "s|Deezloader Music/|${d[2]#~/}|g" "${f[config]}"
-
-                    ( nohup "${f[file]}" & ) &> "${f[null]}"
-
-                    break
-
-                fi
-
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                echo -ne ${c[WHITE]}"\nTHEN DO IT! WAITING...\n[Y/N] R: "${c[END]}
-
-                read option
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO U HAVE COMPLETE LOGIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    fi
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -809,9 +676,9 @@ github_stuffs() {
         'cryptsetup'  # 4
     )
 
-    show "BEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
-
-    install_packages "${m[4]}"
+    [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[4]}"
 
     # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") && \
@@ -882,7 +749,7 @@ github_stuffs() {
 
     local=$(git --version | awk '{print $3}')
 
-    latest=$(curl --silent "${l[1]}" | grep -1 '<span class="version">' | tail -1 | awk '{print $1}')
+    latest=$(curl --silent "${l[1]}" | grep -A 1 '"version"' | tail -1 | xargs)
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -927,7 +794,7 @@ github_stuffs() {
         install_packages "${m[3]}"
 
         [[ \
-            $(cat "${f[public_ssh]}" | awk '{print $2}') != \
+            $(awk '{print $2}' "${f[public_ssh]}") != \
             $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
         ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
@@ -961,12 +828,14 @@ chrome_stuffs() {
         'gawk'  # 4
     )
 
-    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+    [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[4]}"
 
-    install_packages "${m[4]}"
+    source "${f[user_dirs]}"
 
     f+=(
-        [file]=~/$(awk --field-separator=/ '/DOWNLOAD/ {print $2}' "${f[user_dirs]}" | sed 's|"||')/google-chrome-stable_current_amd64.deb
+        [file]="${XDG_DOWNLOAD_DIR}"/google-chrome-stable_current_amd64.deb
         [garbage]=/etc/default/google-chrome
     )
 
@@ -1089,9 +958,9 @@ flameshot_stuffs() {
         'gawk'  # 3
     )
 
-    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
-
-    install_packages "${m[3]}"
+    [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[3]}"
 
     check_gui=$(echo "${XDG_CURRENT_DESKTOP}" | awk --field-separator=: '{print $2}')
 
@@ -1143,10 +1012,12 @@ flameshot_stuffs() {
 
     if [[ $(dconf read "${f[screenshot]}" 2>&-) = "['Print']" ]]; then
 
+        source "${f[user_dirs]}"
+
         [[ "${check_gui}" = "GNOME" ]] \
             && dconf write "${f[screenshot_gnome]}" "['']" \
             && dconf write "${f[area_screenshot_gnome]}" "['']" \
-            && dconf write "${f[cmd_gnome]}" "'flameshot gui --path /home/${USER}/$(awk --field-separator=/ '/PICTURES/ {print $2}' "${f[user_dirs]}" | sed 's|"||')'" \
+            && dconf write "${f[cmd_gnome]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
             && dconf write "${f[bdg_gnome]}" "['Print', '<Shift>Print']" \
             && dconf write "${f[name_gnome]}" "'Flameshot'" \
             && dconf write "${f[custom_gnome]}" "['custom0']"
@@ -1154,7 +1025,7 @@ flameshot_stuffs() {
         [[ "${check_gui}" = "CINNAMON" ]] \
             && dconf write "${f[screenshot_cinnamon]}" "['']" \
             && dconf write "${f[area_screenshot_cinnamon]}" "['']" \
-            && dconf write "${f[cmd_cinnamon]}" "'flameshot gui --path /home/${USER}/$(awk --field-separator=/ '/PICTURES/ {print $2}' "${f[user_dirs]}" | sed 's|"||')'" \
+            && dconf write "${f[cmd_cinnamon]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
             && dconf write "${f[bdg_cinnamon]}" "['Print', '<Shift>Print']" \
             && dconf write "${f[name_cinnamon]}" "'Flameshot'" \
             && dconf write "${f[custom_cinnamon]}" "['screenshot']"
@@ -1174,13 +1045,14 @@ flameshot_stuffs() {
     sudo pkill "${m[0]}" && take_a_break
 
     [[ ! $(grep --no-messages disabledTrayIcon "${f[config]}") ]] \
+        && source "${f[user_dirs]}" \
         && sudo tee "${f[config]}" > "${f[null]}" <<< "[General]
 buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
 contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
 disabledTrayIcon=true
 drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
 drawThickness=0
-savePath=~/$(awk --field-separator=/ '/PICTURES/ {print $2}' ${f[user_dirs]} | sed 's|"||')"
+savePath=${XDG_PICTURES_DIR}"
 
     [[ ! $(grep --no-messages flameshot "${f[dskt]}") ]] \
         && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
@@ -1410,8 +1282,10 @@ minidlna_stuffs() {
         && show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[1]}"
 
+    source "${f[user_dirs]}"
+
     local -a d=(
-        ~/$(awk --field-separator=/ '/VIDEO/ {print $2}' "${f[user_dirs]}" | sed 's|"||')/  # 0
+        "${XDG_VIDEOS_DIR}"  # 0
     )
 
     f+=(
@@ -1501,21 +1375,15 @@ minidlna_stuffs() {
 #======================#
 nvidia_stuffs() {
 
-    local -a d=(
-        ~/.local/share/cinnamon/applets  # 0
-        ~/.local/share/cinnamon/applets/gputemperature@silentage.com  # 1
-    )
 
     # The nouveau driver comes by default once linux is installed, but not
     # extract all resources as nvidia driver (only father knows the kid)
     f+=(
         [config]=/etc/modprobe.d/blacklist-nouveau.conf
-        [temperature]=~/.local/share/cinnamon/applets/gputemperature@silentage.com.zip
     )
 
     local -a l=(
         'https://www.nvidia.com/Download/driverResults.aspx/157462/en-us'  # 0
-        'https://cinnamon-spices.linuxmint.com/files/applets/gputemperature@silentage.com.zip'  # 1
     )
 
     local -a m=(
@@ -1526,11 +1394,11 @@ nvidia_stuffs() {
         'gawk'  # 4
     )
 
-    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
+    [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[4]}"
 
-    install_packages "${m[4]}"
-
-    latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | sed 's| ||g')
+    latest=$(curl --silent "${l[0]}" | grep -1 '"tdVersion"' | tail -1 | awk --field-separator=. '{print $1}' | xargs)
 
     # https://4fasters.com.br/2018/04/26/benchmark-nvidia-driver-do-fabricante-vs-driver-open-source-no-linux/
     # -class: Show reduced data
@@ -1626,21 +1494,6 @@ nvidia_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    if [[ ! -d "${d[1]}" ]]; then
-
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
-            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
-
-        [[ ! -e "${f[capslock]}" ]] \
-            && wget --quiet "${l[1]}" --output-document "${f[temperature]}" \
-            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
-            && sudo rm --force "${f[temperature]}"
-
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:19', 'panel1:left:1:show-desktop@cinnamon.org:20', 'panel1:left:2:grouped-window-list@cinnamon.org:21', 'panel1:right:0:systray@cinnamon.org:22', 'panel1:right:1:xapp-status@cinnamon.org:23', 'panel1:right:2:notifications@cinnamon.org:24', 'panel1:right:3:printers@cinnamon.org:25', 'panel1:right:4:removable-drives@cinnamon.org:26', 'panel1:right:5:keyboard@cinnamon.org:27', 'panel1:right:6:network@cinnamon.org:28', 'panel1:right:7:sound@cinnamon.org:29', 'panel1:right:8:power@cinnamon.org:30', 'panel1:right:9:calendar@cinnamon.org:31']"
-
-    fi
-
     if [[ ! $(grep --no-messages nouveau "${f[config]}") ]]; then
 
         sudo tee "${f[config]}" > "${f[null]}" <<< 'blacklist nouveau
@@ -1699,16 +1552,16 @@ postgres_stuffs() {
 
     f+=(
         [ppa]=/etc/apt/sources.list.d/pgdg.list
-        [config]=/etc/postgresql/${check_version:0:2}/main/postgresql.conf
-        [postgres_hba]=/etc/postgresql/${check_version:0:2}/main/pg_hba.conf
+        [config]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
+        [postgres_hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
         [pspg_postgres]=/var/lib/postgresql/.psqlrc
         [pspg_user]=~/.psqlrc
-        [pspg]=/usr/bin/pspg
+        [pspg]=$(which pspg)  # /usr/bin/pspg
     )
 
     local -a l=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
-        'https://www.postgresql.org/'  # 1
+        'https://www.postgresql.org/download/windows/'  # 1
         'https://www.linuxmint.com/download_all.php'  # 2
     )
 
@@ -1723,9 +1576,10 @@ postgres_stuffs() {
         'cryptsetup'  # 7
     )
 
-    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
-
-    install_packages "${m[6]}" "${m[7]}"
+    [[ ! $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") \
+        && ! $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[6]}" "${m[7]}"
 
     # -i: insensitive search
     # lsb_release get os version name
@@ -1788,7 +1642,7 @@ postgres_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[1]}" | grep --no-messages '""' | head -1 | awk --field-separator=. '{print $1}' | sed 's|<li class=""><strong>||' | sed 's| ||g')
+    latest=$(curl --silent "${l[1]}" | grep scope | head -1 | tr --complement --delete 0-9,.)
 
     # Match perhaps with -10 or -11 etc (fixed installation)
     local=$(apt version "${m[0]}")
@@ -1974,7 +1828,7 @@ py_libraries() {
 
     local=$(apt version "${m[0]}")
 
-    latest=$(curl --silent "${l[0]}" | grep --no-messages -2 _le | tail -1  | awk '{print $2}')
+    latest=$(curl --silent "${l[0]}" | grep -A 2 '_le' | tail -1 | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && pip install --quiet --upgrade pip
@@ -2009,9 +1863,9 @@ upgrade_py() {
         'gawk'  # 13
     )
 
-    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
-
-    install_packages "${m[13]}"
+    [[ ! $(dpkg --list | awk "/ii  ${m[13]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[13]}"
 
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
@@ -2328,9 +2182,9 @@ sublime_stuffs() {
         'gawk'  # 2
     )
 
-    show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..."
-
-    install_packages "${m[2]}"
+    [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[2]}"
 
 	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
@@ -2474,7 +2328,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         ( nohup subl & ) &> "${f[null]}"
 
-        echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES? (SHOWS ASIDE BOTTOM LEFT) \n[Y/N] R: \033[m' option
+        echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES?\n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2503,7 +2357,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
         if [[ -e "${f[anaconda]}" && -e "${f[REPL]}" && -e "${f[REPLPY]}" \
             && -e "${f[REPLPY]}" ]]; then
 
-            latest=$(curl --silent "${l[0]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+            latest=$(curl --silent "${l[3]}" | grep release | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
             [[ ! -d "${d[3]}" && ! -e "${f[file]}${latest}" ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
@@ -3194,7 +3048,7 @@ menu() {
 }
 #======================#
 
-upgrade && check_distro
+check_distro
 
 
 : "alias unstaged='find -type d -name .git | while read dir ; do sh -c \"cd ${dir}/../ && echo; echo \"${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
