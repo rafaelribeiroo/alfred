@@ -74,6 +74,7 @@ e=(
     $'\360\237\224\245'  # 19 (fire): some men...
     $'\360\237\231\212'  # 20 (silent monkey): password
     $'\360\237\246\207'  # 21 (bat): why do we fall...
+    $'\342\231\246\357\270\217'  # 22: (red diamond): ruby
 )
 
 # usefull files
@@ -350,6 +351,7 @@ bash_stuffs() {
 
     f+=(
         [powerline_otf]=~/.fonts/PowerlineSymbols.otf
+        [powerline_uuid]=~/.fonts/.uuid
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
         [original]=/etc/skel/.bashrc
         [config]=~/.oh-my-bash/oh-my-bash.sh
@@ -438,7 +440,9 @@ bash_stuffs() {
         curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
 
         # Update font cache
-        sudo fc-cache -vf "${d[1]}" > "${f[null]}"
+        sudo fc-cache --force "${d[1]}"
+
+        sudo chown "${USER}":"${USER}" "${f[powerline_uuid]}"
 
     fi
 
@@ -454,7 +458,7 @@ bash_stuffs() {
 
     # If show error when open oh-my-base, run command below
     # [[ $(grep --no-messages "check_for_upgrade.sh" "${f[config]}") ]] \
-    #     && sudo sed --null-data --in-place 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
+    #     && sudo sed --in-place --null-data 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
     [[ ! $(grep --no-messages DEFAULT_USER "${f[bashrc]}") ]] \
@@ -463,7 +467,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
         && sudo sed --in-place 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
-        && sudo sed --null-data --in-place 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
+        && sudo sed --in-place --null-data 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
     # Load changes
     source "${f[bashrc]}"
@@ -475,6 +479,87 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
 #======================#
 deezloader_stuffs() {
+
+    local -a d=(
+        /opt/deemix/
+    )
+
+    f+=(
+        [file]=/opt/deemix/
+    )
+
+    local -a l=(
+        'https://notabug.org/lollilol/deemixgui.git'  # 0
+    )
+
+    local -a m=(
+        'git'  # 0
+        'deemix'  # 1
+        'nodejs'  # 2
+        'npm'  # 3
+        'xplayer'  # 4
+    )
+
+    if [[ -d "${d[0]}" ]]; then
+
+      show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+
+      read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+      for (( ; ; )); do
+
+          if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+              show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+
+              sudo apt remove --purge --yes "${m[0]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
+
+              sudo rm --force "${f[config]}"
+
+              [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
+                  && sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
+
+              sudo sed --in-place --null-data 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
+
+              remove_useless
+
+              show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+              return_menu && break
+
+          elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+              break
+
+          else
+
+              echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+              read option
+
+          fi
+
+      done
+
+    else
+
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+
+        install_packages "${m[0]}" "${m[2]}" "${m[3]}" "${m[4]}"
+
+        sudo git clone --quiet "${l[0]}" "${d[0]}" &> "${f[null]}"
+
+        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+            && sudo chown "${USER}":"${USER}" "${d[0]}"
+
+        npm install &> "${f[null]}"
+
+        npm run dist:linux &> "${f[null]}"
+
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
 
 
 
@@ -674,6 +759,7 @@ github_stuffs() {
         'git-cola'  # 2
         'jq'  # 3
         'cryptsetup'  # 4
+        'dconf-editor'  # 5
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
@@ -701,7 +787,7 @@ github_stuffs() {
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
                     && sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
 
-                sudo sed --null-data --in-place 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
+                sudo sed --in-place --null-data 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
 
                 remove_useless
 
@@ -727,7 +813,7 @@ github_stuffs() {
 
         show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[5]}"
 
     fi
 
@@ -858,7 +944,7 @@ chrome_stuffs() {
                 # Only libappindicator1 doesn't come default in debian distros
                 sudo apt remove --purge --yes "${m[0]}" "${m[1]}" &> "${f[null]}"
 
-                sudo sed --null-data --in-place 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
+                sudo sed --in-place --null-data 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
 
                 sudo sed --in-place '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
 
@@ -917,10 +1003,10 @@ application/pdf=google-chrome.desktop'
     # Nomenclature icon arrangement
     [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
         && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${d[0]}"/*.json \
-        && sudo sed --null-data --in-place 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
         && sudo sed --in-place '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
-        && sudo sed --null-data --in-place 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
-        && sudo sed --null-data --in-place 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
+        && sudo sed --in-place --null-data 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -938,31 +1024,29 @@ flameshot_stuffs() {
     f+=(
         [config]=~/.config/Dharkael/flameshot.ini
         [dskt]=~/.config/autostart/Flameshot.desktop
-        [screenshot_cinnamon]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
-        [screenshot_gnome]=/org/gnome/settings-daemon/plugins/media-keys/screenshot
-        [area_screenshot_cinnamon]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
-        [area_screenshot_gnome]=/org/gnome/settings-daemon/plugins/media-keys/area-screenshot
-        [cmd_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
-        [cmd_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command
-        [bdg_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
-        [bdg_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding
-        [name_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
-        [name_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name
-        [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list
-        [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
+        [screenshot_ci]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
+        [screenshot_gn]=/org/gnome/settings-daemon/plugins/media-keys/screenshot
+        [area_screenshot_ci]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
+        [area_screenshot_gn]=/org/gnome/settings-daemon/plugins/media-keys/area-screenshot
+        [cmd_ci]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
+        [cmd_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command
+        [bdg_ci]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
+        [bdg_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding
+        [name_ci]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
+        [name_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name
+        [custom_ci]=/org/cinnamon/desktop/keybindings/custom-list
+        [custom_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
     )
 
     local -a m=(
         'flameshot'  # 0
         'dconf-editor'  # 1
-        'gawk'  # 3
+        'gawk'  # 2
     )
 
-    [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+    [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
-        && install_packages "${m[3]}"
-
-    check_gui=$(echo "${XDG_CURRENT_DESKTOP}" | awk --field-separator=: '{print $2}')
+        && install_packages "${m[2]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
@@ -1010,25 +1094,26 @@ flameshot_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    if [[ $(dconf read "${f[screenshot]}" 2>&-) = "['Print']" ]]; then
+    if [[ -z $(dconf read "${f[screenshot_gn]}" 2>&-) || \
+          -z $(dconf read "${f[screenshot_ci]}" 2>&-) ]]; then
 
         source "${f[user_dirs]}"
 
-        [[ "${check_gui}" = "GNOME" ]] \
-            && dconf write "${f[screenshot_gnome]}" "['']" \
-            && dconf write "${f[area_screenshot_gnome]}" "['']" \
-            && dconf write "${f[cmd_gnome]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
-            && dconf write "${f[bdg_gnome]}" "['Print', '<Shift>Print']" \
-            && dconf write "${f[name_gnome]}" "'Flameshot'" \
-            && dconf write "${f[custom_gnome]}" "['custom0']"
+        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+            && dconf write "${f[screenshot_gn]}" "['']" \
+            && dconf write "${f[area_screenshot_gn]}" "['']" \
+            && dconf write "${f[cmd_gn]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
+            && dconf write "${f[bdg_gn]}" "['Print', '<Shift>Print']" \
+            && dconf write "${f[name_gn]}" "'Flameshot'" \
+            && dconf write "${f[custom_gn]}" "['custom0']"
 
-        [[ "${check_gui}" = "CINNAMON" ]] \
-            && dconf write "${f[screenshot_cinnamon]}" "['']" \
-            && dconf write "${f[area_screenshot_cinnamon]}" "['']" \
-            && dconf write "${f[cmd_cinnamon]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
-            && dconf write "${f[bdg_cinnamon]}" "['Print', '<Shift>Print']" \
-            && dconf write "${f[name_cinnamon]}" "'Flameshot'" \
-            && dconf write "${f[custom_cinnamon]}" "['screenshot']"
+        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+            && dconf write "${f[screenshot_ci]}" "['']" \
+            && dconf write "${f[area_screenshot_ci]}" "['']" \
+            && dconf write "${f[cmd_ci]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
+            && dconf write "${f[bdg_ci]}" "['Print', '<Shift>Print']" \
+            && dconf write "${f[name_ci]}" "'Flameshot'" \
+            && dconf write "${f[custom_ci]}" "['screenshot']"
 
     fi
 
@@ -1356,7 +1441,7 @@ minidlna_stuffs() {
         # user to access this database
         sudo sed --in-place "s|#user=minidlna|user=root|g" "${f[config]}"
 
-        sudo sed --null-data --in-place "s|/var/lib/minidlna|V,${d[0]}|5" "${f[config]}"
+        sudo sed --in-place --null-data "s|/var/lib/minidlna|V,${d[0]}|5" "${f[config]}"
 
         sudo sed --in-place 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
 
@@ -1877,7 +1962,7 @@ upgrade_py() {
 
     # apt version python don't works, because it shows only packages added by
     # apt and pyenv download/install packages from curl
-    local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
+    local=$(python -c "from sys import version as v; print(f'{v[:5]}')")
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
@@ -1897,7 +1982,7 @@ upgrade_py() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed --null-data --in-place 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+                sudo sed --in-place --null-data 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
 
                 source "${f[bashrc]}"
 
@@ -2135,6 +2220,142 @@ Categories=Utility;
 StartupNotify=true
 Hidden=false
 X-GNOME-Autostart-enabled=true'
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
+ruby_stuffs() {
+
+    f+=(
+        [ppa]=/etc/apt/sources.list.d/yarn.list
+    )
+
+    local -a l=(
+        'https://www.ruby-lang.org/en/downloads/'  # 0
+        'https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-installer'  # 1
+        'https://github.com/rbenv/ruby-build.git'  # 2
+        'https://dl.yarnpkg.com/debian/pubkey.gpg'  # 3
+    )
+
+    local -a m=(
+        'ruby'  # 0
+        'gawk'  # 1
+        'git'  # 2
+        'curl'  # 3
+        'autoconf'  # 4
+        'bison'  # 5
+        'build-essential'  # 6
+        'libssl-dev'  # 7
+        'libyaml-dev'  # 8
+        'libreadline6-dev'  # 9
+        'zlib1g-dev'  # 10
+        'libncurses5-dev'  # 11
+        'libffi-dev'  # 12
+        'libgdbm6'  # 13
+        'libgdbm-dev'  # 14
+        'libdb-dev'  # 15
+        'rbenv'  # 16
+        'rails'  # 17
+        'yarn'  # 18
+    )
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[1]}"
+
+    # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
+    local -a d=(
+        ~/.rbenv  # 0
+        ~/.rbenv/versions/$(curl --silent "${l[0]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')  # 1
+        ~/.rbenv/plugins/ruby-build  # 2
+    )
+
+    install_packages "${m[0]}"
+
+    local=$(ruby -e 'puts "#{RUBY_VERSION}"')
+
+    latest=$(curl --silent "${l[0]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')
+
+    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineu:${#m[0]}} [UPGRADED]\n" 1
+
+        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[VERMELHO]}R${c[WHITE]}ESETING ${c[VERMELHO]}${m[1]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge --yes "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
+
+                sudo rm --force --recursive "${d[0]}"
+
+                sudo sed --in-place --null-data 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+
+                source "${f[bashrc]}"
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[WHITE]}[Y/N] R: "${c[FIM]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Yarn) ]] \
+        && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
+
+        [[ ! $(grep --no-messages yarnpkg "${f[ppa]}") ]] \
+        && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
+        && update
+
+        # Dependencies
+        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[17]}" "${m[18]}"
+
+        [[ ! -d "${d[0]}" ]] \
+            && show "\n${c[YELLOW]}${m[16]^^} ${c[WHITE]}${linen:${#m[16]}} [INSTALLING]" \
+            && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
+            || show "\n${c[GREEN]}${m[16]^^} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    # Install don't comes by default on rbenv until ruby-build was installed
+    [[ ! -d "${d[2]}" ]] \
+        && git clone --quiet "${l[2]}" "${d[0]}"
+
+    [[ ! $(grep --no-messages rbenv "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.rbenv/bin:$PATH"
+eval "$(rbenv init -)"' \
+        && source "${f[bashrc]}"
+
+    # rbenv versions
+    # rbenv install -l
+    [[ ! -d "${d[1]}" ]] && rbenv install "${latest}" &> "${f[null]}"
+
+    rbenv global "${latest}" > "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2397,7 +2618,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             # Reuse same tab for multiple runtimes
             # https://github.com/wuub/SublimeREPL/issues/481
-            sudo sed --null-data --in-place 's|"R"|"r"|1' "${f[REPLPY]}"
+            sudo sed --in-place --null-data 's|"R"|"r"|1' "${f[REPLPY]}"
 
             sudo sed --in-place 's|"R"|"d"|g' "${f[REPLPY]}"
 
@@ -2527,10 +2748,16 @@ usefull_pkgs() {
 
     local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
+        ~/.SpaceVim  # 1
     )
 
     f+=(
-        [vimrc]=~/.vimrc
+        [config]=~/.SpaceVim/autoload/SpaceVim.vim
+        [cfg]=~/.config/nvim/init.vim
+    )
+
+    local -a l=(
+        'https://spacevim.org/install.sh'
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -2542,6 +2769,7 @@ usefull_pkgs() {
         'telegram'  # 4
         'bashtop'  # 5
         'usefull packages'  # 6
+        'soundconverter'  # 7
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
@@ -2571,7 +2799,7 @@ usefull_pkgs() {
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
-                sudo sed --null-data --in-place 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
+                sudo sed --in-place --null-data 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
 
                 sudo sed --in-place '/"telegram.desktop",/d' "${d[0]}"/*.json
 
@@ -2607,7 +2835,7 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[5]}") ]] \
             && sudo add-apt-repository --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
-        update && install_packages "${m[4]}" "${m[5]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}"
 
     fi
 
@@ -2621,19 +2849,17 @@ video/mp4=vlc.desktop'
     [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
         && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
-    [[ ! $(grep --no-messages syntax "${f[vimrc]}") ]] \
-        && sudo tee "${f[vimrc]}" > "${f[null]}" <<< 'set encoding=UTF-8
-syntax on
-set autoread
-set wildmenu
-set number
-set backspace=indent,eol,start  "Making sure backspace works
-set noruler  "Setting up rulers & spacing, tabs
-set confirm
-set autoindent
-set smartindent
-set laststatus=2 "Setting the size for the command area, and airline status bar
-set cmdheight=1'
+    [[ ! -d "${d[1]}" ]] \
+        && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}"
+
+    [[ $(grep --no-messages "let g:spacevim_relativenumber          = 1" "${f[config]}") ]] \
+        && sed --in-place 's|let g:spacevim_relativenumber          = 1|let g:spacevim_relativenumber          = 0|g' "${f[config]}"
+
+    # set wrap breaks line when is too long
+    # set mouse allow mouse highligh text
+    [[ ! $(grep --no-messages mouse "${f[cfg]}") ]] \
+        && sudo tee --append "${f[cfg]}" > "${f[null]}" <<< 'set mouse=a
+set wrap'
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2728,6 +2954,7 @@ workspace_stuffs() {
             [[ -z "${user}" ]] \
                 && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
                 && github_stuffs
+                # || return 1
 
             read -p $'\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
@@ -2824,11 +3051,12 @@ invoca_funcoes() {
         12) py_libraries && return_menu ;;
         13) upgrade_py && return_menu ;;
         14) reduceye_stuffs && return_menu ;;
-        15) sublime_stuffs && return_menu ;;
-        16) tmate_stuffs && return_menu ;;
-        17) usefull_pkgs && return_menu ;;
-        18) workspace_stuffs && return_menu ;;
-        19) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        15) ruby_stuffs && return_menu ;;
+        16) sublime_stuffs && return_menu ;;
+        17) tmate_stuffs && return_menu ;;
+        18) usefull_pkgs && return_menu ;;
+        19) workspace_stuffs && return_menu ;;
+        20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         local -a d=(
             ~/.local/share/cinnamon/applets  # 0
@@ -2879,7 +3107,7 @@ invoca_funcoes() {
                 && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
                 && sudo rm --force "${f[capslock]}"
 
-        fi # END APPLETS
+        fi  # END APPLETS
 
         # START NUMLOCK ALWAYS ACTIVE AT STARTUP
         [[ ! -e "${f[numlock]}" ]] \
@@ -2942,6 +3170,7 @@ activate-numlock=true'
         py_libraries
         upgrade_py
         reduceye_stuffs
+        ruby_stuffs
         sublime_stuffs
         tmate_stuffs
         usefull_pkgs
@@ -3023,11 +3252,12 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
         sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
         sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[13]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[14]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}TMATE ${e[15]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}ALL ${e[18]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}RUBY ${e[22]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}SUBLIME TEXT ${e[14]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[15]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
+        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[18]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
@@ -3048,9 +3278,37 @@ menu() {
 }
 #======================#
 
-check_distro
+check_source
 
 
-: "alias unstaged='find -type d -name .git | while read dir ; do sh -c \"cd ${dir}/../ && echo; echo \"${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
+
+alias unstaged='find -type d -name .git | while read dir ; do sh -c "cd ${dir}/../ "\n\n${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
+
+
+[[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
+    && sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0 &> "${f[null]}"
+
+[[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep https://cli.github.com/packages) ]] \
+    && sudo apt-add-repository https://cli.github.com/packages \
+    && sudo apt update
+
+install gh
+    gh issue create --title "How to create an issue?" --body "I need a github CLI"
+
+
+
+
+
 alias c='clear'
-alias ll='ls -la'"
+
+alias ls='colorls'
+
+alias vlc_kill='kill -9 $(ps aux | grep vlc | awk "{print $2}") &> /dev/null'
+
+alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'
+
+alias deemix='( nohup ~/Music/deemix/deemix-pyweb & ) &> /dev/null'
+
+source $(dirname $(gem which colorls))/tab_complete.sh
+
+alias unstaged='find -type d -name .git | while read dir ; do sh -c "cd ${dir}/../ && echo -e \"\n\n${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'

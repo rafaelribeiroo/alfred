@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env bash -i
 
 declare -A c=(
     [WHITE]='\033[1;37m'  # 0
@@ -25,10 +25,15 @@ take_a_break() {
 
 }
 
-# usefull files
 declare -A f=(
-    [askpass]=/lib/cryptsetup/askpass
-    [null]=/dev/null
+    [srcs]=/etc/apt/sources.list
+    [srcs_list]=/etc/apt/sources.list.d
 )
 
 # show "${c[RED]}=======================================================" 1
+
+sudo tee --append ~/.bashrc <<< "alias listad='ls ~/Downloads/'"
+
+source ~/.bashrc
+
+listad
