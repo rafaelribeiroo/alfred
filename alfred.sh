@@ -211,7 +211,7 @@ show() {
 
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
-    # Don't sleep if 2ø parameter contains 1
+    # Don't sleep if 2ø argument exists (1)
     [[ "${2}" -ne 1 ]] && take_a_break || return 0
 
 }
