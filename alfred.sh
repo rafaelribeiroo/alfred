@@ -746,11 +746,16 @@ github_stuffs() {
     f+=(
         [config]=~/.gitconfig
         [config-ssh]=~/.ssh/config
+        [tmp_success]=/tmp/check_success.txt
     )
 
     local -a l=(
         'https://api.github.com/user/keys'  # 0
         'https://git-scm.com/'  # 1
+        'keyserver.ubuntu.com'  # 2
+        'https://cli.github.com/packages'  # 3
+        'https://api.github.com/rate_limit'  # 4
+        'hkp://keyserver.ubuntu.com:80'  # 5
     )
 
     local -a m=(
@@ -760,6 +765,7 @@ github_stuffs() {
         'jq'  # 3
         'cryptsetup'  # 4
         'dconf-editor'  # 5
+        'gh'  # 6
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
@@ -813,7 +819,39 @@ github_stuffs() {
 
         show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[5]}"
+        echo; read -p $'\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                [[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
+                    && sudo apt-key adv --keyserver "${l[5]}" --recv-key C99B11DEB97541F0 &> "${f[null]}"
+
+                break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                [[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
+                    && sudo apt-key adv --keyserver "${l[2]}" --recv-key C99B11DEB97541F0 &> "${f[null]}"
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE U BEYOND VPN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${l[3]}") ]] \
+            && sudo apt-add-repository "${l[3]}" \
+            && sudo apt update
+
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[5]}" "${m[6]}"
 
     fi
 
@@ -828,7 +866,8 @@ github_stuffs() {
         && git config --global user.email "${email}" \
         && git config --global user.name "${nome}" \
         && git config --global core.editor "vim" \
-        && git config --global core.quotepath off
+        && git config --global http.sslVerify false \
+        && git config --global core.quotepath off  # Recognizes UTF-8
 
     [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
         && git config --global cola.icontheme dark
@@ -839,7 +878,7 @@ github_stuffs() {
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep git-core) ]] \
             && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
 
         update && sudo apt install --yes "${m[0]}" &> "${f[null]}"
@@ -853,39 +892,48 @@ github_stuffs() {
     Hostname ssh.github.com
     Port 443'
 
+    echo; read -p $'\033[1;37mENTER YOUR USERNAME FROM GITHUB: \033[m' user
+
     # GITHUB STUFF
     for (( ; ; )); do
 
-        read -p $'\033[1;37m\nENTER YOUR USERNAME FROM GITHUB: \033[m' user
+        echo; show "${c[RED]}${user^^}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 1
 
-        password=$("${f[askpass]}" $'\033[1;37mPASSWORD:\033[m')
+        echo; read -n 40 -p $'\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
 
-        check_integrity=$(curl --silent --include --user "${user}":"${password}" "${l[0]}" | grep Status | awk '{print $2}')
+        [[ ! -e "${f[tmp_tk]}" ]] && sudo touch "${f[tmp_tk]}"
 
-        # Success messages are between 200 & 226 and error between 400 & 451
-        # [[ "${check_integrity}" -eq 401 || "${check_integrity}" -eq 403 ]]
-        [[ "${check_integrity}" -le 226 ]] \
-            && break \
-            || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1
+        sudo tee "${f[tmp_tk]}" > "${f[null]}" <<< "${token}"
+
+        gh auth login --with-token < "${f[tmp_tk]}" &> "${f[tmp_success]}"
+
+        [[ \
+            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[4]}" | grep "^X-OAuth-Scopes:" | awk --field-separator=, '{print $1}' | cut -c16- | xargs) =~ 'admin:org' &&
+            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[4]}" | grep "^X-OAuth-Scopes:" | awk --field-separator=, '{print $2}' | xargs) =~ 'admin:public_key' &&
+            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[4]}" | grep "^X-OAuth-Scopes:" | awk --field-separator=, '{print $3}' | xargs) =~ 'repo' &&
+            ! $(egrep --no-messages "401|402|403" "${f[tmp_success]}") \
+        ]] \
+            && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1
 
     done
 
     # Se não existir nenhuma chave no github
-    if [[ -z $(curl --silent --user "${user}":"${password}" "${l[0]}") ]]; then
+    if [[ -z $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}") ]]; then
 
-        curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
+        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
 
     else
 
         install_packages "${m[3]}"
 
+        # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
         [[ \
             $(awk '{print $2}' "${f[public_ssh]}") != \
-            $(curl --silent --user "${user}":"${password}" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
+            $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
         ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
-            && curl --user "${user}":"${password}" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"${password}" "${l[0]}" | jq '.[] | .id')" \
-            && curl --silent --include --user "${user}":"${password}" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
+            && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq '.[] | .id')" \
+            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
 
     fi
 
@@ -2951,7 +2999,7 @@ workspace_stuffs() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ -z "${user}" ]] \
+            [[ ! -e "${f[tmp_tk]}" ]] \
                 && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
                 && github_stuffs
                 # || return 1
