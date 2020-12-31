@@ -2016,7 +2016,7 @@ upgrade_py() {
 
     # apt version python don't works, because it shows only packages added by
     # apt and pyenv download/install packages from curl
-    local=$(python -c "from sys import version as v; print(f'{v[:5]}')")
+    local=$(python -c 'from platform import python_version as v; print(v())')
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
