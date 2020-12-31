@@ -368,6 +368,7 @@ bash_stuffs() {
         'oh-my-bash'  # 0
         'curl'  # 1
         'git'  # 2
+        'xdotool'  # 3
     )
 
     if [[ -d "${d[0]}" ]]; then
@@ -393,6 +394,8 @@ bash_stuffs() {
                 cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
 
                 source "${f[bashrc]}"
+
+                show "\nPLEASE, RESTART YOUR TERMINAL TO APPLY CHANGES\n"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -453,6 +456,9 @@ bash_stuffs() {
             && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
 
         curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
+
+        # Workaround to prevent terminal restart
+        xdotool key Ctrl+plus && xdotool key Ctrl+minus
 
     fi
 
