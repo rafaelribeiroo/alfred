@@ -2915,6 +2915,9 @@ video/mp4=vlc.desktop'
         && sudo tee --append "${f[cfg]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
+    [[ ! $(grep --no-messages vlc_kill "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "alias vlc_kill='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
+
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
