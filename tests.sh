@@ -28,12 +28,10 @@ take_a_break() {
 declare -A f=(
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d
+    [bashrc]=~/.bashrc
+    [null]=/dev/null
 )
 
 # show "${c[RED]}=======================================================" 1
 
-sudo tee --append ~/.bashrc <<< "alias listad='ls ~/Downloads/'"
-
-source ~/.bashrc
-
-listad
+#wget --quiet https://download.deemix.app/0:/pyweb/linux-x86_64-latest.zip --output-document "${f[capslock]}"
