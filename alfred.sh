@@ -3324,7 +3324,6 @@ menu() {
         # The read command above is inline, so we need this echo to breakline
         echo
 
-
 		[[ "${choice}" =~ ^[[:alpha:]]$ ]] \
 			&& echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
 			&& read trash_typed || invoca_funcoes "${choice}"
@@ -3341,23 +3340,6 @@ check_source
 
 
 
-alias unstaged='find -type d -name .git | while read dir ; do sh -c "cd ${dir}/../ "\n\n${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
-
-
-[[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
-    && sudo apt-key adv --keyserver keyserver.ubuntu.com --recv-key C99B11DEB97541F0 &> "${f[null]}"
-
-[[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep https://cli.github.com/packages) ]] \
-    && sudo apt-add-repository https://cli.github.com/packages \
-    && sudo apt update
-
-install gh
-    gh issue create --title "How to create an issue?" --body "I need a github CLI"
-
-
-
-
-
 alias c='clear'
 
 alias ls='colorls'
@@ -3370,4 +3352,13 @@ alias deemix='( nohup ~/Music/deemix/deemix-pyweb & ) &> /dev/null'
 
 source $(dirname $(gem which colorls))/tab_complete.sh
 
-alias unstaged='find -type d -name .git | while read dir ; do sh -c "cd ${dir}/../ && echo -e \"\n\n${c[WHITE]}GIT STATUS IN ${dir%%.git}${c[END]}\" && git status --short"; done'
+[[ ! $(grep --no-messages check_unstaged "${f[bashrc]}") ]] \
+    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+declare -A c=(
+    [WHITE]='\033[1;37m'
+    [END]='\e[0m'
+)
+
+alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
+    && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[bashrc]}" \
+    && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[bashrc]}"
