@@ -343,10 +343,15 @@ uninstall_or_configure() {
 #======================#
 bash_stuffs() {
 
+    source "${f[user_dirs]}"
+
     local -a d=(
         ~/.oh-my-bash  # 0
         ~/.fonts  # 1
         ~/.config/fontconfig/conf.d  # 2
+        "${XDG_DOWNLOAD_DIR}"/ble.sh  # 3
+        ~/.local  # 4
+        ~/.local/share/blesh  # 5
     )
 
     f+=(
@@ -356,12 +361,15 @@ bash_stuffs() {
         [original]=/etc/skel/.bashrc
         [config]=~/.oh-my-bash/oh-my-bash.sh
         [bkp]=~/.bashrc.pre-oh-my-bash
+        [ble]=~/.local/share/blesh/ble.sh
     )
 
     local -a l=(
         'https://raw.github.com/ohmybash/oh-my-bash/master/tools/install.sh'  # 0
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 1
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 2
+        'https://github.com/akinomyoga/ble.sh.git'  # 3
+
     )
 
     local -a m=(
@@ -385,17 +393,19 @@ bash_stuffs() {
 
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
-                sudo rm --force --recursive "${d[0]}"
+                sudo rm --force --recursive "${d[0]}" "${d[5]}"
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bkp]}" "${f[bashrc]}"
+                sudo sed --in-place --null-data "s|# Bash complete\nsource ${f[ble]}\n\nbind 'TAB: menu-complete'\nbind 'set show-all-if-ambiguous on'\nbind 'set completion-ignore-case on'\nbind 'set menu-complete-display-prefix on'||g" ~/.bashrc
+
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
 
                 # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
                 # disk and maintain home intact, returns error
-                cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
+                mv "${f[bkp]}" "${f[bashrc]}"
 
                 source "${f[bashrc]}"
 
-                show "\nPLEASE, RESTART YOUR TERMINAL TO APPLY CHANGES\n"
+                show "PLEASE, RESTART YOUR TERMINAL TO APPLY CHANGES\n"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -419,7 +429,7 @@ bash_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}" "${m[2]}"
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
@@ -475,8 +485,47 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
         && sudo sed --in-place 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
         && sudo sed --in-place --null-data 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
-    # Load changes
-    source "${f[bashrc]}"
+    read -p $'\033[1;37mSIR, SHOULD I INSTALL AUTOCOMPLETE LIKE IN OH-MY-ZSH? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            if [[ ! -e "${f[ble]}" ]]; then
+
+                [[ ! -d "${d[3]}" ]] && git clone --quiet "${l[3]}" "${d[3]}"
+
+                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}"
+
+                sudo rm --force --recursive "${d[3]}"
+
+            fi
+
+            [[ ! $(grep --no-messages menu-complete "${f[bashrc]}") ]] \
+                && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "# Bash complete
+source ${f[ble]}
+
+bind 'TAB: menu-complete'
+bind 'set show-all-if-ambiguous on'
+bind 'set completion-ignore-case on'
+bind 'set menu-complete-display-prefix on'"
+
+            # Load changes
+            source "${f[bashrc]}"
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL AUTOCOMPLETE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3339,16 +3388,29 @@ menu() {
 check_source
 
 
+alias eaifibaozim='globalprotect connect --portal vpn.magazineluiza.com.br'
+
+alias seraqueotelefonetaligado='globalprotect show --status'
+
+alias bomtrampo='globalprotect disconnect'
 
 alias c='clear'
 
-alias ls='colorls'
+alias noc-canto='( nohup remmina -c ~/Documents/noc-canto.remmina & ) &> /dev/null'
 
-alias vlc_kill='kill -9 $(ps aux | grep vlc | awk "{print $2}") &> /dev/null'
+alias noc-meio='( nohup remmina -c ~/Documents/noc-meio.remmina & ) &> /dev/null'
+
+alias operador-canto='( nohup remmina -c ~/Documents/operador-canto.remmina & ) &> /dev/null'
+
+alias operador-meio='( nohup remmina -c ~/Documents/operador-meio.remmina & ) &> /dev/null'
+
+alias ponto='( nohup remmina -c ~/Documents/relógio-ponto.remmina & ) &> /dev/null'
+
+alias deemix='( nohup ~/Music/deemix/deemix-pyweb & ) &> /dev/null'
 
 alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'
 
-alias deemix='( nohup ~/Music/deemix/deemix-pyweb & ) &> /dev/null'
+alias ls='colorls'
 
 source $(dirname $(gem which colorls))/tab_complete.sh
 
