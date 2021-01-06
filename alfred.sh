@@ -64,7 +64,7 @@ e=(
     $'\360\237\215\277'  #  9 (popcorn): minidlna
     $'\360\235\223\235'  # 10 (n): nvidia
     $'\360\237\220\230'  # 11 (elephant): postgres
-    $'\360\237\220\215'  # 12 (snake): py libraries/upgrade
+    $'\360\237\220\215'  # 12 (snake): python
     $'\360\237\214\230'  # 13 (moon): reduce eye strain
     $'\360\237\224\244'  # 14 (letters): sublime
     $'\360\237\247\262'  # 15 (magnet): tmate
@@ -1976,7 +1976,13 @@ py_libraries() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]} AND ${c[RED]}${m[2]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
+
+                sudo rm --force --recursive "${d[0]}"
+
+                sudo sed --in-place --null-data 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+
+                source "${f[bashrc]}"
 
                 remove_useless
 
@@ -2000,100 +2006,65 @@ py_libraries() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[3]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
-    local=$(python -c 'from sys import version_info as v; print(".".join(map(str, v[:3])))')
-
-    [[ "${local}" =~ 2.7.* ]] \
-        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
-        && upgrade_py
-
-    local=$(apt version "${m[0]}")
+    # pip versions
+    local=$(apt version "${m[1]}")
 
     latest=$(curl --silent "${l[0]}" | grep -A 2 '_le' | tail -1 | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && pip install --quiet --upgrade pip
 
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-}
-#======================#
-
-#======================#
-upgrade_py() {
-
-    local -a l=(
-        'https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer'  # 0
-        'https://www.python.org/doc/versions/'  # 1
-    )
-
-    local -a m=(
-        'pyenv'  # 0
-        'python'  # 1
-        'curl'  # 2
-        'wget'  # 3
-        'zlib1g-dev'  # 4
-        'libreadline-dev'  # 5
-        'libsqlite3-dev'  # 6
-        'llvm'  # 7
-        'libncurses5-dev'  # 8
-        'libbz2-dev'  # 9
-        'libssl-dev'  # 10
-        'libffi-dev'  # 11
-        'and'  # 12
-        'gawk'  # 13
-    )
-
-    [[ ! $(dpkg --list | awk "/ii  ${m[13]}[[:space:]]/ {print }") ]] \
-        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
-        && install_packages "${m[13]}"
-
-    # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
-    local -a d=(
-        ~/.pyenv  # 0
-        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
-    )
-
-    install_packages "${m[1]}"
-
+    # python versions
     # apt version python don't works, because it shows only packages added by
     # apt and pyenv download/install packages from curl
     local=$(python -c 'from platform import python_version as v; print(v())')
 
-    latest=$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+    latest=$(curl --silent "${l[2]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
-        show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${lineu:${#m[12]}} [UPGRADED]\n" 1
-
-        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[VERMELHO]}R${c[WHITE]}ESETING ${c[VERMELHO]}${m[1]^^}${c[WHITE]}!\n"
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-                sudo apt remove --purge --yes "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
+                # Dependencies
+                install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}"
 
-                sudo rm --force --recursive "${d[0]}"
+                [[ ! -d "${d[0]}" ]] \
+                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
+                    || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
-                sudo sed --in-place --null-data 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+                echo; show "INITIALIZING CONFIGS..."
 
-                source "${f[bashrc]}"
+                [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
+                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '# PYENV (py upgrade) configs
+export PATH="$HOME/.pyenv/bin:$PATH"
+eval "$(pyenv init - --no-rehash)"
+eval "$(pyenv virtualenv-init -)"' \
+                    && source "${f[bashrc]}"
 
-                remove_useless
+                # pyenv versions
+                # pyenv install --list | grep " 3\.[678]"
+                [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+                pyenv global "${latest}" > "${f[null]}"
 
-                return_menu && break
+                echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                break
 
             elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -2101,7 +2072,7 @@ upgrade_py() {
 
             else
 
-                echo -ne ${c[VERMELHO]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESET?${c[FIM]}\n${c[WHITE]}[Y/N] R: "${c[FIM]}
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
@@ -2109,33 +2080,7 @@ upgrade_py() {
 
         done
 
-    else
-
-        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
-
-        # Dependencies
-        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
-
-        [[ ! -d "${d[0]}" ]] \
-            && show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]" \
-            && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
-            || show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]"
-
     fi
-
-    echo; show "INITIALIZING CONFIGS..."
-
-    [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.pyenv/bin:$PATH"
-eval "$(pyenv init - --no-rehash)"
-eval "$(pyenv virtualenv-init -)"' \
-        && source "${f[bashrc]}"
-
-    # pyenv versions
-    # pyenv install --list | grep " 3\.[678]"
-    [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
-
-    pyenv global "${latest}" > "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2685,7 +2630,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             [[ ! -d "${d[3]}" && ! -e "${f[file]}${latest}" ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
-                && upgrade_py
+                && python_stuffs
 
             sudo sed --in-place 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
@@ -3156,15 +3101,14 @@ invoca_funcoes() {
         9|09) minidlna_stuffs && return_menu ;;
         10) nvidia_stuffs && return_menu ;;
         11) postgres_stuffs && return_menu ;;
-        12) py_libraries && return_menu ;;
-        13) upgrade_py && return_menu ;;
-        14) reduceye_stuffs && return_menu ;;
-        15) ruby_stuffs && return_menu ;;
-        16) sublime_stuffs && return_menu ;;
-        17) tmate_stuffs && return_menu ;;
-        18) usefull_pkgs && return_menu ;;
-        19) workspace_stuffs && return_menu ;;
-        20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        12) python_stuffs && return_menu ;;
+        13) reduceye_stuffs && return_menu ;;
+        14) ruby_stuffs && return_menu ;;
+        15) sublime_stuffs && return_menu ;;
+        16) tmate_stuffs && return_menu ;;
+        17) usefull_pkgs && return_menu ;;
+        18) workspace_stuffs && return_menu ;;
+        19) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         local -a d=(
             ~/.local/share/cinnamon/applets  # 0
@@ -3275,8 +3219,7 @@ activate-numlock=true'
         minidlna_stuffs
         nvidia_stuffs
         postgres_stuffs
-        py_libraries
-        upgrade_py
+        python_stuffs
         reduceye_stuffs
         ruby_stuffs
         sublime_stuffs
@@ -3357,15 +3300,14 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}MINIDLNA ${e[9]}" 1
         sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}NVIDIA DRIVER ${e[10]}" 1
         sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}POSTGRES ${e[11]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PY LIBRARIES ${e[12]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PY UPGRADE ${e[12]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[13]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}RUBY ${e[22]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}SUBLIME TEXT ${e[14]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[15]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[18]}" 1
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PYTHON ${e[12]}" 1
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[13]}" 1
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}RUBY ${e[22]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[14]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}TMATE ${e[15]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}USEFULL PROGRAMS ${e[16]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}WORKSPACE ${e[17]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}ALL ${e[18]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
