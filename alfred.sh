@@ -1946,26 +1946,51 @@ postgres_stuffs() {
 #======================#
 
 #======================#
-py_libraries() {
+python_stuffs() {
 
     local -a l=(
         'https://pypi.org/project/pip/'  # 0
+        'https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer'  # 1
+        'https://www.python.org/doc/versions/'  # 2
     )
 
     local -a m=(
-        'python-pip'  # 0
-        'python-dev'  # 1
-        'build-essential'  # 2
-        'libraries py'  # 3
+        'python'  # 0
+        'python-pip'  # 1
+        'python-dev'  # 2
+        'build-essential'  # 3
+        'pyenv'  # 4
+        'curl'  # 5
+        'wget'  # 6
+        'zlib1g-dev'  # 7
+        'libreadline-dev'  # 8
+        'libsqlite3-dev'  # 9
+        'llvm'  # 10
+        'libncurses5-dev'  # 11
+        'libbz2-dev'  # 12
+        'libssl-dev'  # 13
+        'libffi-dev'  # 14
+        'gawk'  # 15
+    )
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[15]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[15]}"
+
+    # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
+    local -a d=(
+        ~/.pyenv  # 0
+        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]" 1
 
-        read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2560,7 +2585,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "auto-save", "Dracula Color Scheme"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
@@ -3028,7 +3053,7 @@ workspace_stuffs() {
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                            clear && true  # Simillar to pass
+                            clear && continue  # Simillar to pass
 
                         elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
@@ -3086,7 +3111,7 @@ invoca_funcoes() {
 
     case "${choice}" in
 
-        0|00) close_menu > "${f[null]}" ;;
+        0|00) close_menu &> "${f[null]}" ;;
         1|01) bash_stuffs && return_menu ;;
         2|02) deemix_stuffs && return_menu ;;
         3|03) dualmonitor_stuffs && return_menu ;;
@@ -3327,27 +3352,8 @@ menu() {
 check_source
 
 
-alias eaifibaozim='globalprotect connect --portal vpn.magazineluiza.com.br'
-
-alias seraqueotelefonetaligado='globalprotect show --status'
-
-alias bomtrampo='globalprotect disconnect'
 
 alias c='clear'
-
-alias noc-canto='( nohup remmina -c ~/Documents/noc-canto.remmina & ) &> /dev/null'
-
-alias noc-meio='( nohup remmina -c ~/Documents/noc-meio.remmina & ) &> /dev/null'
-
-alias operador-canto='( nohup remmina -c ~/Documents/operador-canto.remmina & ) &> /dev/null'
-
-alias operador-meio='( nohup remmina -c ~/Documents/operador-meio.remmina & ) &> /dev/null'
-
-alias ponto='( nohup remmina -c ~/Documents/relógio-ponto.remmina & ) &> /dev/null'
-
-alias deemix='( nohup ~/Music/deemix/deemix-pyweb & ) &> /dev/null'
-
-alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'
 
 alias ls='colorls'
 
