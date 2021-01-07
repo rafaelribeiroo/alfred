@@ -3350,22 +3350,3 @@ menu() {
 #======================#
 
 check_source
-
-
-
-alias c='clear'
-
-alias ls='colorls'
-
-source $(dirname $(gem which colorls))/tab_complete.sh
-
-[[ ! $(grep --no-messages check_unstaged "${f[bashrc]}") ]] \
-    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-declare -A c=(
-    [WHITE]='\033[1;37m'
-    [END]='\e[0m'
-)
-
-alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
-    && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[bashrc]}" \
-    && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[bashrc]}"
