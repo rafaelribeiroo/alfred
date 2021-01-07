@@ -397,11 +397,13 @@ bash_stuffs() {
 
                 sudo sed --in-place --null-data "s|# Bash complete\nsource ${f[ble]}\n\nbind 'TAB: menu-complete'\nbind 'set show-all-if-ambiguous on'\nbind 'set completion-ignore-case on'\nbind 'set menu-complete-display-prefix on'||g" ~/.bashrc
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bashrc]}"
 
                 # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
                 # disk and maintain home intact, returns error
-                mv "${f[bkp]}" "${f[bashrc]}"
+                # mv "${f[bkp]}" "${f[bashrc]}"
+
+                cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
 
                 source "${f[bashrc]}"
 
