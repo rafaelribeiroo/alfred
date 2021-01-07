@@ -535,90 +535,85 @@ bind 'set menu-complete-display-prefix on'"
 #======================#
 
 #======================#
-deezloader_stuffs() {
+deemix_stuffs() {
+
+    source "${f[user_dirs]}"
 
     local -a d=(
-        /opt/deemix/
+        "${XDG_MUSIC_DIR}"/  # 0
+        ~/.cache/thumbnails/fail  # 1
+        "${XDG_MUSIC_DIR}"/deemix  # 2
     )
 
     f+=(
-        [file]=/opt/deemix/
+        [file]="${d[0]}"deemix/deemix-pyweb
+        [compact]="${d[0]}"linux-x86_64-latest.zip
     )
 
     local -a l=(
-        'https://notabug.org/lollilol/deemixgui.git'  # 0
+        'https://download.deemix.app/0:/pyweb/linux-x86_64-latest.zip'  # 0
     )
 
     local -a m=(
-        'git'  # 0
+        'xplayer'  # 0
         'deemix'  # 1
-        'nodejs'  # 2
-        'npm'  # 3
-        'xplayer'  # 4
     )
 
-    if [[ -d "${d[0]}" ]]; then
+    if [[ -e "${f[file]}" ]]; then
 
-      show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-      read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
-      for (( ; ; )); do
+        for (( ; ; )); do
 
-          if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-              show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-              sudo apt remove --purge --yes "${m[0]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
+                sudo rm --force --recursive "${d[2]}"
 
-              sudo rm --force "${f[config]}"
+                sudo sed --in-place --null-data "s|alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'\n\nalias deemix='( nohup /home/ribeiro/Music/deemix/deemix-pyweb & ) &> /dev/null'||g" "${f[bashrc]}"
 
-              [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[0]}") ]] \
-                  && sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
-              sudo sed --in-place --null-data 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
+                return_menu && break
 
-              remove_useless
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-              show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+                break
 
-              return_menu && break
+            else
 
-          elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-              break
+                read option
 
-          else
+            fi
 
-              echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-              read option
-
-          fi
-
-      done
+        done
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[2]}" "${m[3]}" "${m[4]}"
+        install_packages "${m[0]}"
 
-        sudo git clone --quiet "${l[0]}" "${d[0]}" &> "${f[null]}"
-
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
-            && sudo chown "${USER}":"${USER}" "${d[0]}"
-
-        npm install &> "${f[null]}"
-
-        npm run dist:linux &> "${f[null]}"
-
+        [[ ! -e "${f[file]}" ]] \
+            && show "\n${c[YELLOW]}${m[1]^^} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]" \
+            && wget --quiet "${l[0]}" --output-document "${f[compact]}" \
+            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && rm --force "${f[compact]}" \
+            || show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]"
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
+    [[ ! $(grep --no-messages deemix "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "alias clear_thumbnail='rm --recursive --force ${d[1]}'
 
+alias deemix='( nohup ${f[file]} & ) &> ${f[null]}'"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3093,7 +3088,7 @@ invoca_funcoes() {
 
         0|00) close_menu > "${f[null]}" ;;
         1|01) bash_stuffs && return_menu ;;
-        2|02) deezloader_stuffs && return_menu ;;
+        2|02) deemix_stuffs && return_menu ;;
         3|03) dualmonitor_stuffs && return_menu ;;
         4|04) github_stuffs && return_menu ;;
         5|05) chrome_stuffs && return_menu ;;
@@ -3211,7 +3206,7 @@ activate-numlock=true'
             && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"
 
         bash_stuffs
-        deezloader_stuffs
+        deemix_stuffs
         dualmonitor_stuffs
         github_stuffs
         chrome_stuffs
@@ -3292,7 +3287,7 @@ menu() {
         sleep 0.1s; show "${c[RED]}=======================================================" 1
         sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" 1
         sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" 1
-        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEZLOADER ${e[2]}" 1
+        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEMIX ${e[2]}" 1
         sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" 1
         sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
         sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[5]}" 1
