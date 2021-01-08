@@ -362,6 +362,7 @@ bash_stuffs() {
         [config]=~/.oh-my-bash/oh-my-bash.sh
         [bkp]=~/.bashrc.pre-oh-my-bash
         [ble]=~/.local/share/blesh/ble.sh
+        [blerc]=~/.blerc
     )
 
     local -a l=(
@@ -395,9 +396,9 @@ bash_stuffs() {
                 # --recursive: remove directories
                 sudo rm --force --recursive "${d[0]}" "${d[5]}"
 
-                sudo sed --in-place --null-data "s|# Bash complete\nsource ${f[ble]}\n\nbind 'TAB: menu-complete'\nbind 'set show-all-if-ambiguous on'\nbind 'set completion-ignore-case on'\nbind 'set menu-complete-display-prefix on'||g" ~/.bashrc
+                sudo sed --in-place --null-data "s|# Bash-complete\nsource ${f[ble]}||g" "${f[bashrc]}"
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bashrc]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
 
                 # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
                 # disk and maintain home intact, returns error
@@ -480,7 +481,10 @@ bash_stuffs() {
 
     # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
     [[ ! $(grep --no-messages DEFAULT_USER "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "#DEFAULT_USER=${USER}
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+# Hides user from terminal
+#DEFAULT_USER=${USER}
+# pip freeze > requirements.txt causes an error without it
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
@@ -503,14 +507,56 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
             fi
 
-            [[ ! $(grep --no-messages menu-complete "${f[bashrc]}") ]] \
-                && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "# Bash complete
-source ${f[ble]}
+            [[ ! $(grep --no-messages Bash-complete "${f[bashrc]}") ]] \
+                && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+# Bash-complete
+source ${f[ble]}"
 
-bind 'TAB: menu-complete'
+            [[ ! $(grep --no-messages menu-complete "${f[blerc]}") ]] \
+                && sudo tee "${f[bashrc]}" > "${f[null]}" <<< "bind 'TAB: menu-complete'
 bind 'set show-all-if-ambiguous on'
 bind 'set completion-ignore-case on'
-bind 'set menu-complete-display-prefix on'"
+bind 'set menu-complete-display-prefix on'
+bind 'set completion-ignore-case on'
+
+# Hide [ble: exit ???] that appears on each command
+bleopt exec_errexit_mark=''
+
+ble-color-setface auto_complete italic
+ble-color-setface argument_option none
+ble-color-setface disabled none
+ble-color-setface region_insert none
+ble-color-setface syntax_history_expansion none
+
+ble-color-setface varname_number none
+ble-color-setface varname_unset none
+ble-color-setface varname_export none
+ble-color-setface varname_array none
+
+ble-color-setface filename_character none
+ble-color-setface filename_directory none
+ble-color-setface filename_executable none
+ble-color-setface filename_other none
+ble-color-setface filename_url underline
+
+ble-color-setface command_alias none
+ble-color-setface command_builtin none
+ble-color-setface command_file none
+ble-color-setface command_keyword none
+ble-color-setface command_function none
+
+ble-color-setface syntax_glob none
+ble-color-setface syntax_brace none
+ble-color-setface syntax_command none
+ble-color-setface syntax_comment none
+ble-color-setface syntax_error none
+ble-color-setface syntax_expr none
+ble-color-setface syntax_function_name none
+ble-color-setface syntax_param_expansion none
+ble-color-setface syntax_delimiter none
+ble-color-setface syntax_quotation none
+ble-color-setface syntax_quoted none
+ble-color-setface syntax_varname none"
 
             # Load changes
             source "${f[bashrc]}"
