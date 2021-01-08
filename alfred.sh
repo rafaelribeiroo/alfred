@@ -2511,6 +2511,7 @@ sublime_stuffs() {
         'https://download.sublimetext.com/ apt/stable/'  # 1
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
         'https://www.python.org/doc/versions/'  # 3
+        'https://packagecontrol.io/packages/'  # 4
     )
 
     declare -a m=(
@@ -2634,6 +2635,61 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
     "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
+
+    read -p $'\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            echo; read -p $'\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
+
+            [[ $(curl --write-out %{http_code} --silent --output "${f[null]}" "${l[4]}""${pkg}") -ne 200 ]] \
+                && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
+                && continue
+
+            if ! [[ "${pkg}" =~ ^(Anaconda|Djaneiro|Restart|SublimeREPL|Sublimerge Pro|Dracula Color Scheme)$ ]]; then
+
+                # Append new pkg to the last index of tuple
+                sudo sed --in-place "s|\(.*\)\"|\1\", \"${pkg}\"|" "${f[pkgs]}"
+
+                echo; read -p $'\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    continue
+
+                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL ONE MORE PACKAGE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            else
+
+                echo; show "\t\t  REPO ALREADY ${c[RED]}PRE-INSTALLED${c[WHITE]}"
+
+            fi
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL MORE PACKAGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     [[ ! -d "${d[4]}" ]] \
         && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
