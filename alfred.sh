@@ -569,7 +569,9 @@ ble-color-setface syntax_quoted none
 ble-color-setface syntax_varname none"
 
             # Load changes
-            source "${f[bashrc]}" "${f[blerc]}"
+            source "${f[bashrc]}" "${f[blerc]}" &> "${f[null]}"
+
+            break
 
         elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
