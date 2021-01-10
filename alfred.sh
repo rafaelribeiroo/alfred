@@ -378,6 +378,7 @@ bash_stuffs() {
         'curl'  # 1
         'git'  # 2
         'xdotool'  # 3
+        'ble.sh'  # 4
     )
 
     if [[ -d "${d[0]}" ]]; then
@@ -491,7 +492,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
         && sudo sed --in-place 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
         && sudo sed --in-place --null-data 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
-    read -p $'\033[1;37mSIR, SHOULD I INSTALL AUTOCOMPLETE LIKE IN OH-MY-ZSH? \n[Y/N] R: \033[m' option
+    echo; read -p $'\033[1;37mSIR, SHOULD I INSTALL AUTOCOMPLETE LIKE IN OH-MY-ZSH? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -499,11 +500,17 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
             if [[ ! -e "${f[ble]}" ]]; then
 
-                [[ ! -d "${d[3]}" ]] && git clone --quiet "${l[3]}" "${d[3]}"
+                [[ ! -d "${d[3]}" ]] \
+                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && git clone --quiet "${l[3]}" "${d[3]}"
 
                 make --quiet --directory="${d[3]}" install PREFIX="${d[4]}"
 
                 sudo rm --force --recursive "${d[3]}"
+
+            else
+
+                show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
             fi
 
@@ -513,7 +520,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 source ${f[ble]}"
 
             [[ ! $(grep --no-messages menu-complete "${f[blerc]}") ]] \
-                && sudo tee "${f[bashrc]}" > "${f[null]}" <<< "bind 'TAB: menu-complete'
+                && sudo tee "${f[blerc]}" > "${f[null]}" <<< "bind 'TAB: menu-complete'
 bind 'set show-all-if-ambiguous on'
 bind 'set completion-ignore-case on'
 bind 'set menu-complete-display-prefix on'
@@ -535,6 +542,7 @@ ble-color-setface varname_export none
 ble-color-setface varname_array none
 
 ble-color-setface filename_character none
+ble-color-setface filename_directory_sticky none
 ble-color-setface filename_directory none
 ble-color-setface filename_executable none
 ble-color-setface filename_other none
@@ -561,7 +569,7 @@ ble-color-setface syntax_quoted none
 ble-color-setface syntax_varname none"
 
             # Load changes
-            source "${f[bashrc]}"
+            source "${f[bashrc]}" "${f[blerc]}"
 
         elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
