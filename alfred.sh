@@ -359,6 +359,7 @@ bash_stuffs() {
         [powerline_uuid]=~/.fonts/.uuid
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
         [original]=/etc/skel/.bashrc
+        [bkp_bash]=~/.bashrc_bkp
         [config]=~/.oh-my-bash/oh-my-bash.sh
         [bkp]=~/.bashrc.pre-oh-my-bash
         [ble]=~/.local/share/blesh/ble.sh
@@ -393,11 +394,15 @@ bash_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
+                # sudo apt remove --purge --yes "${m[3]}" &> "${f[null]}"
+
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
                 sudo rm --force --recursive "${d[0]}" "${d[5]}"
 
-                sudo sed --in-place --null-data "s|# Bash-complete\nsource ${f[ble]}||g" "${f[bashrc]}"
+                sudo rm --force "${f[blerc]}"
+
+                cp "${f[bashrc]}" "${f[bkp_bash]}" &> "${f[null]}"
 
                 sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
 
@@ -408,6 +413,8 @@ bash_stuffs() {
                 cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
 
                 source "${f[bashrc]}"
+
+                # remove_useless
 
                 show "PLEASE, RESTART YOUR TERMINAL TO APPLY CHANGES\n"
 
@@ -504,7 +511,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
                     && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                     && git clone --quiet "${l[3]}" "${d[3]}"
 
-                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}" &> "${f[null]}"
+                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}"
 
                 sudo rm --force --recursive "${d[3]}"
 
@@ -518,6 +525,9 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
                 && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 # Bash-complete
 source ${f[ble]}"
+
+            # Load changes
+            source "${f[bashrc]}" &> "${f[null]}"
 
             [[ ! $(grep --no-messages menu-complete "${f[blerc]}") ]] \
                 && sudo tee "${f[blerc]}" > "${f[null]}" <<< "bind 'TAB: menu-complete'
@@ -570,7 +580,7 @@ ble-color-setface syntax_quoted none
 ble-color-setface syntax_varname none"
 
             # Load changes
-            source "${f[bashrc]}" "${f[blerc]}"
+            source "${f[blerc]}" &> "${f[null]}"
 
             break
 
@@ -3426,7 +3436,7 @@ menu() {
 
         sleep 0.1s; show "${c[RED]}=======================================================" 1
         sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[0]}" 1
-        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL ${e[1]}" 1
+        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL (OH-MY-BASH) ${e[1]}" 1
         sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEMIX ${e[2]}" 1
         sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[3]}" 1
         sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[4]}" 1
