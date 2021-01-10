@@ -504,7 +504,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
                     && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                     && git clone --quiet "${l[3]}" "${d[3]}"
 
-                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}"
+                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[3]}"
 
@@ -549,6 +549,7 @@ ble-color-setface filename_other none
 ble-color-setface filename_url underline
 
 ble-color-setface command_alias none
+ble-color-setface command_directory none
 ble-color-setface command_builtin none
 ble-color-setface command_builtin_dot none
 ble-color-setface command_file none
@@ -569,7 +570,7 @@ ble-color-setface syntax_quoted none
 ble-color-setface syntax_varname none"
 
             # Load changes
-            source "${f[bashrc]}" "${f[blerc]}" &> "${f[null]}"
+            source "${f[bashrc]}" "${f[blerc]}"
 
             break
 
