@@ -527,6 +527,7 @@ ble-color-setface argument_option none
 ble-color-setface disabled none
 ble-color-setface region_insert none
 ble-color-setface syntax_history_expansion none
+ble-color-setface region_match none
 
 ble-color-setface varname_number none
 ble-color-setface varname_unset none
@@ -541,6 +542,7 @@ ble-color-setface filename_url underline
 
 ble-color-setface command_alias none
 ble-color-setface command_builtin none
+ble-color-setface command_builtin_dot none
 ble-color-setface command_file none
 ble-color-setface command_keyword none
 ble-color-setface command_function none
