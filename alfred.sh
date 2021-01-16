@@ -84,6 +84,7 @@ declare -A f=(
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [mimeapps]=~/.config/mimeapps.list
+    [mimebkp]=~/.config/mimeapps.bkp
     [null]=/dev/null
     [public_ssh]=~/.ssh/id_rsa.pub
     [user_dirs]=~/.config/user-dirs.dirs
@@ -569,6 +570,7 @@ ble-color-setface command_function none
 ble-color-setface syntax_glob none
 ble-color-setface syntax_brace none
 ble-color-setface syntax_command none
+ble-color-setface syntax_tilde none
 ble-color-setface syntax_comment none
 ble-color-setface syntax_error none
 ble-color-setface syntax_expr none
@@ -1159,23 +1161,29 @@ chrome_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    [[ ! $(grep --no-messages google-chrome "${f[mimeapps]}") ]] \
-        && sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
-text/html=google-chrome.desktop
-x-scheme-handler/http=google-chrome.desktop
-x-scheme-handler/https=google-chrome.desktop
-x-scheme-handler/about=google-chrome.desktop
-x-scheme-handler/unknown=google-chrome.desktop
-x-scheme-handler/mailto=google-chrome.desktop
-application/pdf=google-chrome.desktop'
+    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN CHROME? \n[Y/N] R: \033[m' option
 
-    # Nomenclature icon arrangement
-    [[ ! $(grep --no-messages google-chrome "${d[0]}"/*.json) ]] \
-        && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${d[0]}"/*.json \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${d[0]}"/*.json \
-        && sudo sed --in-place '/"nemo.desktop"/,2d' "${d[0]}"/*.json \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${d[0]}"/*.json \
-        && sudo sed --in-place --null-data 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${d[0]}"/*.json
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            ( nohup "${m[0]}" & ) &> "${f[null]}"
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2838,22 +2846,6 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     done
 
-    [[ ! $(grep --no-messages sublime "${f[mimeapps]}") ]] \
-        && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'text/plain=sublime_text.desktop
-text/csv=sublime_text.desktop
-application/xml=sublime_text.desktop
-text/html=sublime_text.desktop
-text/css=sublime_text.desktop
-text/markdown=sublime_text.desktop
-application/json=sublime_text.desktop
-application/javascript=sublime_text.desktop
-text/x-python=sublime_text.desktop
-application/x-shellscript=sublime_text.desktop
-application/x-subrip=sublime_text.desktop'
-
-    [[ ! $(grep --no-messages sublime_text "${d[2]}"/*.json) ]] \
-        && sudo sed --in-place 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${d[2]}"/*.json
-
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
 }
@@ -2952,7 +2944,7 @@ usefull_pkgs() {
     )
 
     local -a l=(
-        'https://spacevim.org/install.sh'
+        'https://spacevim.org/install.sh'  # 0
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -3035,14 +3027,6 @@ usefull_pkgs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
-
-    [[ ! $(grep --no-messages vlc "${f[mimeapps]}") ]] \
-        && sudo tee --append "${f[mimeapps]}" > "${f[null]}" <<< 'video/x-matroska=vlc.desktop
-video/mp4=vlc.desktop'
-
-    # Nomenclature icon arrangement
-    [[ ! $(grep --no-messages telegram "${d[0]}"/*.json) ]] \
-        && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${d[0]}"/*.json
 
     [[ ! -d "${d[1]}" ]] \
         && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}"
@@ -3231,6 +3215,116 @@ workspace_stuffs() {
 }
 #======================#
 
+change_panelandgui() {
+
+    local -a d=(
+        ~/.local/share/cinnamon/applets  # 0
+        ~/.local/share/cinnamon/applets/betterlock  # 1
+        ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
+    )
+
+    f+=(
+        [automount]=/org/cinnamon/desktop/media-handling/automount
+        [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
+        [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
+        [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
+        [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
+        [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
+        [computer_icon]=/org/nemo/desktop/computer-icon-visible
+        [volumes_icon]=/org/nemo/desktop/volumes-visible
+        [default_sort_order]=/org/nemo/preferences/default-sort-order
+        [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
+        [grub]=/boot/grub/grub.cfg
+        [home_icon]=/org/nemo/desktop/home-icon-visible
+        [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
+        [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
+        [numlock]=/etc/lightdm/slick-greeter.conf
+        [paste]=/org/gnome/terminal/legacy/keybindings/paste
+        [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
+        [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
+        [show_hidden]=/org/nemo/preferences/show-hidden-files
+    )
+
+    local -a l=(
+        'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
+        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 1
+    )
+
+    local -a m=(
+        'dconf-editor'  # 0
+        'numlockx'  # 1
+    )
+
+    install_packages "${m[0]}" "${m[1]}"
+
+    # START APPLETS STUFFS
+    if [[ ! -d "${d[1]}" && ! -d "${d[2]}" ]]; then
+
+        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
+            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+
+        [[ ! -e "${f[capslock]}" ]] \
+            && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
+            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && sudo rm --force "${f[capslock]}"
+
+        [[ ! -e "${f[separator2]}" ]] \
+            && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
+            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && sudo rm --force "${f[separator2]}"
+
+    fi  # END APPLETS
+
+
+    # START NUMLOCK ALWAYS ACTIVE AT STARTUP
+    [[ ! -e "${f[numlock]}" ]] \
+        && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
+activate-numlock=true'
+
+    [[ $(grep --no-messages false "${f[numlock]}") ]] \
+        && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+
+    # START CHANGE DESCRIPTION WINDOWS IN GRUB
+    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+        && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"  # END
+
+    dconf write "${f[paste]}" "'<Ctrl>v'"
+
+    dconf write "${f[computer_icon]}" false
+
+    dconf write "${f[volumes_icon]}" false
+
+    dconf write "${f[home_icon]}" false
+
+    dconf write "${f[automount]}" true
+
+    dconf write "${f[automount_open]}" true
+
+    dconf write "${f[open_folder]}" "['x-content/bootable-media']"
+
+    dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']"
+
+    dconf write "${f[show_hidden]}" true
+
+    dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
+
+    dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']"
+
+    dconf write "${f[default_sort_order]}" "'name'"
+
+    dconf write "${f[default_sort_reverse]}" false
+
+    dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:xapp-status@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:network@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:betterlock:12', 'panel1:right:13:separator2@zyzz:13', 'panel1:right:14:calendar@cinnamon.org:14']"
+
+    dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
+
+    dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
+
+    dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
+
+}
+
 #======================#
 invoca_funcoes() {
 
@@ -3257,103 +3351,29 @@ invoca_funcoes() {
         18) workspace_stuffs && return_menu ;;
         19) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
-        local -a d=(
-            ~/.local/share/cinnamon/applets  # 0
-            ~/.local/share/cinnamon/applets/betterlock  # 1
-        )
+        echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
 
-        f+=(
-            [automount]=/org/cinnamon/desktop/media-handling/automount
-            [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
-            [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
-            [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
-            [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
-            [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
-            [computer_icon]=/org/nemo/desktop/computer-icon-visible
-            [volumes_icon]=/org/nemo/desktop/volumes-visible
-            [default_sort_order]=/org/nemo/preferences/default-sort-order
-            [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
-            [grub]=/boot/grub/grub.cfg
-            [home_icon]=/org/nemo/desktop/home-icon-visible
-            [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
-            [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
-            [numlock]=/etc/lightdm/slick-greeter.conf
-            [paste]=/org/gnome/terminal/legacy/keybindings/paste
-            [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
-            [show_hidden]=/org/nemo/preferences/show-hidden-files
-        )
+        for (( ; ; )); do
 
-        local -a l=(
-            'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
-        )
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-        local -a m=(
-            'dconf-editor'  # 0
-            'numlockx'  # 1
-        )
+                change_panelandgui
 
-        install_packages "${m[0]}" "${m[1]}"
+                break
 
-        # START APPLETS STUFFS
-        if [[ ! -d "${d[1]}" ]]; then
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
-                && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+                break
 
-            [[ ! -e "${f[capslock]}" ]] \
-                && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
-                && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
-                && sudo rm --force "${f[capslock]}"
+            else
 
-        fi  # END APPLETS
+                echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DO MY OWN CHANGES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-        # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-        [[ ! -e "${f[numlock]}" ]] \
-            && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
-activate-numlock=true'
+                read option
 
-        [[ $(grep --no-messages false "${f[numlock]}") ]] \
-            && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+            fi
 
-        # alias show_unstaged='find . -type d -name ".git" | while read dir ; do sh -c "cd $dir/../ && echo -e \"\nGIT STATUS IN ${dir//\.git/}\" && git status -s" ; done'
-
-        dconf write "${f[paste]}" "'<Ctrl>v'"
-
-        dconf write "${f[computer_icon]}" false
-
-        dconf write "${f[volumes_icon]}" false
-
-        dconf write "${f[home_icon]}" false
-
-        dconf write "${f[automount]}" true
-
-        dconf write "${f[automount_open]}" true
-
-        dconf write "${f[open_folder]}" "['x-content/bootable-media']"
-
-        dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']"
-
-        dconf write "${f[show_hidden]}" true
-
-        dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
-
-        dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']"
-
-        dconf write "${f[default_sort_order]}" "'name'"
-
-        dconf write "${f[default_sort_reverse]}" false
-
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:19', 'panel1:left:1:show-desktop@cinnamon.org:20', 'panel1:left:2:grouped-window-list@cinnamon.org:21', 'panel1:right:1:temperature@fevimu:53', 'panel1:right:3:betterlock:54', 'panel1:right:4:separator@cinnamon.org:55', 'panel1:right:2:separator@cinnamon.org:56', 'panel1:right:5:calendar@cinnamon.org:63']"
-
-        dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
-
-        dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
-
-        dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
-
-        [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-            && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"
+        done
 
         bash_stuffs
         deemix_stuffs
@@ -3374,7 +3394,8 @@ activate-numlock=true'
         usefull_pkgs
         workspace_stuffs
 
-        echo; show "INITIALIZING CONFIGS..."; echo
+        [[ -e "${f[mimeapps]}" ]] \
+            && sudo cp "${f[mimeapps]}" "${f[mimebkp]}"
 
         sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
 text/html=google-chrome.desktop
@@ -3409,7 +3430,7 @@ text/x-python=sublime_text.desktop;
 application/x-shellscript=sublime_text.desktop;
 application/x-subrip=sublime_text.desktop;'
 
-        show "YOU SEE ONLY ONE END TO YOUR JOURNEY..."
+        echo; show "YOU SEE ONLY ONE END TO YOUR JOURNEY..."
 
         close_menu ;;
 
@@ -3475,3 +3496,7 @@ menu() {
 #======================#
 
 check_source
+
+sed -i 's|value": false|value": true|1' ~/.cinnamon/configs/calendar@cinnamon.org/14.json
+sed -i 's|value": "%A, %B %e, %H:%M"|value": "%e.  %B, %H:%M"|g' ~/.cinnamon/configs/calendar@cinnamon.org/14.json
+
