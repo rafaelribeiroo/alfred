@@ -429,7 +429,7 @@ bash_stuffs() {
 
                 cp "${f[bashrc]}" "${f[bkp_bash]}" &> "${f[null]}"
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_uuid]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
 
                 # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
                 # disk and maintain home intact, returns error
