@@ -746,20 +746,50 @@ deemix_stuffs() {
         "${XDG_MUSIC_DIR}"/  # 0
         ~/.cache/thumbnails/fail  # 1
         "${XDG_MUSIC_DIR}"/deemix  # 2
+        ~/.pyenv  # 3
+        ~/Musicas\ Deemix/  # 4
     )
 
     f+=(
         [file]="${d[0]}"deemix/deemix-pyweb
+        [py]=~/.pyenv/shims/python
+        [cfg]=~/.config/deemix/config.json
         [compact]="${d[0]}"linux-x86_64-latest.zip
+        [decryptcookie]=/tmp/browser_cookie3_n.py
+        [cookies]=/tmp/cookies.txt
+        [arl]=~/.config/deemix/.arl
+        [dmrc]=~/.dmrc
     )
 
     local -a l=(
         'https://download.deemix.app/0:/pyweb/linux-x86_64-latest.zip'  # 0
+        'https://raw.githubusercontent.com/rachpt/lanzou-gui/master/lanzou/browser_cookie3_n.py'  # 1
+        'https://www.python.org/doc/versions/'  # 3
     )
 
     local -a m=(
         'xplayer'  # 0
         'deemix'  # 1
+        'certifi'  # 2
+        'cffi'  # 3
+        'chardet'  # 4
+        'cryptography'  # 5
+        'idna'  # 6
+        'jeepney'  # 7
+        'keyring'  # 8
+        'lz4'  # 9
+        'pbkdf2'  # 10
+        'pyaes'  # 11
+        'pycparser'  # 12
+        'pycryptodome'  # 13
+        'PyQt5'  # 14
+        'PyQt5-sip'  # 15
+        'PyQtWebEngine'  # 16
+        'requests'  # 17
+        'requests-toolbelt'  # 18
+        'SecretStorage'  # 19
+        'six'  # 20
+        'urllib3'  # 21
     )
 
     if [[ -e "${f[file]}" ]]; then
@@ -813,8 +843,48 @@ deemix_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
+    latest=$(curl --silent "${l[3]}" | grep release | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+
+    [[ ! -d "${d[3]}" && ! -e "${f[py]}${latest}" ]] \
+        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+        && python_stuffs
+
+    install_pip "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}"
+
+    [[ ! -e "${f[decryptcookie]}" ]] \
+        && curl --silent --output "${f[decryptcookie]}" --create-dirs "${l[1]}"
+
+    for (( ; ; )); do
+
+        python "${f[decryptcookie]}" &> "${f[cookies]}"
+
+        [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
+            && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
+            && clear \
+            || break
+
+    done
+
+    [[ ! -e "${f[arl]}" ]] \
+        && tee --append "${f[arl]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')"
+
+    [[ $(grep --no-messages en_US "${f[dmrc]}") ]] \
+        && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}\",|g" "${f[cfg]}"
+
+    # In pt_BR language, deemix not recognizes ú from Músicas.
+    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+
+        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[4]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[4]}"
+
+        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${d[4]}\",|g" "${f[cfg]}"
+
+    fi
+
     [[ ! $(grep --no-messages deemix "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "alias clear_thumbnail='rm --recursive --force ${d[1]}'
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+alias clear_thumbnail='rm --recursive --force ${d[1]}'
 
 alias deemix='( nohup ${f[file]} & ) &> ${f[null]}'"
 
@@ -1277,7 +1347,7 @@ chrome_stuffs() {
 
         show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        # Dependências
+        # Dependencies
         install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
@@ -1285,7 +1355,7 @@ chrome_stuffs() {
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
 
-        sudo dpkg -i "${f[file]}" &> "${f[null]}"
+        sudo dpkg --install "${f[file]}" &> "${f[null]}"
 
         sudo rm --force "${f[file]}"
 
@@ -2281,7 +2351,8 @@ python_stuffs() {
                 echo; show "INITIALIZING CONFIGS..."
 
                 [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
-                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '# PYENV (py upgrade) configs
+                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '
+# PYENV (py upgrade) configs
 export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
@@ -2599,38 +2670,79 @@ ruby_stuffs() {
         show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Yarn) ]] \
-        && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
+            && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
 
         [[ ! $(grep --no-messages yarnpkg "${f[ppa]}") ]] \
-        && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
-        && update
+            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
+            && update
 
-        # Dependencies
-        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[17]}" "${m[18]}"
-
-        [[ ! -d "${d[0]}" ]] \
-            && show "\n${c[YELLOW]}${m[16]^^} ${c[WHITE]}${linen:${#m[16]}} [INSTALLING]" \
-            && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
-            || show "\n${c[GREEN]}${m[16]^^} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
+        install_packages "${m[0]}" "${m[18]}"
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
-    # Install don't comes by default on rbenv until ruby-build was installed
-    [[ ! -d "${d[2]}" ]] \
-        && git clone --quiet "${l[2]}" "${d[0]}"
+    # ruby versions
+    local=$(ruby -e 'puts "#{RUBY_VERSION}"')
 
-    [[ ! $(grep --no-messages rbenv "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< 'export PATH="$HOME/.rbenv/bin:$PATH"
+    latest=$(curl --silent "${l[0]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')
+
+    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+
+        read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[16]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+                # Dependencies
+                install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}"
+
+                [[ ! -d "${d[0]}" ]] \
+                    && show "\n${c[YELLOW]}${m[16]^^} ${c[WHITE]}${linen:${#m[16]}} [INSTALLING]" \
+                    && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
+                    || show "\n${c[GREEN]}${m[16]^^} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
+
+                echo; show "INITIALIZING CONFIGS..."
+
+                # Install don't comes by default on rbenv until ruby-build was installed
+                [[ ! -d "${d[2]}" ]] \
+                    && git clone --quiet "${l[2]}" "${d[0]}"
+
+                [[ ! $(grep --no-messages rbenv "${f[bashrc]}") ]] \
+                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '
+# Ruby configs
+export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"' \
-        && source "${f[bashrc]}"
+                    && source "${f[bashrc]}"
 
-    # rbenv versions
-    # rbenv install -l
-    [[ ! -d "${d[1]}" ]] && rbenv install "${latest}" &> "${f[null]}"
+                # rbenv versions
+                # rbenv install -l
+                [[ ! -d "${d[1]}" ]] && rbenv install "${latest}" &> "${f[null]}"
 
-    rbenv global "${latest}" > "${f[null]}"
+                rbenv global "${latest}" > "${f[null]}"
+
+                echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    fi
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3064,13 +3176,15 @@ tmate_stuffs() {
 usefull_pkgs() {
 
     local -a d=(
-        ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 0
         ~/.SpaceVim  # 1
     )
 
     f+=(
         [config]=~/.SpaceVim/autoload/SpaceVim.vim
         [cfg]=~/.config/nvim/init.vim
+        [autokey]=~/.config/autostart/autokey-gtk.desktop
+        [lock]=/etc/apt/preferences.d/nosnap.pref
     )
 
     local -a l=(
@@ -3087,6 +3201,10 @@ usefull_pkgs() {
         'bashtop'  # 5
         'usefull packages'  # 6
         'soundconverter'  # 7
+        'at'  # 8
+        'autokey-gtk'  # 9
+        'snapd'  # 10
+        'compress-video'  # 11
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
@@ -3150,13 +3268,20 @@ usefull_pkgs() {
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
-            && sudo add-apt-repository --yes ppa:atareao/telegram &> "${f[null]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[4]}") ]] \
+            && sudo add-apt-repository --assume-yes ppa:atareao/telegram &> "${f[null]}"
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[5]}") ]] \
-            && sudo add-apt-repository --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[5]}") ]] \
+            && sudo add-apt-repository --assume-yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}"
+        [[ -e "${f[lock]}" ]] && rm --force "${f[lock]}"
+
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
+
+        [[ ! $(snap list | grep "${m[11]}") ]] \
+            && show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
+            && sudo snap install "${m[11]}" &> "${f[null]}" \
+            || show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]"
 
     fi
 
@@ -3168,6 +3293,23 @@ usefull_pkgs() {
     [[ $(grep --no-messages "let g:spacevim_relativenumber          = 1" "${f[config]}") ]] \
         && sed --in-place 's|let g:spacevim_relativenumber          = 1|let g:spacevim_relativenumber          = 0|g' "${f[config]}"
 
+    [[ ! $(grep --no-messages AutoKey "${f[autokey]}") ]] \
+        && sudo tee "${f[autokey]}" > "${f[null]}" <<< '[Desktop Entry]
+Name=AutoKey
+GenericName=Keyboard Automation
+Comment=Program keyboard shortcuts
+Exec=autokey-gtk -c
+Terminal=false
+Type=Application
+Icon=autokey
+Categories=GNOME;GTK;Utility;
+X-GNOME-Autostart-enabled=true
+NoDisplay=false
+Hidden=false
+Name[en_US]=AutoKey
+Comment[en_US]=Program keyboard shortcuts
+X-GNOME-Autostart-Delay=0'
+
     # set wrap breaks line when is too long
     # set mouse allow mouse highligh text
     [[ ! $(grep --no-messages mouse "${f[cfg]}") ]] \
@@ -3175,7 +3317,8 @@ usefull_pkgs() {
 set wrap'
 
     [[ ! $(grep --no-messages vlc_kill "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "alias vlc_kill='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+alias vlc_kill='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3349,12 +3492,14 @@ workspace_stuffs() {
 }
 #======================#
 
+#======================#
 change_panelandgui() {
 
     local -a d=(
-        ~/.local/share/cinnamon/applets  # 0
+        ~/.local/share/cinnamon/applets/  # 0
         ~/.local/share/cinnamon/applets/betterlock  # 1
         ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
+        ~/.rbenv  # 3
     )
 
     f+=(
@@ -3363,8 +3508,11 @@ change_panelandgui() {
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
+        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/14.json
         [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
         [computer_icon]=/org/nemo/desktop/computer-icon-visible
+        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
+        [grub-modified]=/etc/default/grub
         [volumes_icon]=/org/nemo/desktop/volumes-visible
         [default_sort_order]=/org/nemo/preferences/default-sort-order
         [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
@@ -3377,6 +3525,7 @@ change_panelandgui() {
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
+        [thumbnail-limit]=/org/nemo/preferences/thumbnail-limit
     )
 
     local -a l=(
@@ -3387,9 +3536,24 @@ change_panelandgui() {
     local -a m=(
         'dconf-editor'  # 0
         'numlockx'  # 1
+        'grub2-theme-mint-2k'  # 2
+        'ruby'  # 3
+        'colorls'  # 4
+        'transmission-gtk'  # 5
     )
 
-    install_packages "${m[0]}" "${m[1]}"
+    install_packages "${m[0]}" "${m[1]}" "${m[2]}"
+
+    # START GRUB RESOLUTION CHANGE
+    [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
+        && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}" \
+        && sudo update-grub &> "${f[null]}" # END RESOLUTION
+
+    # START PPA ADDITION
+    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) ]] \
+        && sudo add-apt-repository --assume-yes ppa:transmissionbt/ppa &> "${f[null]}" \
+        && update \
+        && sudo apt install --assume-yes "${m[5]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
     if [[ ! -d "${d[1]}" && ! -d "${d[2]}" ]]; then
@@ -3400,16 +3564,22 @@ change_panelandgui() {
 
         [[ ! -e "${f[capslock]}" ]] \
             && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
-            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
             && sudo rm --force "${f[capslock]}"
 
         [[ ! -e "${f[separator2]}" ]] \
             && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
-            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
             && sudo rm --force "${f[separator2]}"
 
-    fi  # END APPLETS
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:xapp-status@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:network@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:betterlock:12', 'panel1:right:13:separator2@zyzz:13', 'panel1:right:14:calendar@cinnamon.org:14']"
 
+        # use custom format
+        sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
+
+        sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"
+
+    fi  # END APPLETS
 
     # START NUMLOCK ALWAYS ACTIVE AT STARTUP
     [[ ! -e "${f[numlock]}" ]] \
@@ -3420,9 +3590,80 @@ activate-numlock=true'
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
     # START CHANGE DESCRIPTION WINDOWS IN GRUB
-    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+    [[ ! $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
         && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"  # END
 
+    # START CHECK UNSTAGED DIRECTORIES
+    [[ ! $(grep --no-messages check_unstaged "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+alias c='clear'
+
+alias remove_all_pip_packages='pip freeze | xargs pip uninstall -y'
+
+declare -A c=(
+    [WHITE]='\033[1;37m'
+    [END]='\e[0m'
+)
+
+alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
+        && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[bashrc]}" \
+        && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[bashrc]}"  # END
+
+    echo; read -p $'\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            [[ ! -d "${d[3]}" && ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
+                && ruby_stuffs
+
+            [[ ! -d "${d[0]}" ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
+                && bash_stuffs
+
+            [[ ! $(gem list | grep "${m[4]}") ]] \
+                && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                && sudo gem install "${m[4]}" &> "${f[null]}" \
+                || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+
+            [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
+                && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+# Colorls stuffs
+source $(dirname $(gem which ${m[4]}))/tab_complete.sh
+
+alias ls='${m[4]}'"
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    # START NOMENCLATURE ICON ARRANGEMENT
+    [[ ! $(grep --no-messages sublime_text "${f[grouped]}") \
+        && ! $(grep --no-messages telegram "${f[grouped]}") \
+        && ! $(grep --no-messages google-chrome "${f[grouped]}") ]] \
+        && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${f[grouped]}" \
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${f[grouped]}" \
+        && sudo sed --in-place '/"nemo.desktop"/,2d' "${f[grouped]}" \
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${f[grouped]}" \
+        && sudo sed --in-place --null-data 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${f[grouped]}" \
+        && sudo sed --in-place 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${f[grouped]}" \
+        && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${f[grouped]}"  # END
+
+    # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
 
     dconf write "${f[computer_icon]}" false
@@ -3440,6 +3681,8 @@ activate-numlock=true'
     dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']"
 
     dconf write "${f[show_hidden]}" true
+
+    dconf write "${f[thumbnail-limit]}" "uint64 34359738368"
 
     dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
 
@@ -3492,6 +3735,8 @@ evoke_functions() {
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                 change_panelandgui
+
+                echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 break
 
@@ -3632,7 +3877,3 @@ menu() {
 #======================#
 
 check_source
-
-sed -i 's|value": false|value": true|1' ~/.cinnamon/configs/calendar@cinnamon.org/14.json
-sed -i 's|value": "%A, %B %e, %H:%M"|value": "%e.  %B, %H:%M"|g' ~/.cinnamon/configs/calendar@cinnamon.org/14.json
-
