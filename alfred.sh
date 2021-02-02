@@ -27,7 +27,7 @@ name=(
     'MR. BRUCE'
 )
 
-random=$(shuf -i 0-$((${#name[@]}-1)) -n 1)
+random=$(shuf --input-range 0-$((${#name[@]}-1)) --head-count 1)
 
 # Associative array
 declare -A c=(
