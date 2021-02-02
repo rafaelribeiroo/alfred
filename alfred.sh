@@ -617,7 +617,114 @@ ble-color-setface syntax_varname none"
 
         else
 
-            echo -ne ${c[RED]}"\n${e[19]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[19]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL AUTOCOMPLETE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL AUTOCOMPLETE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
+brave_stuffs() {
+
+    local -a d=(
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 0
+    )
+
+    f+=(
+        [gpg]=/etc/apt/trusted.gpg.d/brave-browser-release.gpg
+        [ppa]=/etc/apt/sources.list.d/brave-browser-release.list
+    )
+
+    local -a l=(
+        'https://brave-browser-apt-release.s3.brave.com/brave-core.asc'  # 0
+        'https://brave-browser-apt-release.s3.brave.com/'  # 1
+    )
+
+    local -a m=(
+        'brave-browser'  # 0
+        'apt-transport-https'  # 1
+        'curl'  # 2
+        'gnupg'  # 3
+    )
+
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+
+                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+
+                sudo sed --in-place '/brave/d' "${d[0]}"*.json
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep brave) ]] \
+            && curl --silent "${l[0]}" | sudo apt-key --keyring "${f[gpg]}" add - &> "${f[null]}"
+
+        [[ ! -e "${f[ppa]}" ]] \
+            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb [arch=amd64] ${l[1]} stable main" \
+            && update
+
+        # Dependencies
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN BRAVE? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            ( nohup "${m[0]}" & ) &> "${f[null]}"
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
@@ -3342,41 +3449,41 @@ activate-numlock=true'
 
     dconf write "${f[default_sort_reverse]}" false
 
-    dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:xapp-status@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:network@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:betterlock:12', 'panel1:right:13:separator2@zyzz:13', 'panel1:right:14:calendar@cinnamon.org:14']"
-
     dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
 
     dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
 
-    dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"
+    dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
 
 }
+#======================#
 
 #======================#
-invoca_funcoes() {
+evoke_functions() {
 
     case "${choice}" in
 
         0|00) close_menu &> "${f[null]}" ;;
         1|01) bash_stuffs && return_menu ;;
-        2|02) deemix_stuffs && return_menu ;;
-        3|03) dualmonitor_stuffs && return_menu ;;
-        4|04) github_stuffs && return_menu ;;
-        5|05) chrome_stuffs && return_menu ;;
-        6|06) flameshot_stuffs && return_menu ;;
-        7|07) heroku_stuffs && return_menu ;;
-        8|08) hide_devices && return_menu ;;
-        9|09) minidlna_stuffs && return_menu ;;
-        10) nvidia_stuffs && return_menu ;;
-        11) postgres_stuffs && return_menu ;;
-        12) python_stuffs && return_menu ;;
-        13) reduceye_stuffs && return_menu ;;
-        14) ruby_stuffs && return_menu ;;
-        15) sublime_stuffs && return_menu ;;
-        16) tmate_stuffs && return_menu ;;
-        17) usefull_pkgs && return_menu ;;
-        18) workspace_stuffs && return_menu ;;
-        19) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        2|02) brave_stuffs && return_menu ;;
+        3|03) deemix_stuffs && return_menu ;;
+        4|04) dualmonitor_stuffs && return_menu ;;
+        5|05) github_stuffs && return_menu ;;
+        6|06) chrome_stuffs && return_menu ;;
+        7|07) flameshot_stuffs && return_menu ;;
+        8|08) heroku_stuffs && return_menu ;;
+        9|09) hide_devices && return_menu ;;
+        10) minidlna_stuffs && return_menu ;;
+        11) nvidia_stuffs && return_menu ;;
+        12) postgres_stuffs && return_menu ;;
+        13) python_stuffs && return_menu ;;
+        14) reduceye_stuffs && return_menu ;;
+        15) ruby_stuffs && return_menu ;;
+        16) sublime_stuffs && return_menu ;;
+        17) tmate_stuffs && return_menu ;;
+        18) usefull_pkgs && return_menu ;;
+        19) workspace_stuffs && return_menu ;;
+        20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
 
@@ -3403,6 +3510,7 @@ invoca_funcoes() {
         done
 
         bash_stuffs
+        brave_stuffs
         deemix_stuffs
         dualmonitor_stuffs
         github_stuffs
