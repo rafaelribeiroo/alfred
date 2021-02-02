@@ -3233,9 +3233,9 @@ zsh_stuffs() {
     source "${f[user_dirs]}"
 
     local -a d=(
-        ~/.oh-my-zsh  # 0
-        ~/.fonts  # 1
-        ~/.config/fontconfig/conf.d  # 2
+        ~/.oh-my-zsh  # 1
+        ~/.fonts  # 2
+        ~/.config/fontconfig/conf.d  # 3
     )
 
     f+=(
@@ -3251,16 +3251,16 @@ zsh_stuffs() {
     )
 
     local -a m=(
-        'oh-my-zsh'  # 0
-        'curl'  # 1
-        'git'  # 2
-        'xdotool'  # 3
-        'zsh'  # 4
+        'oh-my-zsh'  # 1
+        'curl'  # 2
+        'git'  # 3
+        'xdotool'  # 4
+        'zsh'  # 5
     )
 
-    if [[ -d "${d[0]}" ]]; then
+    if [[ -d "${d[1]}" ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -3268,13 +3268,13 @@ zsh_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                # sudo apt remove --purge --assume-yes "${m[3]}" &> "${f[null]}"
+                # sudo apt remove --purge --assume-yes "${m[4]}" &> "${f[null]}"
 
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
-                sudo rm --force --recursive "${d[0]}"
+                sudo rm --force --recursive "${d[1]}"
 
                 cp "${f[zshrc]}" "${f[bkp_zsh]}" &> "${f[null]}"
 
@@ -3353,11 +3353,11 @@ zsh_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
+        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}"
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
+        show "\n${c[YELLOW]}${m[1]^^} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
         sh -c "$(curl --show-error --fail --silent --location ${l[0]})" "" --unattended &> "${f[null]}"
 
@@ -3369,16 +3369,16 @@ zsh_stuffs() {
 
         # Hidden directories are owned by root, we must change owner to bash "read"
         # 2>&- hides: "can't stat: no such file..."
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}" # Close error output
+        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]}" # Close error output
 
         # --location follows to last URL (github provides a few redirects)
         # --output write content to file
         curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
 
         # Update font cache
-        sudo fc-cache --force "${d[1]}"
+        sudo fc-cache --force "${d[2]}"
 
         sudo chown "${USER}":"${USER}" "${f[powerline_uuid]}"
 
@@ -3386,9 +3386,9 @@ zsh_stuffs() {
 
     if [[ ! -e "${f[powerline_conf]}" ]]; then
 
-        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
+        [[ ! -d "${d[3]}" || $(stat -c "%U" "${d[3]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[3]%conf.d}"
 
         curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
 
