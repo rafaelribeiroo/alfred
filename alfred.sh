@@ -147,7 +147,7 @@ check_distro() {
 check_pkg() {
 
 	# installed
-	if dpkg-query -s "${1}" &> "${f[null]}"; then
+	if dpkg-query --status "${1}" &> "${f[null]}"; then
 
 		return 0
 
