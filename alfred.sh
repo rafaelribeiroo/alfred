@@ -224,7 +224,7 @@ show() {
 install_packages() {
 
     # $@: Trick to unpack all received values
-    for package in "$@"; do
+    for package in "${@}"; do
 
     	if check_pkg "${package}"; then
 
