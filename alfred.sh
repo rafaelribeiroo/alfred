@@ -90,7 +90,7 @@ declare -A f=(
     [public_ssh]=~/.ssh/id_rsa.pub
     [user_dirs]=~/.config/user-dirs.dirs
     [srcs]=/etc/apt/sources.list
-    [srcs_list]=/etc/apt/sources.list.d
+    [srcs_list]=/etc/apt/sources.list.d/
     [ssh]=/tmp/check_connection
 )
 #======================#
@@ -697,7 +697,7 @@ deemix_stuffs() {
         [[ ! -e "${f[file]}" ]] \
             && show "\n${c[YELLOW]}${m[1]^^} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]" \
             && wget --quiet "${l[0]}" --output-document "${f[compact]}" \
-            && unzip "${d[0]}"/*.zip -d "${d[0]}" &> "${f[null]}" \
+            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
             && rm --force "${f[compact]}" \
             || show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]"
 
@@ -994,7 +994,7 @@ github_stuffs() {
 
         done
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${l[3]}") ]] \
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[3]}") ]] \
             && sudo apt-add-repository "${l[3]}" \
             && sudo apt update
 
@@ -1098,7 +1098,7 @@ github_stuffs() {
 chrome_stuffs() {
 
     local -a d=(
-        ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 0
+        ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 0
     )
 
     local -a m=(
