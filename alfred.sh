@@ -517,11 +517,12 @@ bash_stuffs() {
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 # Hides user from terminal
 #DEFAULT_USER=${USER}
+
 # pip freeze > requirements.txt causes an error without it
 set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
-        && sudo sed --in-place 's|OSH_THEME="font"|OSH_THEME="agnoster"|g' "${f[bashrc]}" \
+        && sudo sed --in-place 's|font|agnoster|g' "${f[bashrc]}" \
         && sudo sed --in-place --null-data 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
 
     echo; read -p $'\033[1;37mSIR, SHOULD I INSTALL AUTOCOMPLETE LIKE IN OH-MY-ZSH? \n[Y/N] R: \033[m' option
@@ -1137,11 +1138,11 @@ chrome_stuffs() {
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 # Only libappindicator1 doesn't come default in debian distros
-                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" &> "${f[null]}"
+                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" &> "${f[null]}"
 
-                sudo sed --in-place --null-data 's|text/html=google-chrome.desktop\nx-scheme-handler/http=google-chrome.desktop\nx-scheme-handler/https=google-chrome.desktop\nx-scheme-handler/about=google-chrome.desktop\nx-scheme-handler/unknown=google-chrome.desktop\nx-scheme-handler/mailto=google-chrome.desktop||g' "${f[mimeapps]}"
+                sudo sed --in-place '/google-chrome/d' "${f[mimeapps]}"
 
-                sudo sed --in-place '\|"google-chrome.desktop",|d' "${d[0]}"/*.json
+                sudo sed --in-place '/google-chrome/d' "${d[0]}"*.json
 
                 sudo rm --force "${f[garbage]}"
 
@@ -2103,7 +2104,7 @@ python_stuffs() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed --in-place --null-data 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+                sudo sed --in-place '/pyenv/Id' "${f[bashrc]}"
 
                 source "${f[bashrc]}"
 
@@ -2444,29 +2445,25 @@ ruby_stuffs() {
         ~/.rbenv/plugins/ruby-build  # 2
     )
 
-    install_packages "${m[0]}"
+   if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-    local=$(ruby -e 'puts "#{RUBY_VERSION}"')
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-    latest=$(curl --silent "${l[0]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')
-
-    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
-
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineu:${#m[0]}} [UPGRADED]\n" 1
-
-        read -p $'\033[1;37mSIR, SHOULD I DOWNGRADE VERSION? \n[Y/N] R: \033[m' option
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[VERMELHO]}R${c[WHITE]}ESETING ${c[VERMELHO]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
+                sudo apt remove --purge --assume-yes "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed --in-place --null-data 's|export PATH="$HOME/.pyenv/bin:$PATH"\neval "$(pyenv init - --no-rehash)"\neval "$(pyenv virtualenv-init -)"||g' "${f[bashrc]}"
+                sudo sed --in-place '/rbenv/d' "${f[bashrc]}"
+
+                sudo sed --in-place 's|# Ruby configs||g' "${f[bashrc]}"
 
                 source "${f[bashrc]}"
 
@@ -2594,6 +2591,8 @@ sublime_stuffs() {
                 sudo apt remove --purge --assume-yes "${m[1]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
+
+                sudo sed --in-place '/sublime_text/d' "${f[mimeapps]}"
 
                 remove_useless
 
@@ -3000,19 +2999,23 @@ usefull_pkgs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]}, ${c[RED]}${m[3]^^}${c[WHITE]} AND ${c[RED]}${m[4]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" &> "${f[null]}"
+                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" &> "${f[null]}"
 
-                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[4]}") ]] \
-                    && sudo add-apt-repository --remove --yes ppa:atareao/telegram &> "${f[null]}"
+                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[4]}") ]] \
+                    && sudo add-apt-repository --remove --assume-yes ppa:atareao/telegram &> "${f[null]}"
 
-                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"/* | grep "${m[5]}") ]] \
-                    && sudo add-apt-repository --remove --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
+                [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[5]}") ]] \
+                    && sudo add-apt-repository --remove --assume-yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
                 sudo sed --in-place --null-data 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
 
-                sudo sed --in-place '/"telegram.desktop",/d' "${d[0]}"/*.json
+                sudo sed --in-place '/vlc/d' "${f[bashrc]}"
+
+                sudo sed --in-place '/vlc/d' "${f[mimeapps]}"
+
+                sudo sed --in-place '/"telegram.desktop",/d' "${d[0]}"*.json
 
                 remove_useless
 
