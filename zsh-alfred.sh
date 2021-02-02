@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 #======================#
 # ALFRED, programa de provisionamento de distro linux.
@@ -81,7 +81,7 @@ declare -A e=(
 # usefull files
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
-    [bashrc]=~/.bashrc
+    [zshrc]=~/.zshrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [mimeapps]=~/.config/mimeapps.list
@@ -110,7 +110,7 @@ check_distro() {
 
         show "${c[RED]}YOU MUST RUN AT GOTHAM FOR A BETTER EXPERIENCE ${c[GREEN]}\n\t\t(MINT)\n"
 
-        read -p $'\033[1;37mDID U WANNA CONTINUE? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mDID U WANNA CONTINUE? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -326,7 +326,7 @@ uninstall_or_configure() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -366,271 +366,6 @@ uninstall_or_configure() {
 #======================#
 
 #======================#
-bash_stuffs() {
-
-    source "${f[user_dirs]}"
-
-    local -a d=(
-        ~/.oh-my-bash  # 0
-        ~/.fonts  # 1
-        ~/.config/fontconfig/conf.d  # 2
-        "${XDG_DOWNLOAD_DIR}"/ble.sh  # 3
-        ~/.local  # 4
-        ~/.local/share/blesh  # 5
-    )
-
-    f+=(
-        [powerline_otf]=~/.fonts/PowerlineSymbols.otf
-        [powerline_uuid]=~/.fonts/.uuid
-        [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
-        [original]=/etc/skel/.bashrc
-        [bkp_bash]=~/.bashrc_bkp
-        [config]=~/.oh-my-bash/oh-my-bash.sh
-        [bkp]=~/.bashrc.pre-oh-my-bash
-        [ble]=~/.local/share/blesh/ble.sh
-        [blerc]=~/.blerc
-    )
-
-    local -a l=(
-        'https://raw.github.com/ohmybash/oh-my-bash/master/tools/install.sh'  # 0
-        'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 1
-        'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 2
-        'https://github.com/akinomyoga/ble.sh.git'  # 3
-
-    )
-
-    local -a m=(
-        'oh-my-bash'  # 0
-        'curl'  # 1
-        'git'  # 2
-        'xdotool'  # 3
-        'ble.sh'  # 4
-    )
-
-    if [[ -d "${d[0]}" ]]; then
-
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
-
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
-
-                # sudo apt remove --purge --assume-yes "${m[3]}" &> "${f[null]}"
-
-                # --force: ignore nonexistent files, never prompt
-                # --recursive: remove directories
-                sudo rm --force --recursive "${d[0]}" "${d[5]}"
-
-                sudo rm --force "${f[blerc]}"
-
-                cp "${f[bashrc]}" "${f[bkp_bash]}" &> "${f[null]}"
-
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_uuid]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
-
-                # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
-                # disk and maintain home intact, returns error
-                # mv "${f[bkp]}" "${f[bashrc]}"
-
-                cp "${f[original]}" "${f[bashrc]}" &> "${f[null]}"
-
-                source "${f[bashrc]}"
-
-                # remove_useless
-
-                show "PLEASE, RESTART YOUR TERMINAL TO APPLY CHANGES\n"
-
-                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-                return_menu && break
-
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                break
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    else
-
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
-
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}"
-
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
-
-        # First /dev/null hide download progress, second hide thirty commands
-        0> "${f[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${f[null]}"
-
-    fi
-
-    echo; show "INITIALIZING CONFIGS..."
-
-    if [[ ! -e "${f[powerline_otf]}" ]]; then
-
-        # Hidden directories are owned by root, we must change owner to bash "read"
-        # 2>&- hides: "can't stat: no such file..."
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}" # Close error output
-
-        # --location follows to last URL (github provides a few redirects)
-        # --output write content to file
-        curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
-
-        # Update font cache
-        sudo fc-cache --force "${d[1]}"
-
-        sudo chown "${USER}":"${USER}" "${f[powerline_uuid]}"
-
-    fi
-
-    if [[ ! -e "${f[powerline_conf]}" ]]; then
-
-        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
-
-        curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
-
-        # Workaround to prevent terminal restart
-        xdotool key Ctrl+plus && xdotool key Ctrl+minus
-
-    fi
-
-    # If show error when open oh-my-base, run command below
-    # [[ $(grep --no-messages "check_for_upgrade.sh" "${f[config]}") ]] \
-    #     && sudo sed --in-place --null-data 's|if \[ "$DISABLE_AUTO_UPDATE" != "true" \]; then\n  env OSH=$OSH DISABLE_UPDATE_PROMPT=$DISABLE_UPDATE_PROMPT bash -f $OSH/tools/check_for_upgrade.sh\nfi||g' "${f[config]}"
-
-    # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
-    [[ ! $(grep --no-messages DEFAULT_USER "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-# Hides user from terminal
-#DEFAULT_USER=${USER}
-
-# pip freeze > requirements.txt causes an error without it
-set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
-
-    [[ ! $(grep --no-messages agnoster "${f[bashrc]}") && ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
-        && sudo sed --in-place 's|font|agnoster|g' "${f[bashrc]}" \
-        && sudo sed --in-place --null-data 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git django python pyenv pip virtualenv)|g' "${f[bashrc]}"
-
-    echo; read -p $'\033[1;37mSIR, SHOULD I INSTALL AUTOCOMPLETE LIKE IN OH-MY-ZSH? \n[Y/N] R: \033[m' option
-
-    for (( ; ; )); do
-
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-            if [[ ! -e "${f[ble]}" ]]; then
-
-                [[ ! -d "${d[3]}" ]] \
-                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                    && git clone --quiet "${l[3]}" "${d[3]}"
-
-                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}"
-
-                sudo rm --force --recursive "${d[3]}"
-
-            else
-
-                show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
-
-            fi
-
-            [[ ! $(grep --no-messages Bash-complete "${f[bashrc]}") ]] \
-                && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-# Bash-complete
-source ${f[ble]}"
-
-            # Load changes
-            source "${f[bashrc]}" &> "${f[null]}"
-
-            [[ ! $(grep --no-messages menu-complete "${f[blerc]}") ]] \
-                && sudo tee "${f[blerc]}" > "${f[null]}" <<< "bind 'TAB: menu-complete'
-bind 'set show-all-if-ambiguous on'
-bind 'set completion-ignore-case on'
-bind 'set menu-complete-display-prefix on'
-bind 'set completion-ignore-case on'
-
-# Hide [ble: exit ???] that appears on each command
-bleopt exec_errexit_mark=''
-
-ble-color-setface auto_complete italic
-ble-color-setface argument_option none
-ble-color-setface disabled none
-ble-color-setface region_insert none
-ble-color-setface syntax_history_expansion none
-ble-color-setface region_match none
-
-ble-color-setface varname_number none
-ble-color-setface varname_unset none
-ble-color-setface varname_export none
-ble-color-setface varname_array none
-
-ble-color-setface filename_character none
-ble-color-setface filename_directory_sticky none
-ble-color-setface filename_directory none
-ble-color-setface filename_executable none
-ble-color-setface filename_other none
-ble-color-setface filename_url underline
-
-ble-color-setface command_alias none
-ble-color-setface command_directory none
-ble-color-setface command_builtin none
-ble-color-setface command_builtin_dot none
-ble-color-setface command_file none
-ble-color-setface command_keyword none
-ble-color-setface command_function none
-
-ble-color-setface syntax_glob none
-ble-color-setface syntax_brace none
-ble-color-setface syntax_command none
-ble-color-setface syntax_tilde none
-ble-color-setface syntax_comment none
-ble-color-setface syntax_error none
-ble-color-setface syntax_expr none
-ble-color-setface syntax_function_name none
-ble-color-setface syntax_param_expansion none
-ble-color-setface syntax_delimiter none
-ble-color-setface syntax_quotation none
-ble-color-setface syntax_quoted none
-ble-color-setface syntax_varname none"
-
-            # Load changes
-            source "${f[blerc]}" &> "${f[null]}"
-
-            break
-
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-            break
-
-        else
-
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL AUTOCOMPLETE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-        fi
-
-    done
-
-    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-}
-#======================#
-
-#======================#
 brave_stuffs() {
 
     local -a d=(
@@ -658,7 +393,7 @@ brave_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -708,7 +443,7 @@ brave_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN BRAVE? \n[Y/N] R: \033[m' option
+    echo; read -p $'?\033[1;37mSIR, SHOULD I OPEN BRAVE? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -796,7 +531,7 @@ deemix_stuffs() {
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -806,7 +541,7 @@ deemix_stuffs() {
 
                 sudo rm --force --recursive "${d[2]}"
 
-                sudo sed --in-place --null-data "s|alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'\n\nalias deemix='( nohup /home/ribeiro/Music/deemix/deemix-pyweb & ) &> /dev/null'||g" "${f[bashrc]}"
+                sudo sed --in-place --null-data "s|alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'\n\nalias deemix='( nohup /home/ribeiro/Music/deemix/deemix-pyweb & ) &> /dev/null'||g" "${f[zshrc]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -882,8 +617,8 @@ deemix_stuffs() {
 
     fi
 
-    [[ ! $(grep --no-messages deemix "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+    [[ ! $(grep --no-messages deemix "${f[zshrc]}") ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias clear_thumbnail='rm --recursive --force ${d[1]}'
 
 alias deemix='( nohup ${f[file]} & ) &> ${f[null]}'"
@@ -934,7 +669,7 @@ dualmonitor_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1103,7 +838,7 @@ github_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1144,7 +879,7 @@ github_stuffs() {
 
         show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        echo; read -p $'\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
+        echo; read -p $'?\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1186,8 +921,8 @@ github_stuffs() {
     # server in a later lesson will include this information.
     # from: https://swcarpentry.github.io/git-novice/02-setup/
     [[ ! $(grep --no-messages @ "${f[config]}") ]] \
-        && read -p $'\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
-        && read -p $'\033[1;37mNAME '"${e[silent_monkey]}"$': \033[m' nome \
+        && read -p $'?\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
+        && read -p $'?\033[1;37mNAME '"${e[silent_monkey]}"$': \033[m' nome \
         && git config --global user.email "${email}" \
         && git config --global user.name "${nome}" \
         && git config --global core.editor "vim" \
@@ -1217,7 +952,7 @@ github_stuffs() {
     Hostname ssh.github.com
     Port 443'
 
-    echo; read -p $'\033[1;37mENTER YOUR USERNAME FROM GITHUB: \033[m' user
+    echo; read -p $'?\033[1;37mENTER YOUR USERNAME FROM GITHUB: \033[m' user
 
     # GITHUB STUFF
     for (( ; ; )); do
@@ -1306,7 +1041,7 @@ chrome_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1363,7 +1098,7 @@ chrome_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN CHROME? \n[Y/N] R: \033[m' option
+    echo; read -p $'?\033[1;37mSIR, SHOULD I OPEN CHROME? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -1431,7 +1166,7 @@ flameshot_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1557,7 +1292,7 @@ heroku_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1603,7 +1338,7 @@ heroku_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-	echo; read -p $'\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
+	echo; read -p $'?\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
 
 	for (( ; ; )); do
 
@@ -1671,7 +1406,7 @@ hide_devices() {
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n" 1
 
-            read -p $'\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
+            read -p $'?\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -1761,7 +1496,7 @@ minidlna_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1883,7 +1618,7 @@ nvidia_stuffs() {
 
             show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-            read -p $'\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
+            read -p $'?\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -1900,7 +1635,7 @@ nvidia_stuffs() {
 
                     sudo update-initramfs -u > "${f[null]}"
 
-                    echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+                    echo && read -p $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
                     for (( ; ; )); do
 
@@ -1967,7 +1702,7 @@ alias lbm-nouveau off'
 
         sudo update-initramfs -u > "${f[null]}"
 
-        echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+        echo && read -p $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
     	for (( ; ; )); do
 
@@ -2053,7 +1788,7 @@ postgres_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2119,13 +1854,13 @@ postgres_stuffs() {
 
     sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    read -p $'\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
+    read -p $'?\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
+            read -p $'?\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
 
             # if empty string
             [[ -z "${user}" ]] && user="${USER}"
@@ -2144,13 +1879,13 @@ postgres_stuffs() {
 
             sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${f[null]}"
 
-            read -p $'\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
+            read -p $'?\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                    read -p $'\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
+                    read -p $'?\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
                     [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                         && show "\nDATABASE ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
@@ -2269,7 +2004,7 @@ python_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]" 1
 
-        read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2281,9 +2016,9 @@ python_stuffs() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed --in-place '/pyenv/Id' "${f[bashrc]}"
+                sudo sed --in-place '/pyenv/Id' "${f[zshrc]}"
 
-                source "${f[bashrc]}"
+                source "${f[zshrc]}"
 
                 remove_useless
 
@@ -2332,7 +2067,7 @@ python_stuffs() {
 
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
-        read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2350,13 +2085,13 @@ python_stuffs() {
 
                 echo; show "INITIALIZING CONFIGS..."
 
-                [[ ! $(grep --no-messages rehash "${f[bashrc]}") ]] \
-                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '
+                [[ ! $(grep --no-messages rehash "${f[zshrc]}") ]] \
+                    && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< '
 # PYENV (py upgrade) configs
 export PATH="$HOME/.pyenv/bin:$PATH"
 eval "$(pyenv init - --no-rehash)"
 eval "$(pyenv virtualenv-init -)"' \
-                    && source "${f[bashrc]}"
+                    && source "${f[zshrc]}"
 
                 # pyenv versions
                 # pyenv install --list | grep " 3\.[678]"
@@ -2431,7 +2166,7 @@ reduceye_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2627,7 +2362,7 @@ ruby_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2639,11 +2374,11 @@ ruby_stuffs() {
 
                 sudo rm --force --recursive "${d[0]}"
 
-                sudo sed --in-place '/rbenv/d' "${f[bashrc]}"
+                sudo sed --in-place '/rbenv/d' "${f[zshrc]}"
 
-                sudo sed --in-place 's|# Ruby configs||g' "${f[bashrc]}"
+                sudo sed --in-place 's|# Ruby configs||g' "${f[zshrc]}"
 
-                source "${f[bashrc]}"
+                source "${f[zshrc]}"
 
                 remove_useless
 
@@ -2689,7 +2424,7 @@ ruby_stuffs() {
 
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
-        read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2711,12 +2446,12 @@ ruby_stuffs() {
                 [[ ! -d "${d[2]}" ]] \
                     && git clone --quiet "${l[2]}" "${d[0]}"
 
-                [[ ! $(grep --no-messages rbenv "${f[bashrc]}") ]] \
-                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '
+                [[ ! $(grep --no-messages rbenv "${f[zshrc]}") ]] \
+                    && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< '
 # Ruby configs
 export PATH="$HOME/.rbenv/bin:$PATH"
 eval "$(rbenv init -)"' \
-                    && source "${f[bashrc]}"
+                    && source "${f[zshrc]}"
 
                 # rbenv versions
                 # rbenv install -l
@@ -2799,7 +2534,7 @@ sublime_stuffs() {
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2909,13 +2644,13 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-    read -p $'\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
+    read -p $'?\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            echo; read -p $'\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
+            echo; read -p $'?\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
 
             [[ $(curl --write-out %{http_code} --silent --output "${f[null]}" "${l[4]}""${pkg}") -ne 200 ]] \
                 && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
@@ -2926,7 +2661,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
                 # Append new pkg to the last index of tuple
                 sudo sed --in-place "s|\(.*\)\"|\1\", \"${pkg}\"|" "${f[pkgs]}"
 
-                echo; read -p $'\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
+                echo; read -p $'?\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
@@ -2994,7 +2729,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         ( nohup subl & ) &> "${f[null]}"
 
-        echo && read -p $'\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES?\n[Y/N] R: \033[m' option
+        echo && read -p $'?\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES?\n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3008,7 +2743,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
                 sudo pkill subl && ( nohup subl & ) &> "${f[null]}"
 
-                echo && read -p $'\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
+                echo && read -p $'?\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
 
             else
 
@@ -3125,7 +2860,7 @@ tmate_stuffs() {
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3216,7 +2951,7 @@ usefull_pkgs() {
 
         show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" 1
 
-        read -p $'\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3236,7 +2971,7 @@ usefull_pkgs() {
 
                 sudo sed --in-place --null-data 's|video/x-matroska=vlc.desktop\nvideo/mp4=vlc.desktop||g' "${f[mimeapps]}"
 
-                sudo sed --in-place '/vlc/d' "${f[bashrc]}"
+                sudo sed --in-place '/vlc/d' "${f[zshrc]}"
 
                 sudo sed --in-place '/vlc/d' "${f[mimeapps]}"
 
@@ -3316,8 +3051,8 @@ X-GNOME-Autostart-Delay=0'
         && sudo tee --append "${f[cfg]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
-    [[ ! $(grep --no-messages vlc_kill "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+    [[ ! $(grep --no-messages vlc_kill "${f[zshrc]}") ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias vlc_kill='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
@@ -3355,7 +3090,7 @@ workspace_stuffs() {
 
         show "\n${c[GREEN]}${d[0]^^} ${c[WHITE]}${linec:${#d[0]}} [CREATED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
+        read -p $'?\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3404,7 +3139,7 @@ workspace_stuffs() {
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
         && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I DOWNLOAD ANY REPO FROM UR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
+    echo; read -p $'?\033[1;37mSIR, SHOULD I DOWNLOAD ANY REPO FROM UR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -3415,7 +3150,7 @@ workspace_stuffs() {
                 && github_stuffs
                 # || return 1
 
-            read -p $'\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
+            read -p $'?\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
             for (( ; ; )); do
 
@@ -3435,7 +3170,7 @@ workspace_stuffs() {
 
                         clear
 
-                        read -p $'\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
+                        read -p $'?\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
@@ -3480,6 +3215,241 @@ workspace_stuffs() {
         else
 
             echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I DOWNLOAD SOME REPOSITORIES OF YOUR GITHUB ACCOUNT?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
+zsh_stuffs() {
+
+    source "${f[user_dirs]}"
+
+    local -a d=(
+        ~/.oh-my-zsh  # 0
+        ~/.fonts  # 1
+        ~/.config/fontconfig/conf.d  # 2
+    )
+
+    f+=(
+        [powerline_otf]=~/.fonts/PowerlineSymbols.otf
+        [powerline_uuid]=~/.fonts/.uuid
+        [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
+        [original]=/etc/skel/.bashrc
+        [bkp_zsh]=~/.zshrc_bkp
+    )
+
+    local -a l=(
+        'https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh'  # 0
+    )
+
+    local -a m=(
+        'oh-my-zsh'  # 0
+        'curl'  # 1
+        'git'  # 2
+        'xdotool'  # 3
+        'zsh'  # 4
+    )
+
+    if [[ -d "${d[0]}" ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+
+        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+
+                # sudo apt remove --purge --assume-yes "${m[3]}" &> "${f[null]}"
+
+                # --force: ignore nonexistent files, never prompt
+                # --recursive: remove directories
+                sudo rm --force --recursive "${d[0]}"
+
+                cp "${f[zshrc]}" "${f[bkp_zsh]}" &> "${f[null]}"
+
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_uuid]}" "${f[powerline_conf]}" "${f[zshrc]}"
+
+                cp "${f[original]}" "${f[zshrc]}" &> "${f[null]}"
+
+                source "${f[zshrc]}"
+
+                # remove_useless
+
+                echo; read -p $'?\033[1;37mSIR, SHOULD I GO BACK TO BASH? \n[Y/N] R: \033[m' option
+
+                for (( ; ; )); do
+
+                    if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                        [[ $(echo "${SHELL}") = '/bin/zsh' ]] \
+                            && sudo chsh --shell $(which bash)
+
+                        read -p $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
+
+                        for (( ; ; )); do
+
+                            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                                sudo reboot
+
+                            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                                break
+
+                            else
+
+                                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I REBOOT?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                                read option
+
+                            fi
+
+                        done
+
+                        break
+
+                    elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                        break
+
+                    else
+
+                        echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I TURN BASH DEFAULT AGAIN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                        read option
+
+                    fi
+
+                done
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
+
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
+
+        sh -c "$(curl --show-error --fail --silent --location ${l[0]})" "" --unattended &> "${f[null]}"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    if [[ ! -e "${f[powerline_otf]}" ]]; then
+
+        # Hidden directories are owned by root, we must change owner to bash "read"
+        # 2>&- hides: "can't stat: no such file..."
+        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}" # Close error output
+
+        # --location follows to last URL (github provides a few redirects)
+        # --output write content to file
+        curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
+
+        # Update font cache
+        sudo fc-cache --force "${d[1]}"
+
+        sudo chown "${USER}":"${USER}" "${f[powerline_uuid]}"
+
+    fi
+
+    if [[ ! -e "${f[powerline_conf]}" ]]; then
+
+        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
+
+        curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
+
+        # Workaround to prevent terminal restart
+        xdotool key Ctrl+plus && xdotool key Ctrl+minus
+
+    fi
+
+    # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
+    [[ ! $(grep --no-messages DEFAULT_USER "${f[zshrc]}") ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
+# Hides user from terminal
+# DEFAULT_USER=${USER}
+
+# Don't overwrite existing files with '>'
+set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
+
+    [[ ! $(grep --no-messages 'ZSH_THEME="agnoster"' "${f[zshrc]}") && ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
+        && sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}" \
+        && sudo sed --in-place --null-data 's|git|git django python pyenv pip virtualenv copyfile|4' "${f[zshrc]}"
+
+    echo; read -p $'?\033[1;37mSIR, SHOULD I SET ZSH DEFAULT SHELL? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            [[ $(echo "${SHELL}") = '/bin/bash' ]] \
+                && chsh --shell $(which zsh)
+
+            echo; read -p $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    sudo reboot
+
+                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I REBOOT?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I TURN ZSH DEFAULT?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
@@ -3594,8 +3564,8 @@ activate-numlock=true'
         && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"  # END
 
     # START CHECK UNSTAGED DIRECTORIES
-    [[ ! $(grep --no-messages check_unstaged "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+    [[ ! $(grep --no-messages check_unstaged "${f[zshrc]}") ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias c='clear'
 
 alias remove_all_pip_packages='pip freeze | xargs pip uninstall -y'
@@ -3606,10 +3576,10 @@ declare -A c=(
 )
 
 alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
-        && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[bashrc]}" \
-        && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[bashrc]}"  # END
+        && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[zshrc]}" \
+        && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[zshrc]}"  # END
 
-    echo; read -p $'\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
+    echo; read -p $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -3621,15 +3591,15 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
 
             [[ ! -d "${d[0]}" ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
-                && bash_stuffs
+                && zsh_stuffs
 
             [[ ! $(gem list | grep "${m[4]}") ]] \
                 && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                 && sudo gem install "${m[4]}" &> "${f[null]}" \
                 || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
-            [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
-                && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+            [[ ! $(grep --no-messages "${m[4]}" "${f[zshrc]}") ]] \
+                && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 # Colorls stuffs
 source $(dirname $(gem which ${m[4]}))/tab_complete.sh
 
@@ -3682,7 +3652,7 @@ alias ls='${m[4]}'"
 
     dconf write "${f[show_hidden]}" true
 
-    dconf write "${f[thumbnail-limit]}" "uint64 34359738368"
+    dconf write "${f[thumbnail-limit]}" 'uint64 34359738368'
 
     dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
 
@@ -3707,28 +3677,28 @@ evoke_functions() {
     case "${choice}" in
 
         0|00) close_menu &> "${f[null]}" ;;
-        1|01) bash_stuffs && return_menu ;;
-        2|02) brave_stuffs && return_menu ;;
-        3|03) deemix_stuffs && return_menu ;;
-        4|04) dualmonitor_stuffs && return_menu ;;
-        5|05) github_stuffs && return_menu ;;
-        6|06) chrome_stuffs && return_menu ;;
-        7|07) flameshot_stuffs && return_menu ;;
-        8|08) heroku_stuffs && return_menu ;;
-        9|09) hide_devices && return_menu ;;
-        10) minidlna_stuffs && return_menu ;;
-        11) nvidia_stuffs && return_menu ;;
-        12) postgres_stuffs && return_menu ;;
-        13) python_stuffs && return_menu ;;
-        14) reduceye_stuffs && return_menu ;;
-        15) ruby_stuffs && return_menu ;;
-        16) sublime_stuffs && return_menu ;;
-        17) tmate_stuffs && return_menu ;;
-        18) usefull_pkgs && return_menu ;;
-        19) workspace_stuffs && return_menu ;;
+        1|01) brave_stuffs && return_menu ;;
+        2|02) deemix_stuffs && return_menu ;;
+        3|03) dualmonitor_stuffs && return_menu ;;
+        4|04) github_stuffs && return_menu ;;
+        5|05) chrome_stuffs && return_menu ;;
+        6|06) flameshot_stuffs && return_menu ;;
+        7|07) heroku_stuffs && return_menu ;;
+        8|08) hide_devices && return_menu ;;
+        9|09) minidlna_stuffs && return_menu ;;
+        10) nvidia_stuffs && return_menu ;;
+        11) postgres_stuffs && return_menu ;;
+        12) python_stuffs && return_menu ;;
+        13) reduceye_stuffs && return_menu ;;
+        14) ruby_stuffs && return_menu ;;
+        15) sublime_stuffs && return_menu ;;
+        16) tmate_stuffs && return_menu ;;
+        17) usefull_pkgs && return_menu ;;
+        18) workspace_stuffs && return_menu ;;
+        19) zsh_stuffs && return_menu ;;
         20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
-        echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
+        echo; read -p $'?\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3754,7 +3724,6 @@ evoke_functions() {
 
         done
 
-        bash_stuffs
         brave_stuffs
         deemix_stuffs
         dualmonitor_stuffs
@@ -3773,6 +3742,7 @@ evoke_functions() {
         tmate_stuffs
         usefull_pkgs
         workspace_stuffs
+        zsh_stuffs
 
         [[ -e "${f[mimeapps]}" ]] \
             && sudo cp "${f[mimeapps]}" "${f[mimebkp]}"
@@ -3829,37 +3799,37 @@ menu() {
 
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
-		for line in "${!logo[@]}"; do
+		for line in "${(@k)logo}"; do
 
-            show "    ${c[RED]}${logo[${line}]}" 1 && sleep 0.1s
+            show "    ${c[RED]}${(P)logo}${line}" 1 && sleep 0.1s
 
         done
 
         sleep 0.1s; show "${c[RED]}=======================================================" 1
         sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[door]}" 1
-        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL (OH-MY-BASH) ${e[paint]}" 1
-        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 1
-        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 1
-        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
-        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
-        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
-        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
-        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[blind_monkey]}" 1
-        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
-        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
+        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 1
+        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 1
+        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
+        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
+        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
+        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
+        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[blind_monkey]}" 1
+        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
+        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
+        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 1
         sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[whale]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
-        read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
+        read -k 2 $'?\033[1;31m[    ]\033[m\033[4D' choice
 
         # The read command above is inline, so we need this echo to breakline
         echo
