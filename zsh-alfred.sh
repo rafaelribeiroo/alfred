@@ -3830,6 +3830,8 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[whale]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
+        # zsh convention, anything after a ? is used as the prompt string
+        # https://superuser.com/questions/555874/zsh-read-command-fails-within-bash-function-read1-p-no-coprocess
         read -k 2 $'?\033[1;31m[    ]\033[m\033[4D' choice
 
         # The read command above is inline, so we need this echo to breakline
