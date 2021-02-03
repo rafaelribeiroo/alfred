@@ -27,7 +27,8 @@ name=(
     'MR. BRUCE'
 )
 
-random=$(shuf --input-range 0-$((${#name[@]}-1)) --head-count 1)
+# in zsh, arrays start in 1
+random=$(shuf --input-range 1-$((${#name[@]})) --head-count 1)
 
 # Associative array
 declare -A c=(
