@@ -1,30 +1,29 @@
-#!/usr/bin/env zsh
+#!/usr/bin/env bash
 
-declare -A e=(
-    [door]=$'\360\237\232\252'
-    [leo]=$'\360\237\246\201'
-    [headphone]=$'\360\237\216\247'
-    [landscape]=$'\360\237\214\211'
-    [octopus]=$'\360\237\220\231'
-    [globe]=$'\360\237\214\215'
-    [camera]=$'\360\237\223\267'
-    [rocket]=$'\360\237\232\200'
-    [blind_monkey]=$'\360\237\231\210'
-    [popcorn]=$'\360\237\215\277'
-    [n]=$'\360\235\223\235'
-    [elephant]=$'\360\237\220\230'
-    [snake]=$'\360\237\220\215'
-    [moon]=$'\360\237\214\230'
-    [ruby]=$'\342\231\246\357\270\217'
-    [letters]=$'\360\237\224\244'
-    [magnet]=$'\360\237\247\262'
-    [diamond]=$'\360\237\222\216'
-    [suitcase]=$'\360\237\222\274'
-    [paint]=$'\360\237\216\250'
-    [whale]=$'\360\237\220\213'
-    [flame]=$'\360\237\224\245'
-    [silent_monkey]=$'\360\237\231\212'
-    [bat]=$'\360\237\246\207'
+declare -a e=(
+    $'\360\237\232\252'  #  0 (door): exit
+    $'\360\237\216\250'  #  1 (colors): bash colorful
+    $'\360\237\216\247'  #  2 (headphone): deezloader
+    $'\360\237\214\211'  #  3 (landscape): dualmonitor
+    $'\360\237\220\231'  #  4 (octopus): git
+    $'\360\237\214\215'  #  5 (globe): chrome
+    $'\360\237\223\267'  #  6 (camera): flameshot
+    $'\360\237\232\200'  #  7 (rocket): heroku
+    $'\360\237\231\210'  #  8 (blindfolded monkey): hide devices
+    $'\360\237\215\277'  #  9 (popcorn): minidlna
+    $'\360\235\223\235'  # 10 (n): nvidia
+    $'\360\237\220\230'  # 11 (elephant): postgres
+    $'\360\237\220\215'  # 12 (snake): python
+    $'\360\237\214\230'  # 13 (moon): reduce eye strain
+    $'\360\237\224\244'  # 14 (letters): sublime
+    $'\360\237\247\262'  # 15 (magnet): tmate
+    $'\360\237\222\216'  # 16 (diamond): usefull programs
+    $'\360\237\222\274'  # 17 (suitcase): workspace
+    $'\360\237\220\213'  # 18 (whale): all
+    $'\360\237\224\245'  # 19 (fire): some men...
+    $'\360\237\231\212'  # 20 (silent monkey): password
+    $'\360\237\246\207'  # 21 (bat): why do we fall...
+    $'\342\231\246\357\270\217'  # 22: (red diamond): ruby
 )
 
 declare -A c=(
@@ -139,17 +138,10 @@ apt install docky
 # zsh convention, anything after a ? is used as the prompt string
 # https://superuser.com/questions/555874/zsh-read-command-fails-within-bash-function-read1-p-no-coprocess
 # read -k 2 $'?\033[1;31m[    ]\033[m\033[4D' choice
+linei='amo você mãe'
 
-declare -a d=(
-    ~/.oh-my-zsh  # 1
-)
+echo ${linei:u}
 
-if [[ -d "${d[1]}" ]]; then
 
-    echo exists
-
-else
-
-    echo not
-
-fi
+# show "${module[3]} ${linei:${#module[3]}} [INSTALLED]"
+# echo "${module2} ${linei:${#module2}} [INSTALLED]"
