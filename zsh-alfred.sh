@@ -228,13 +228,13 @@ install_packages() {
 
     	if check_pkg "${package}"; then
 
-            echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
+            echo && show "${c[GREEN]}${package:u} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
         else
 
             if test "${?}" -eq 1; then
 
-                echo && show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
+                echo && show "${c[YELLOW]}${package:u} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
 
                 sudo apt install --assume-yes "${package}" &> "${f[null]}"
 
@@ -254,11 +254,11 @@ install_pip(){
 
         if [[ $(pip show "${package}" 2>&-) ]]; then
 
-            echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
+            echo && show "${c[GREEN]}${package:u} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
         else
 
-            echo && show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
+            echo && show "${c[YELLOW]}${package:u} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
 
             pip install --quiet "${package}"
 
@@ -324,7 +324,7 @@ uninstall_or_configure() {
 
     if [[ "${1}" ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -332,7 +332,7 @@ uninstall_or_configure() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!"
 
                 return 0
 
@@ -391,7 +391,7 @@ brave_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -399,7 +399,7 @@ brave_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -427,7 +427,7 @@ brave_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep brave) ]] \
             && curl --silent "${l[0]}" | sudo apt-key --keyring "${f[gpg]}" add - &> "${f[null]}"
@@ -529,7 +529,7 @@ deemix_stuffs() {
 
     if [[ -e "${f[file]}" ]]; then
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -537,7 +537,7 @@ deemix_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
                 sudo rm --force --recursive "${d[2]}"
 
@@ -563,16 +563,16 @@ deemix_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}"
 
         [[ ! -e "${f[file]}" ]] \
-            && show "\n${c[YELLOW]}${m[1]^^} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]" \
+            && show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]" \
             && wget --quiet "${l[0]}" --output-document "${f[compact]}" \
             && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
             && rm --force "${f[compact]}" \
-            || show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]"
+            || show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]"
 
     fi
 
@@ -667,7 +667,7 @@ dualmonitor_stuffs() {
         && -e "${d[0]}" ]]; then
         # 2>&- if dconf not installed
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linec:${#m[0]}} [APPLIED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -675,7 +675,7 @@ dualmonitor_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -707,7 +707,7 @@ dualmonitor_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[1]}"
 
@@ -836,7 +836,7 @@ github_stuffs() {
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") && \
         $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -844,7 +844,7 @@ github_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
 
@@ -877,7 +877,7 @@ github_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         echo; read -p $'?\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
 
@@ -957,7 +957,7 @@ github_stuffs() {
     # GITHUB STUFF
     for (( ; ; )); do
 
-        echo; show "${c[RED]}${user^^}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 1
+        echo; show "${c[RED]}${user:u}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 1
 
         echo; read -n 40 -p $'\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
 
@@ -1039,7 +1039,7 @@ chrome_stuffs() {
 
 	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1047,7 +1047,7 @@ chrome_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 # Only libappindicator1 doesn't come default in debian distros
                 sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" &> "${f[null]}"
@@ -1080,12 +1080,12 @@ chrome_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
         install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
+        show "\n${c[YELLOW]}${m[0]:u} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
@@ -1164,7 +1164,7 @@ flameshot_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1172,7 +1172,7 @@ flameshot_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -1200,7 +1200,7 @@ flameshot_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}"
 
@@ -1213,7 +1213,7 @@ flameshot_stuffs() {
 
         source "${f[user_dirs]}"
 
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
             && dconf write "${f[screenshot_gn]}" "['']" \
             && dconf write "${f[area_screenshot_gn]}" "['']" \
             && dconf write "${f[cmd_gn]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
@@ -1221,7 +1221,7 @@ flameshot_stuffs() {
             && dconf write "${f[name_gn]}" "'Flameshot'" \
             && dconf write "${f[custom_gn]}" "['custom0']"
 
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
             && dconf write "${f[screenshot_ci]}" "['']" \
             && dconf write "${f[area_screenshot_ci]}" "['']" \
             && dconf write "${f[cmd_ci]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
@@ -1290,7 +1290,7 @@ heroku_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1298,7 +1298,7 @@ heroku_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -1328,9 +1328,9 @@ heroku_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
+        show "\n${c[YELLOW]}${m[0]:u} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         sh -c "$(curl --silent ${l[0]})" &> "${f[null]}"
 
@@ -1404,7 +1404,7 @@ hide_devices() {
         # --no-messages hide if file don't exists
         if [[ $(grep --no-messages ID_FS_UUID "${f[config]}") ]]; then
 
-            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n" 1
+            show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${lineh:${#m[0]}} [HIDED]\n" 1
 
             read -p $'?\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
 
@@ -1412,7 +1412,7 @@ hide_devices() {
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                    show "\n${c[RED]}S${c[WHITE]}HOWING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                    show "\n${c[RED]}S${c[WHITE]}HOWING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                     sudo rm --force "${f[config]}"
 
@@ -1436,7 +1436,7 @@ hide_devices() {
 
         else
 
-            show "${c[GREEN]}\n\tH${c[WHITE]}IDING ${c[GREEN]}WINDOWS ${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
+            show "${c[GREEN]}\n\tH${c[WHITE]}IDING ${c[GREEN]}WINDOWS ${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
 
             show "${c[GREEN]}H${c[WHITE]}IDING ${c[GREEN]}DEVICE${c[WHITE]}"
 
@@ -1494,7 +1494,7 @@ minidlna_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1502,7 +1502,7 @@ minidlna_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -1530,7 +1530,7 @@ minidlna_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}"
 
@@ -1616,7 +1616,7 @@ nvidia_stuffs() {
 
         if [[ "${check_driver%%_drm}" = "nvidia" ]]; then
 
-            show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+            show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
             read -p $'?\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
 
@@ -1624,7 +1624,7 @@ nvidia_stuffs() {
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                    show "\n${c[RED]}R${c[WHITE]}ESTORING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                    show "\n${c[RED]}R${c[WHITE]}ESTORING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
                     [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep graphics) ]] \
                         && sudo add-apt-repository --remove --assume-yes ppa:graphics-drivers/ppa &> "${f[null]}"
@@ -1679,7 +1679,7 @@ nvidia_stuffs() {
 
         else
 
-            show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+            show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
                 && sudo add-apt-repository --assume-yes ppa:graphics-drivers/ppa &> "${f[null]}" \
@@ -1786,7 +1786,7 @@ postgres_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1794,7 +1794,7 @@ postgres_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
 
@@ -1824,7 +1824,7 @@ postgres_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -1866,10 +1866,10 @@ postgres_stuffs() {
             [[ -z "${user}" ]] && user="${USER}"
 
             [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
-                && show "\nUSER ${c[RED]}${user^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
+                && show "\nUSER ${c[RED]}${user:u}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
-            password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user^^}"$':\033[m')
+            password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user:u}"$':\033[m')
 
             sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
@@ -1888,7 +1888,7 @@ postgres_stuffs() {
                     read -p $'?\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
                     [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
-                        && show "\nDATABASE ${c[RED]}${database^^}${c[WHITE]} ALREADY EXISTS. EXITING..." \
+                        && show "\nDATABASE ${c[RED]}${database:u}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                         && break
 
                     sudo -u postgres psql --command "CREATE DATABASE ${database}" &> "${f[null]}"
@@ -2002,7 +2002,7 @@ python_stuffs() {
         && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]" 1
 
         read -p $'?\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2010,7 +2010,7 @@ python_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]} AND ${c[RED]}${m[2]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}, ${c[RED]}${m[1]:u}${c[WHITE]} AND ${c[RED]}${m[2]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
 
@@ -2042,7 +2042,7 @@ python_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
@@ -2073,15 +2073,15 @@ python_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
                 install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}"
 
                 [[ ! -d "${d[0]}" ]] \
-                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                     && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
-                    || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+                    || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
                 echo; show "INITIALIZING CONFIGS..."
 
@@ -2164,7 +2164,7 @@ reduceye_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2172,7 +2172,7 @@ reduceye_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -2202,7 +2202,7 @@ reduceye_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}"
 
@@ -2360,7 +2360,7 @@ ruby_stuffs() {
 
    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2368,7 +2368,7 @@ ruby_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
 
@@ -2402,7 +2402,7 @@ ruby_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Yarn) ]] \
             && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
@@ -2430,15 +2430,15 @@ ruby_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[16]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[16]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
                 install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}"
 
                 [[ ! -d "${d[0]}" ]] \
-                    && show "\n${c[YELLOW]}${m[16]^^} ${c[WHITE]}${linen:${#m[16]}} [INSTALLING]" \
+                    && show "\n${c[YELLOW]}${m[16]:u} ${c[WHITE]}${linen:${#m[16]}} [INSTALLING]" \
                     && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
-                    || show "\n${c[GREEN]}${m[16]^^} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
+                    || show "\n${c[GREEN]}${m[16]:u} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
 
                 echo; show "INITIALIZING CONFIGS..."
 
@@ -2532,7 +2532,7 @@ sublime_stuffs() {
 
 	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2540,7 +2540,7 @@ sublime_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[1]}" &> "${f[null]}"
 
@@ -2570,7 +2570,7 @@ sublime_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
 		# 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -2858,7 +2858,7 @@ tmate_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2866,7 +2866,7 @@ tmate_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -2892,7 +2892,7 @@ tmate_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}"
 
@@ -2949,7 +2949,7 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" 1
+        show "\n${c[GREEN]}${m[6]:u} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" 1
 
         read -p $'?\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -2957,7 +2957,7 @@ usefull_pkgs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]}, ${c[RED]}${m[3]^^}${c[WHITE]} AND ${c[RED]}${m[4]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}, ${c[RED]}${m[1]:u}${c[WHITE]}, ${c[RED]}${m[2]:u}${c[WHITE]}, ${c[RED]}${m[3]:u}${c[WHITE]} AND ${c[RED]}${m[4]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" &> "${f[null]}"
 
@@ -2999,7 +2999,7 @@ usefull_pkgs() {
 
     else
 
-        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[6]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[6]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
@@ -3014,9 +3014,9 @@ usefull_pkgs() {
         update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
 
         [[ ! $(snap list | grep "${m[11]}") ]] \
-            && show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
+            && show "\n${c[YELLOW]}${m[11]:u} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
             && sudo snap install "${m[11]}" &> "${f[null]}" \
-            || show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]"
+            || show "\n${c[GREEN]}${m[11]:u} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]"
 
     fi
 
@@ -3088,7 +3088,7 @@ workspace_stuffs() {
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
-        show "\n${c[GREEN]}${d[0]^^} ${c[WHITE]}${linec:${#d[0]}} [CREATED]\n" 1
+        show "\n${c[GREEN]}${d[0]:u} ${c[WHITE]}${linec:${#d[0]}} [CREATED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
@@ -3096,7 +3096,7 @@ workspace_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}R${c[WHITE]}EMOVING ${c[RED]}${d[0]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}R${c[WHITE]}EMOVING ${c[RED]}${d[0]:u}${c[WHITE]}!\n"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -3123,9 +3123,9 @@ workspace_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
+        show "${c[GREEN]}\n\t  C${c[WHITE]}REATING ${c[GREEN]}${d[0]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
 
-        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[0]^^}${c[WHITE]}"
+        show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[0]:u}${c[WHITE]}"
 
         sudo mkdir --parents "${d[0]}" > "${f[null]}"
 
@@ -3260,7 +3260,7 @@ zsh_stuffs() {
 
     if [[ -d "${d[1]}" ]]; then
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -3268,7 +3268,7 @@ zsh_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
                 # sudo apt remove --purge --assume-yes "${m[4]}" &> "${f[null]}"
 
@@ -3353,11 +3353,11 @@ zsh_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}"
 
-        show "\n${c[YELLOW]}${m[1]^^} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
+        show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
         sh -c "$(curl --show-error --fail --silent --location ${l[0]})" "" --unattended &> "${f[null]}"
 
@@ -3594,9 +3594,9 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
                 && zsh_stuffs
 
             [[ ! $(gem list | grep "${m[4]}") ]] \
-                && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                 && sudo gem install "${m[4]}" &> "${f[null]}" \
-                || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+                || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
             [[ ! $(grep --no-messages "${m[4]}" "${f[zshrc]}") ]] \
                 && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
