@@ -116,11 +116,11 @@ check_distro() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 check_source
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 # Após a invocação de outro chamado, ele não sai completamente
                 # do loop, sendo necessário a invocação e a interrupção do msm
@@ -332,13 +332,13 @@ uninstall_or_configure() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!"
 
                 return 0
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 echo && break
 
@@ -399,7 +399,7 @@ brave_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -413,7 +413,7 @@ brave_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -449,13 +449,13 @@ brave_stuffs() {
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             ( nohup "${m[1]}" & ) &> "${f[null]}"
 
             break
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -536,7 +536,7 @@ deemix_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[2]:u}${c[WHITE]}!\n"
 
@@ -548,7 +548,7 @@ deemix_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -679,7 +679,7 @@ dualmonitor_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NSETTING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -697,7 +697,7 @@ dualmonitor_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -848,7 +848,7 @@ github_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -867,7 +867,7 @@ github_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -889,14 +889,14 @@ github_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 [[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
                     && sudo apt-key adv --keyserver "${l[6]}" --recv-key C99B11DEB97541F0 &> "${f[null]}"
 
                 break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 [[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
                     && sudo apt-key adv --keyserver "${l[3]}" --recv-key C99B11DEB97541F0 &> "${f[null]}"
@@ -1051,7 +1051,7 @@ chrome_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -1070,7 +1070,7 @@ chrome_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -1108,13 +1108,13 @@ chrome_stuffs() {
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             ( nohup "${m[1]}" & ) &> "${f[null]}"
 
             break
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -1176,7 +1176,7 @@ flameshot_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -1190,7 +1190,7 @@ flameshot_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -1302,7 +1302,7 @@ heroku_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -1318,7 +1318,7 @@ heroku_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -1348,7 +1348,7 @@ heroku_stuffs() {
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             echo && heroku login -i
 
@@ -1363,7 +1363,7 @@ heroku_stuffs() {
 
             break
 
-        elif [[ "${option:0:1}" = @(n|N) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -1416,7 +1416,7 @@ hide_devices() {
 
             for (( ; ; )); do
 
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                     show "\n${c[RED]}S${c[WHITE]}HOWING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -1426,7 +1426,7 @@ hide_devices() {
 
                     return_menu && break
 
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                     break
 
@@ -1509,7 +1509,7 @@ minidlna_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -1523,7 +1523,7 @@ minidlna_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -1630,7 +1630,7 @@ nvidia_stuffs() {
 
             for (( ; ; )); do
 
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                     show "\n${c[RED]}R${c[WHITE]}ESTORING ${c[RED]}${m[2]:u}${c[WHITE]}!\n"
 
@@ -1647,11 +1647,11 @@ nvidia_stuffs() {
 
                     for (( ; ; )); do
 
-                        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                             sudo reboot
 
-                        elif [[ "${option:0:1}" = @(n|N) ]] ; then
+                        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                             break
 
@@ -1671,7 +1671,7 @@ nvidia_stuffs() {
 
                     return_menu && break
 
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                     break
 
@@ -1714,11 +1714,11 @@ alias lbm-nouveau off'
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 reboot
 
-            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -1759,8 +1759,6 @@ postgres_stuffs() {
 
     f+=(
         [ppa]=/etc/apt/sources.list.d/pgdg.list
-        [config]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
-        [postgres_hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
         [pspg_postgres]=/var/lib/postgresql/.psqlrc
         [pspg_user]=~/.psqlrc
         [pspg]=$(which pspg)  # /usr/bin/pspg
@@ -1790,7 +1788,7 @@ postgres_stuffs() {
 
     # -i: insensitive search
     # lsb_release get os version name
-    check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
+    check_codename=$(curl --silent "${l[3]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
@@ -1800,7 +1798,7 @@ postgres_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -1816,7 +1814,7 @@ postgres_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -1850,11 +1848,11 @@ postgres_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 sudo reboot
 
-            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 return_menu && break
 
@@ -1883,13 +1881,18 @@ postgres_stuffs() {
 
     check_version=$(apt show "${m[1]}" 2>&- | grep Version | awk '{print $2}')
 
+    f+=(
+        [config]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
+        [postgres_hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
+    )
+
     sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
     read $'?\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             echo; read $'?\033[1;37mENTER THE USER ('"${USER}"$'): \033[m' user
 
@@ -1914,7 +1917,7 @@ postgres_stuffs() {
 
             for (( ; ; )); do
 
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                     read $'?\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
@@ -1940,7 +1943,7 @@ postgres_stuffs() {
 
                     break
 
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                     break
 
@@ -1956,7 +1959,7 @@ postgres_stuffs() {
 
             break
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -1977,7 +1980,7 @@ postgres_stuffs() {
 
         sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
-        sudo sed --in-place "s|local   all             postgres                                peer|local   all             postgres                                md5|g" "${f[postgres_hba]}"
+        sudo sed --in-place 's|local   all             postgres                                peer|local   all             postgres                                md5|g' "${f[postgres_hba]}"
 
     fi
 
@@ -2040,7 +2043,7 @@ python_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]} AND ${c[RED]}${m[17]:u}${c[WHITE]}!\n"
 
@@ -2058,7 +2061,7 @@ python_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2103,7 +2106,7 @@ python_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
@@ -2135,7 +2138,7 @@ eval "$(pyenv virtualenv-init -)"' \
 
                 break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2202,7 +2205,7 @@ reduceye_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -2218,7 +2221,7 @@ reduceye_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2398,7 +2401,7 @@ ruby_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -2418,7 +2421,7 @@ ruby_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2460,7 +2463,7 @@ ruby_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[17]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
@@ -2495,7 +2498,7 @@ eval "$(rbenv init -)"' \
 
                 break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2570,7 +2573,7 @@ sublime_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[2]:u}${c[WHITE]}!\n"
 
@@ -2586,7 +2589,7 @@ sublime_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2680,7 +2683,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             echo; read $'?\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
 
@@ -2695,11 +2698,11 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
                 echo; read $'?\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
 
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                     continue
 
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                     break
 
@@ -2717,7 +2720,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
             fi
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -2765,11 +2768,11 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 sudo pkill subl && break
 
-            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 echo && show "I'LL RESTART... \n(RESTART IS REQUIRED AFTER PACKAGE CONTROL INSTALLATION)"
 
@@ -2896,7 +2899,7 @@ tmate_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -2908,7 +2911,7 @@ tmate_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -2987,7 +2990,7 @@ usefull_pkgs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}, ${c[RED]}${m[2]:u}${c[WHITE]}, ${c[RED]}${m[3]:u}${c[WHITE]}, ${c[RED]}${m[4]:u}${c[WHITE]} AND ${c[RED]}${m[5]:u}${c[WHITE]}!\n"
 
@@ -3015,7 +3018,7 @@ usefull_pkgs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -3117,7 +3120,7 @@ workspace_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}R${c[WHITE]}EMOVING ${c[RED]}${d[1]:u}${c[WHITE]}!\n"
 
@@ -3130,7 +3133,7 @@ workspace_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -3166,7 +3169,7 @@ workspace_stuffs() {
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             [[ ! -e "${f[tmp_tk]}" ]] \
                 && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
@@ -3195,11 +3198,11 @@ workspace_stuffs() {
 
                         read $'?\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
 
-                        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                             clear && continue  # Simillar to pass
 
-                        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                             break
 
@@ -3231,7 +3234,7 @@ workspace_stuffs() {
 
             done
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -3289,7 +3292,7 @@ zsh_stuffs() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
@@ -3313,7 +3316,7 @@ zsh_stuffs() {
 
                 for (( ; ; )); do
 
-                    if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                    if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                         [[ $(echo "${SHELL}") = '/bin/zsh' ]] \
                             && sudo chsh --shell $(which bash)
@@ -3322,11 +3325,11 @@ zsh_stuffs() {
 
                         for (( ; ; )); do
 
-                            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                                 sudo reboot
 
-                            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                                 break
 
@@ -3342,7 +3345,7 @@ zsh_stuffs() {
 
                         break
 
-                    elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                    elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                         break
 
@@ -3360,7 +3363,7 @@ zsh_stuffs() {
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -3437,7 +3440,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             [[ $(echo "${SHELL}") = '/bin/bash' ]] \
                 && chsh --shell $(which zsh)
@@ -3446,11 +3449,11 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
             for (( ; ; )); do
 
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                     sudo reboot
 
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                     break
 
@@ -3466,7 +3469,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
             break
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -3634,7 +3637,7 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
 
     for (( ; ; )); do
 
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
             [[ ! -d "${d[4]}" && ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
@@ -3658,7 +3661,7 @@ alias ls='${m[5]}'"
 
             break
 
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
             break
 
@@ -3753,7 +3756,7 @@ evoke_functions() {
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 change_panelandgui
 
@@ -3761,7 +3764,7 @@ evoke_functions() {
 
                 break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
                 break
 
@@ -3891,7 +3894,7 @@ menu() {
 			&& echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
 			&& read trash_typed || evoke_functions "${choice}"
 
-			[[ "${trash_typed:0:1}" == @(s|S|y|Y) ]] && return_menu \
+			[[ "${trash_typed:0:1}" =~ ^(s|S|y|Y)$ ]] && return_menu \
             || close_menu && break
 
 	done
