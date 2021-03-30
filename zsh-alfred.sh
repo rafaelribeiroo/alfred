@@ -82,6 +82,7 @@ declare -A e=(
 # usefull files
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
+    [dmrc]=~/.dmrc
     [zshrc]=~/.zshrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
@@ -111,7 +112,7 @@ check_distro() {
 
         show "${c[RED]}YOU MUST RUN AT GOTHAM FOR A BETTER EXPERIENCE ${c[GREEN]}\n\t\t(MINT)\n"
 
-        read -p $'?\033[1;37mDID U WANNA CONTINUE? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mDID U WANNA CONTINUE? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -177,7 +178,7 @@ check_source() {
     # If script is not being sourced
     if [[ "${BASH_SOURCE[0]}" -ef "${0}" ]]; then
 
-        show "\n${c[RED-BLINK]}PLEASE, RUNS: source alfred.sh\n" 1 && exit
+        show "\n${c[RED-BLINK]}PLEASE, RUNS: source zsh-alfred.sh\n" 1 && exit
 
     else
 
@@ -327,7 +328,7 @@ uninstall_or_configure() {
 
         show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -394,7 +395,7 @@ brave_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -444,7 +445,7 @@ brave_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    echo; read -p $'?\033[1;37mSIR, SHOULD I OPEN BRAVE? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, SHOULD I OPEN BRAVE? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -494,7 +495,6 @@ deemix_stuffs() {
         [decryptcookie]=/tmp/browser_cookie3_n.py
         [cookies]=/tmp/cookies.txt
         [arl]=~/.config/deemix/.arl
-        [dmrc]=~/.dmrc
     )
 
     local -a l=(
@@ -532,7 +532,7 @@ deemix_stuffs() {
 
         show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -618,6 +618,11 @@ deemix_stuffs() {
 
     fi
 
+    echo; read $'?\033[1;37mENTER THE NAME TO ACCESS DEEMIX FROM COMMAND LINE ('"${m[2]}"$'): \033[m' name
+
+    # if empty string
+    [[ -z "${user}" ]] && user="${m[2]}"
+
     [[ ! $(grep --no-messages deemix "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias clear_thumbnail='rm --recursive --force ${d[2]}'
@@ -670,7 +675,7 @@ dualmonitor_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linec:${#m[1]}} [APPLIED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -839,7 +844,7 @@ github_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -880,7 +885,7 @@ github_stuffs() {
 
         show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        echo; read -p $'?\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
+        echo; read $'?\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -922,8 +927,8 @@ github_stuffs() {
     # server in a later lesson will include this information.
     # from: https://swcarpentry.github.io/git-novice/02-setup/
     [[ ! $(grep --no-messages @ "${f[config]}") ]] \
-        && read -p $'?\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
-        && read -p $'?\033[1;37mNAME '"${e[silent_monkey]}"$': \033[m' nome \
+        && read $'?\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email \
+        && read $'?\033[1;37mNAME '"${e[silent_monkey]}"$': \033[m' nome \
         && git config --global user.email "${email}" \
         && git config --global user.name "${nome}" \
         && git config --global core.editor "vim" \
@@ -953,14 +958,14 @@ github_stuffs() {
     Hostname ssh.github.com
     Port 443'
 
-    echo; read -p $'?\033[1;37mENTER YOUR USERNAME FROM GITHUB: \033[m' user
+    echo; read $'?\033[1;37mENTER YOUR USERNAME FROM GITHUB: \033[m' user
 
     # GITHUB STUFF
     for (( ; ; )); do
 
         echo; show "${c[RED]}${user:u}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 1
 
-        echo; read -n 40 -p $'\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
+        echo; read -k 40 $'?\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
 
         [[ ! -e "${f[tmp_tk]}" ]] && sudo touch "${f[tmp_tk]}"
 
@@ -1042,7 +1047,7 @@ chrome_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1099,7 +1104,7 @@ chrome_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    echo; read -p $'?\033[1;37mSIR, SHOULD I OPEN CHROME? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, SHOULD I OPEN CHROME? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -1167,7 +1172,7 @@ flameshot_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1293,7 +1298,7 @@ heroku_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1339,7 +1344,7 @@ heroku_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    echo; read -p $'?\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -1407,7 +1412,7 @@ hide_devices() {
 
             show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${lineh:${#m[1]}} [HIDED]\n" 1
 
-            read -p $'?\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
+            read $'?\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -1456,7 +1461,7 @@ hide_devices() {
 
             for (( iterator=1; iterator<=${#devices}; iterator++ )); do
 
-                tee --append "${f[try]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid --match-tag UUID --output value ${devices[${iterator}]})"'",ENV{UDISKS_IGNORE}="1"'
+                tee --append "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid --match-tag UUID --output value ${devices[${iterator}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
 
@@ -1500,7 +1505,7 @@ minidlna_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1621,7 +1626,7 @@ nvidia_stuffs() {
 
             show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-            read -p $'?\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
+            read $'?\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -1638,7 +1643,7 @@ nvidia_stuffs() {
 
                     sudo update-initramfs -u > "${f[null]}"
 
-                    echo && read -p $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+                    echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
                     for (( ; ; )); do
 
@@ -1705,7 +1710,7 @@ alias lbm-nouveau off'
 
         sudo update-initramfs -u > "${f[null]}"
 
-        echo && read -p $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+        echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1791,7 +1796,7 @@ postgres_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -1857,13 +1862,13 @@ postgres_stuffs() {
 
     sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
-    read -p $'?\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
+    read $'?\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            read -p $'?\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
+            echo; read $'?\033[1;37mENTER THE USER ('"${USER}"$'): \033[m' user
 
             # if empty string
             [[ -z "${user}" ]] && user="${USER}"
@@ -1882,13 +1887,13 @@ postgres_stuffs() {
 
             sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${f[null]}"
 
-            read -p $'?\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
+            read $'?\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                    read -p $'?\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
+                    read $'?\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
                     [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                         && show "\nDATABASE ${c[RED]}${database:u}${c[WHITE]} ALREADY EXISTS. EXITING..." \
@@ -2008,7 +2013,7 @@ python_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]" 1
 
-        read -p $'?\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2069,9 +2074,9 @@ python_stuffs() {
 
     latest=$(curl --silent "${l[3]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
-    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        read -p $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        echo; read $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2170,7 +2175,7 @@ reduceye_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2366,7 +2371,7 @@ ruby_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2428,7 +2433,7 @@ ruby_stuffs() {
 
     if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
 
-        read -p $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2538,7 +2543,7 @@ sublime_stuffs() {
 
         show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2648,13 +2653,13 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-    read -p $'?\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
+    read $'?\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            echo; read -p $'?\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
+            echo; read $'?\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
 
             [[ $(curl --write-out %{http_code} --silent --output "${f[null]}" "${l[5]}""${pkg}") -ne 200 ]] \
                 && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
@@ -2665,7 +2670,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
                 # Append new pkg to the last index of tuple
                 sudo sed --in-place "s|\(.*\)\"|\1\", \"${pkg}\"|" "${f[pkgs]}"
 
-                echo; read -p $'?\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
+                echo; read $'?\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
@@ -2733,7 +2738,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
         ( nohup subl & ) &> "${f[null]}"
 
-        echo && read -p $'?\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES?\n[Y/N] R: \033[m' option
+        echo && read $'?\033[1;37mSUBLIME ALREADY INSTALL ALL PACKAGES?\n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2747,7 +2752,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
                 sudo pkill subl && ( nohup subl & ) &> "${f[null]}"
 
-                echo && read -p $'?\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
+                echo && read $'?\033[1;37mPACKAGES ARE INSTALLED? \n[Y/N] R: \033[m' option
 
             else
 
@@ -2864,7 +2869,7 @@ tmate_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2955,7 +2960,7 @@ usefull_pkgs() {
 
         show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" 1
 
-        read -p $'?\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3085,7 +3090,7 @@ workspace_stuffs() {
 
         show "\n${c[GREEN]}${d[1]:u} ${c[WHITE]}${linec:${#d[1]}} [CREATED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3134,7 +3139,7 @@ workspace_stuffs() {
     [[ ! $(grep --no-messages workspace "${f[bookmarks]}") ]] \
         && sudo tee --append "${f[bookmarks]}" > "${f[null]}" <<< $'file:///workspace \360\237\221\211 Workspace'
 
-    echo; read -p $'?\033[1;37mSIR, SHOULD I DOWNLOAD ANY REPO FROM UR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, SHOULD I DOWNLOAD ANY REPO FROM UR GITHUB ACCOUNT? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -3145,7 +3150,7 @@ workspace_stuffs() {
                 && github_stuffs
                 # || return 1
 
-            read -p $'?\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
+            read $'?\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
             for (( ; ; )); do
 
@@ -3165,7 +3170,7 @@ workspace_stuffs() {
 
                         clear
 
-                        read -p $'?\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
+                        read $'?\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
@@ -3257,7 +3262,7 @@ zsh_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -3281,7 +3286,7 @@ zsh_stuffs() {
 
                 # remove_useless
 
-                echo; read -p $'?\033[1;37mSIR, SHOULD I GO BACK TO BASH? \n[Y/N] R: \033[m' option
+                echo; read $'?\033[1;37mSIR, SHOULD I GO BACK TO BASH? \n[Y/N] R: \033[m' option
 
                 for (( ; ; )); do
 
@@ -3290,7 +3295,7 @@ zsh_stuffs() {
                         [[ $(echo "${SHELL}") = '/bin/zsh' ]] \
                             && sudo chsh --shell $(which bash)
 
-                        read -p $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
+                        read $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
 
                         for (( ; ; )); do
 
@@ -3405,7 +3410,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
         && sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}" \
         && sudo sed --in-place --null-data 's|git|git django python pyenv pip virtualenv copyfile|4' "${f[zshrc]}"
 
-    echo; read -p $'?\033[1;37mSIR, SHOULD I SET ZSH DEFAULT SHELL? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, SHOULD I SET ZSH DEFAULT SHELL? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -3414,7 +3419,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
             [[ $(echo "${SHELL}") = '/bin/bash' ]] \
                 && chsh --shell $(which zsh)
 
-            echo; read -p $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
+            echo; read $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -3461,10 +3466,11 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 change_panelandgui() {
 
     local -a d=(
-        ~/.local/share/cinnamon/applets/  # 0
-        ~/.local/share/cinnamon/applets/betterlock  # 1
-        ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
-        ~/.rbenv  # 3
+        ~/.local/share/cinnamon/applets/  # 1
+        ~/.local/share/cinnamon/applets/betterlock  # 2
+        ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
+        ~/.rbenv  # 4
+        ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
     )
 
     f+=(
@@ -3476,6 +3482,7 @@ change_panelandgui() {
         [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/14.json
         [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
         [computer_icon]=/org/nemo/desktop/computer-icon-visible
+        [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
         [grub-modified]=/etc/default/grub
         [volumes_icon]=/org/nemo/desktop/volumes-visible
@@ -3484,9 +3491,11 @@ change_panelandgui() {
         [grub]=/boot/grub/grub.cfg
         [home_icon]=/org/nemo/desktop/home-icon-visible
         [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
+        [login-file]=/org/cinnamon/sounds/login-file
         [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
         [numlock]=/etc/lightdm/slick-greeter.conf
         [paste]=/org/gnome/terminal/legacy/keybindings/paste
+        [path-ogg]=/usr/share/mint-artwork/sounds/manias.ogg
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
@@ -3494,20 +3503,23 @@ change_panelandgui() {
     )
 
     local -a l=(
-        'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
-        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 1
+        'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 1
+        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 2
+        'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
+        'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip?time=1613376235'  # 4
     )
 
     local -a m=(
-        'dconf-editor'  # 0
-        'numlockx'  # 1
-        'grub2-theme-mint-2k'  # 2
-        'ruby'  # 3
-        'colorls'  # 4
-        'transmission-gtk'  # 5
+        'dconf-editor'  # 1
+        'numlockx'  # 2
+        'grub2-theme-mint-2k'  # 3
+        'ruby'  # 4
+        'colorls'  # 5
+        'transmission-gtk'  # 6
+        'nemo-mediainfo-tab'  # 7
     )
 
-    install_packages "${m[0]}" "${m[1]}" "${m[2]}"
+    install_packages "${m[1]}" "${m[2]}" "${m[3]}"
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
@@ -3518,26 +3530,37 @@ change_panelandgui() {
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) ]] \
         && sudo add-apt-repository --assume-yes ppa:transmissionbt/ppa &> "${f[null]}" \
         && update \
-        && sudo apt install --assume-yes "${m[5]}" &> "${f[null]}"  # END PPA
+        && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
+
+    # START PPA ADDITION
+    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
+        && sudo add-apt-repository --assume-yes ppa:caldas-lopes/ppa &> "${f[null]}" \
+        && update \
+        && sudo apt install --assume-yes "${m[7]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
-    if [[ ! -d "${d[1]}" && ! -d "${d[2]}" ]]; then
+    if [[ ! -d "${d[2]}" && ! -d "${d[3]}" ]]; then
 
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
-            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
         [[ ! -e "${f[capslock]}" ]] \
-            && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
-            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
+            && wget --quiet "${l[1]}" --output-document "${f[capslock]}" \
+            && unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}" \
             && sudo rm --force "${f[capslock]}"
 
         [[ ! -e "${f[separator2]}" ]] \
-            && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
-            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
+            && wget --quiet "${l[2]}" --output-document "${f[separator2]}" \
+            && unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}" \
             && sudo rm --force "${f[separator2]}"
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:xapp-status@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:network@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:betterlock:12', 'panel1:right:13:separator2@zyzz:13', 'panel1:right:14:calendar@cinnamon.org:14']"
+        [[ ! -e "${f[forceqt]}" ]] \
+            && wget --quiet "${l[4]}" --output-document "${f[forceqt]}" \
+            && unzip "${d[5]}"*.zip -d "${d[5]}" &> "${f[null]}" \
+            && sudo rm --force "${f[forceqt]}"
+
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:force-quit@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:xapp-status@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:network@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:betterlock:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
 
         # use custom format
         sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
@@ -3553,6 +3576,16 @@ activate-numlock=true'
 
     [[ $(grep --no-messages false "${f[numlock]}") ]] \
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+
+    # START STARTUP SONG CHANGE
+    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+
+        [[ ! -e "${f[ogg_file]}" ]] \
+            && curl --location --output "${f[ogg]}" --create-dirs "${l[3]}"
+
+        dconf write "${f[login-file]}" "'${f[path-ogg]}'"
+
+    fi  # END
 
     # START CHANGE DESCRIPTION WINDOWS IN GRUB
     [[ ! $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
@@ -3574,31 +3607,31 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
         && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[zshrc]}" \
         && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[zshrc]}"  # END
 
-    echo; read -p $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! -d "${d[3]}" && ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+            [[ ! -d "${d[4]}" && ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
                 && ruby_stuffs
 
-            [[ ! -d "${d[0]}" ]] \
+            [[ ! -d "${d[1]}" ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
                 && zsh_stuffs
 
-            [[ ! $(gem list | grep "${m[4]}") ]] \
-                && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && sudo gem install "${m[4]}" &> "${f[null]}" \
-                || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+            [[ ! $(gem list | grep "${m[5]}") ]] \
+                && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
+                && sudo gem install "${m[5]}" &> "${f[null]}" \
+                || show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
 
-            [[ ! $(grep --no-messages "${m[4]}" "${f[zshrc]}") ]] \
+            [[ ! $(grep --no-messages "${m[5]}" "${f[zshrc]}") ]] \
                 && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 # Colorls stuffs
-source $(dirname $(gem which ${m[4]}))/tab_complete.sh
+source $(dirname $(gem which ${m[5]}))/tab_complete.sh
 
-alias ls='${m[4]}'"
+alias ls='${m[5]}'"
 
             break
 
@@ -3693,7 +3726,7 @@ evoke_functions() {
         19) zsh_stuffs && return_menu ;;
         20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
-        echo; read -p $'?\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
+        echo; read $'?\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
