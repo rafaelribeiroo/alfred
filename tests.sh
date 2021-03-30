@@ -97,3 +97,21 @@ work() {
 }
 
 # show "${c[RED]}=======================================================" 1
+
+read '?[Y/N] R: ' option
+
+for (( ; ; )); do
+
+    if [[ "${option:0:1}" == +(y|Y|s|S) ]] ; then
+
+        echo 'passei aqui'
+
+        break
+
+    else
+
+        echo 'nao passei'
+
+    fi
+
+done
