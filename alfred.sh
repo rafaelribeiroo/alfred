@@ -2020,8 +2020,6 @@ postgres_stuffs() {
 
     f+=(
         [ppa]=/etc/apt/sources.list.d/pgdg.list
-        [config]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
-        [postgres_hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
         [pspg_postgres]=/var/lib/postgresql/.psqlrc
         [pspg_user]=~/.psqlrc
         [pspg]=$(which pspg)  # /usr/bin/pspg
@@ -2144,6 +2142,11 @@ postgres_stuffs() {
         && upgrade
 
     check_version=$(apt show "${m[0]}" 2>&- | grep Version | awk '{print $2}')
+
+    f+=(
+        [config]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
+        [postgres_hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
+    )
 
     sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[config]}"
 
