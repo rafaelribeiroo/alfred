@@ -1790,7 +1790,7 @@ postgres_stuffs() {
 
     # -i: insensitive search
     # lsb_release get os version name
-    check_codename=$(curl --silent "${l[3]}" | grep -i -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||')
+    check_codename=$(curl --silent "${l[3]}" | grep --ignore-case $(lsb_release --codename --short) | awk --field-separator='>' '{print $3}' | sed 's|</a||g')
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
