@@ -99,5 +99,8 @@ work() {
 # show "${c[RED]}=======================================================" 1
 
 
-[[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-) ]] \
-    && echo dont exists || echo exists
+#[[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-) ]] \
+#    && echo dont exists || echo exists
+
+var1='Ulyana'
+echo ${var1:l}

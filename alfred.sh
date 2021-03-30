@@ -2051,7 +2051,8 @@ postgres_stuffs() {
 
     # -i: insensitive search
     # lsb_release get os version name
-    check_codename=$(curl --silent "${l[2]}" | grep -i -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||')
+
+    check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
@@ -2100,11 +2101,34 @@ postgres_stuffs() {
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
-    	[[ ! $(grep --no-messages "${check_codename,,}" "${f[ppa]}") ]] \
-    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_codename,,}-pgdg main" \
+        # If returns warning about architeture, please write deb [ arch=amd64 ]
+    	[[ ! $(grep --no-messages "${check_codename}" "${f[ppa]}") ]] \
+    		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_codename}-pgdg main" \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
+
+        echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                sudo reboot
+
+            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                return_menu && break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
 
     fi
 
