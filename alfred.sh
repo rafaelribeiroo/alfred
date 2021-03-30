@@ -17,9 +17,9 @@ lineu='-------------------------------------------'
 linec='--------------------------------------------'
 lineh='----------------------------------------------'
 
-# ${#string} retorna o tamanho da string
-# ${#string[@]} retorna a quantidade de elementos no array
-# $((above)) síntaxe para subtrair um número do conjunto
+# ${#string} returns length string
+# ${#string[@]} returns array size
+# $((above)) syntax to arithmetics math
 name=(
     'MASTER WAYNE'
     'MASTER BRUCE'
@@ -82,6 +82,7 @@ declare -A e=(
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
+    [dmrc]=~/.dmrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [mimeapps]=~/.config/mimeapps.list
@@ -758,7 +759,6 @@ deemix_stuffs() {
         [decryptcookie]=/tmp/browser_cookie3_n.py
         [cookies]=/tmp/cookies.txt
         [arl]=~/.config/deemix/.arl
-        [dmrc]=~/.dmrc
     )
 
     local -a l=(
@@ -882,11 +882,16 @@ deemix_stuffs() {
 
     fi
 
+    echo; read -p $'\033[1;37mENTER THE NAME TO ACCESS DEEMIX FROM COMMAND LINE ('"${m[1]}"$'): \033[m' name
+
+    # if empty string
+    [[ -z "${name}" ]] && name="${m[1]}"
+
     [[ ! $(grep --no-messages deemix "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias clear_thumbnail='rm --recursive --force ${d[1]}'
 
-alias deemix='( nohup ${f[file]} & ) &> ${f[null]}'"
+alias ${name}='( nohup ${f[file]} & ) &> ${f[null]}'"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1717,7 +1722,7 @@ hide_devices() {
 
             for (( iterador=0; iterador<${#devices[@]}; iterador++ )); do
 
-                tee --append "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid -s UUID -o value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
+                tee --append "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid --match-tag UUID --output value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
 
@@ -1838,7 +1843,6 @@ minidlna_stuffs() {
 
 #======================#
 nvidia_stuffs() {
-
 
     # The nouveau driver comes by default once linux is installed, but not
     # extract all resources as nvidia driver (only father knows the kid)
@@ -2125,7 +2129,7 @@ postgres_stuffs() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            read -p $'\033[1;37m\nENTER THE USER ('"${USER}"$'): \033[m' user
+            echo; read -p $'\033[1;37mENTER THE USER ('"${USER}"$'): \033[m' user
 
             # if empty string
             [[ -z "${user}" ]] && user="${USER}"
@@ -2250,6 +2254,7 @@ python_stuffs() {
         'libssl-dev'  # 13
         'libffi-dev'  # 14
         'gawk'  # 15
+        'dependencies'  # 16
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[15]}[[:space:]]/ {print }") ]] \
@@ -2275,7 +2280,7 @@ python_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]} AND ${c[RED]}${m[2]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]} AND ${c[RED]}${m[17]:u}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
 
@@ -2330,9 +2335,9 @@ python_stuffs() {
 
     latest=$(curl --silent "${l[2]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
-    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        echo; read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2414,7 +2419,7 @@ upgrade() {
 reduceye_stuffs() {
 
     local -a d=(
-        ~/.config/redshift/
+        ~/.config/redshift/  # 0
     )
 
     f+=(
@@ -2424,7 +2429,7 @@ reduceye_stuffs() {
 
     local -a m=(
         'redshift'  # 0
-        'redshift-gtk'
+        'redshift-gtk'  # 1
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
@@ -3339,16 +3344,7 @@ workspace_stuffs() {
 
     # only here is global because invokes a new function
     l=(
-        git@github.com:"${user}"/
-    )
-
-    local -a r=(
-        scripts_py  # 0
-        connecting_networks  # 1
-        releasing_linux  # 2
-        coffee_warm  # 3
-        instrutions_sql  # 4
-        alfred  # 5
+        git@github.com:"${user}"/  # 0
     )
 
     if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
@@ -3500,6 +3496,7 @@ change_panelandgui() {
         ~/.local/share/cinnamon/applets/betterlock  # 1
         ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
         ~/.rbenv  # 3
+        ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 4
     )
 
     f+=(
@@ -3511,6 +3508,7 @@ change_panelandgui() {
         [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/14.json
         [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
         [computer_icon]=/org/nemo/desktop/computer-icon-visible
+        [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
         [grub-modified]=/etc/default/grub
         [volumes_icon]=/org/nemo/desktop/volumes-visible
@@ -3519,9 +3517,11 @@ change_panelandgui() {
         [grub]=/boot/grub/grub.cfg
         [home_icon]=/org/nemo/desktop/home-icon-visible
         [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
+        [login-file]=/org/cinnamon/sounds/login-file
         [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
         [numlock]=/etc/lightdm/slick-greeter.conf
         [paste]=/org/gnome/terminal/legacy/keybindings/paste
+        [path-ogg]=/usr/share/mint-artwork/sounds/manias.ogg
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
@@ -3531,6 +3531,8 @@ change_panelandgui() {
     local -a l=(
         'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
         'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 1
+        'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 2
+        'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip?time=1613376235'  # 3
     )
 
     local -a m=(
@@ -3540,6 +3542,7 @@ change_panelandgui() {
         'ruby'  # 3
         'colorls'  # 4
         'transmission-gtk'  # 5
+        'nemo-mediainfo-tab'  # 6
     )
 
     install_packages "${m[0]}" "${m[1]}" "${m[2]}"
@@ -3554,6 +3557,12 @@ change_panelandgui() {
         && sudo add-apt-repository --assume-yes ppa:transmissionbt/ppa &> "${f[null]}" \
         && update \
         && sudo apt install --assume-yes "${m[5]}" &> "${f[null]}"  # END PPA
+
+    # START PPA ADDITION
+    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
+        && sudo add-apt-repository --assume-yes ppa:caldas-lopes/ppa &> "${f[null]}" \
+        && update \
+        && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
     if [[ ! -d "${d[1]}" && ! -d "${d[2]}" ]]; then
@@ -3572,7 +3581,12 @@ change_panelandgui() {
             && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
             && sudo rm --force "${f[separator2]}"
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:xapp-status@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:network@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:betterlock:12', 'panel1:right:13:separator2@zyzz:13', 'panel1:right:14:calendar@cinnamon.org:14']"
+        [[ ! -e "${f[forceqt]}" ]] \
+            && wget --quiet "${l[3]}" --output-document "${f[forceqt]}" \
+            && unzip "${d[4]}"*.zip -d "${d[4]}" &> "${f[null]}" \
+            && sudo rm --force "${f[forceqt]}"
+
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:force-quit@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:xapp-status@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:network@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:betterlock:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
 
         # use custom format
         sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
@@ -3588,6 +3602,16 @@ activate-numlock=true'
 
     [[ $(grep --no-messages false "${f[numlock]}") ]] \
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
+
+    # START STARTUP SONG CHANGE
+    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+
+        [[ ! -e "${f[ogg_file]}" ]] \
+            && curl --location --output "${f[ogg]}" --create-dirs "${l[2]}"
+
+        dconf write "${f[login-file]}" "'${f[path-ogg]}'"
+
+    fi  # END
 
     # START CHANGE DESCRIPTION WINDOWS IN GRUB
     [[ ! $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
