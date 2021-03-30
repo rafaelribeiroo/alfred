@@ -1649,7 +1649,7 @@ nvidia_stuffs() {
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                            reboot
+                            sudo reboot
 
                         elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
@@ -3899,4 +3899,4 @@ menu() {
 }
 #======================#
 
-menu
+check_source
