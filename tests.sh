@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/usr/bin/env zsh
 
 declare -a e=(
     $'\360\237\232\252'  #  0 (door): exit
@@ -58,20 +58,8 @@ declare -A f=(
     [null]=/dev/null
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
-    [file-ogg]=~/Downloads/manias.ogg
-    [path-ogg]=/usr/share/mint-artwork/sounds/manias.ogg
-    [login-file]=/org/cinnamon/sounds/login-file
+    [try]=/workspace/alfred/try
 )
-
-name=(
-    'MASTER WAYNE'
-    'MASTER BRUCE'
-    'MR. WAYNE'
-    'MR. BRUCE'
-)
-
-random=$(shuf -i 0-$((${#name[@]}-1)) -n 1)
-
 
 #vim ~/.bashrc
 
@@ -101,47 +89,15 @@ work() {
 
     done
 
-    : "xrandr --output $EXTERN2 --mode 1920x1080
-   xrandr --output $EXTERN1 --mode 1920x1080
-   xrandr --output $EXTERN1 --left-of $EXTERN2
-   xrandr --output $EXTERN1 --primary
-"
-declare -a l=(
-    'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'
-)
-
-dconf write "${f[login-file]}" "'${f[path-ogg]}'"
-
-curl --location --output "${f[ogg]}" --create-dirs "${l[0]}"
-apt install docky
-    sudo gconftool-2 --type Boolean --set /apps/docky-2/Docky/Items/DockyItem/ShowDockyItem False
-    # Armazenando o docky ativo na var active
-    active=$(gconftool-2 --get /apps/docky-2/Docky/DockController/ActiveDocks | sed 's/.*\[\([^]]*\)\].*/\1/g')
-    # Configs pro docky ficar sobreposto a qualquer janela
-    sudo gconftool --type string --set /apps/docky-2/Docky/Interface/DockPreferences/$active/Autohide 'UniversalIntellihide'
-    sudo gconftool --type bool --set /apps/docky-2/Docky/Interface/DockPreferences/$active/FadeOnHide True
-    sudo gconftool --type int --set /apps/docky-2/Docky/Interface/DockPreferences/$active/FadeOpacity 1
-    # Temas
-    sudo gconftool --type string --set /apps/docky-2/Docky/Services/ThemeService/Theme 'Smoke'
-    sudo gconftool --type bool --set /apps/docky-2/Docky/Interface/DockPreferences/$active/ThreeDimensional True
-    sudo gconftool --type bool --set /apps/docky-2/Docky/Interface/DockPreferences/$active/ZoomEnabled True
-    sudo gconftool --type int --set /apps/docky-2/Docky/Interface/DockPreferences/$active/ZoomPercent 2
-    sudo gconftool --type string --set /apps/docky-2/Docky/Interface/DockPreferences/$active/IconSize '50'
-    sudo gconftool --type list --list-type string --set /apps/docky-2/Docky/Interface/DockPreferences/$active/Plugins '[Clippy,Clock]'
-    sudo gconftool --type string --set /apps/docky-2/Docky/Interface/DockPreferences/$active/Position 'Bottom'
-
+    xrandr --output $EXTERN2 --mode 1920x1080
+    xrandr --output $EXTERN1 --mode 1920x1080
+    xrandr --output $EXTERN1 --left-of $EXTERN2
+    xrandr --output $EXTERN1 --primary
 
 }
 
 # show "${c[RED]}=======================================================" 1
 
-# zsh convention, anything after a ? is used as the prompt string
-# https://superuser.com/questions/555874/zsh-read-command-fails-within-bash-function-read1-p-no-coprocess
-# read -k 2 $'?\033[1;31m[    ]\033[m\033[4D' choice
-linei='amo você mãe'
 
-echo ${linei:u}
-
-
-# show "${module[3]} ${linei:${#module[3]}} [INSTALLED]"
-# echo "${module2} ${linei:${#module2}} [INSTALLED]"
+[[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-) ]] \
+    && echo dont exists || echo exists
