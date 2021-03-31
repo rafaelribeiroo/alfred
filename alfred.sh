@@ -2020,6 +2020,7 @@ postgres_stuffs() {
 
     f+=(
         [ppa]=/etc/apt/sources.list.d/pgdg.list
+        [ppa-pgadm]=/etc/apt/sources.list.d/pgadmin4.list
         [pspg_postgres]=/var/lib/postgresql/.psqlrc
         [pspg_user]=~/.psqlrc
         [pspg]=$(which pspg)  # /usr/bin/pspg
@@ -2029,6 +2030,7 @@ postgres_stuffs() {
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
         'https://www.postgresql.org/download/windows/'  # 1
         'https://www.linuxmint.com/download_all.php'  # 2
+        'https://www.pgadmin.org/static/packages_pgadmin_org.pub'  # 3
     )
 
     local -a m=(
@@ -2046,11 +2048,6 @@ postgres_stuffs() {
         && ! $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[6]}" "${m[7]}"
-
-    # -i: insensitive search
-    # lsb_release get os version name
-
-    check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
@@ -2094,14 +2091,24 @@ postgres_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
+        # lsb_release get os version name
+        check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
+
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep pgadmin) ]] \
+            && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
+
         # If returns warning about architeture, please write deb [ arch=amd64 ]
     	[[ ! $(grep --no-messages "${check_codename}" "${f[ppa]}") ]] \
     		&& sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_codename}-pgdg main" \
+            && update
+
+        [[ ! $(grep --no-messages "${check_codename}" "${f[ppa-pgadm]}") ]] \
+            && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/${check_codename} pgadmin4 main" \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
