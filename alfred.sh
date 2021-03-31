@@ -2111,7 +2111,7 @@ postgres_stuffs() {
             && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/${check_codename} pgadmin4 main" \
             && update
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[4]}"  # "${m[3]}"
 
         echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
