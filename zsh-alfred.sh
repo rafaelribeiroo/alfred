@@ -1759,6 +1759,7 @@ postgres_stuffs() {
 
     f+=(
         [ppa]=/etc/apt/sources.list.d/pgdg.list
+        [ppa-pgadm]=/etc/apt/sources.list.d/pgadmin4.list
         [pspg_postgres]=/var/lib/postgresql/.psqlrc
         [pspg_user]=~/.psqlrc
         [pspg]=$(which pspg)  # /usr/bin/pspg
@@ -1768,6 +1769,7 @@ postgres_stuffs() {
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 1
         'https://www.postgresql.org/download/windows/'  # 2
         'https://www.linuxmint.com/download_all.php'  # 3
+        'https://www.pgadmin.org/static/packages_pgadmin_org.pub'  # 4
     )
 
     local -a m=(
@@ -1785,10 +1787,6 @@ postgres_stuffs() {
         && ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[7]}" "${m[8]}"
-
-    # -i: insensitive search
-    # lsb_release get os version name
-    check_codename=$(curl --silent "${l[3]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
@@ -1832,20 +1830,32 @@ postgres_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
+        # lsb_release get os version name
+        check_codename=$(curl --silent "${l[3]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
+
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep PostgreSQL) ]] \
             && sudo wget --quiet --output-document - "${l[1]}" | sudo apt-key add - &> "${f[null]}"
+
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep pgadmin) ]] \
+            && sudo wget --quiet --output-document - "${l[4]}" | sudo apt-key add - &> "${f[null]}"
 
         # If returns warning about architeture, please write deb [ arch=amd64 ]
         [[ ! $(grep --no-messages "${check_codename}" "${f[ppa]}") ]] \
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_codename}-pgdg main" \
             && update
 
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}"
+        [[ ! $(grep --no-messages "${check_codename}" "${f[ppa-pgadm]}") ]] \
+            && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/${check_codename} pgadmin4 main" \
+            && update
+
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[5]}"  # "${m[4]}"
 
         echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
+        # Or pg_createcluster 9.3 (version_number) main --start
+        # /etc/init.d/postgresql start
         for (( ; ; )); do
 
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
@@ -1882,11 +1892,11 @@ postgres_stuffs() {
     check_version=$(apt show "${m[1]}" 2>&- | grep Version | awk '{print $2}')
 
     f+=(
-        [config]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
-        [postgres_hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
+        [cfg]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
+        [hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
     )
 
-    sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[config]}"
+    sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[cfg]}"
 
     read $'?\033[1;37m\nDO U WANT A USER TO ACCESS THE CONSOLE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
@@ -1973,14 +1983,14 @@ postgres_stuffs() {
 
     done
 
-    if [[ ! $(sudo grep --no-messages 'local   all             postgres                                md5' "${f[postgres_hba]}") ]]; then
+    if [[ ! $(sudo grep --no-messages --extended-regexp '(postgres[[:space:]]+)md5' "${f[hba]}") ]]; then
 
         # Before change cryptography, we need add a password for postgres
         password=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
 
         sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
-        sudo sed --in-place 's|local   all             postgres                                peer|local   all             postgres                                md5|g' "${f[postgres_hba]}"
+        sudo sed --in-place --regexp-extended 's|(postgres[[:space:]]+)peer|\1md5|g' "${f[hba]}"
 
     fi
 
@@ -2520,6 +2530,7 @@ eval "$(rbenv init -)"' \
 #======================#
 
 #======================#
+# Remember: Sublime don't show file content if not have access
 sublime_stuffs() {
 
     declare -a d=(
@@ -2636,7 +2647,7 @@ sublime_stuffs() {
 
     # hexed.it: get position and convert to decimal, put in seek
     # Change executable binary sequence
-    [[ $(xxd -p -seek 158612 -l 3 "${f[exec]}") =~ 97940d ]] \
+    [[ $(xxd -plain -seek 158612 -len 3 "${f[exec]}") =~ 97940d ]] \
         && sudo pkill subl \
         && printf '\00\00\00' | sudo dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
 
@@ -2658,7 +2669,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 
     # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
     [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
-        && sudo sed --in-place "3 a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
+        && sudo sed --in-place "3a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
@@ -2951,10 +2962,11 @@ usefull_pkgs() {
     )
 
     f+=(
-        [config]=~/.SpaceVim/autoload/SpaceVim.vim
-        [cfg]=~/.config/nvim/init.vim
+        [cfg]=~/.SpaceVim/autoload/SpaceVim.vim
+        [load]=~/.config/nvim/init.vim
         [autokey]=~/.config/autostart/autokey-gtk.desktop
         [lock]=/etc/apt/preferences.d/nosnap.pref
+        [out]=/tmp/spacevim.out
     )
 
     local -a l=(
@@ -2975,6 +2987,7 @@ usefull_pkgs() {
         'autokey-gtk'  # 10
         'snapd'  # 11
         'compress-video'  # 12
+        'spacevim'  # 13
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -3046,22 +3059,34 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && rm --force "${f[lock]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[20]}" "${m[21]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
-        [[ ! $(snap list | grep "${m[22]}") ]] \
-            && show "\n${c[YELLOW]}${m[22]:u} ${c[WHITE]}${linen:${#m[22]}} [INSTALLING]" \
-            && sudo snap install "${m[22]}" &> "${f[null]}" \
-            || show "\n${c[GREEN]}${m[22]:u} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]"
+        [[ ! $(snap list | grep "${m[12]}") ]] \
+            && show "\n${c[YELLOW]}${m[12]:u} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
+            && sudo snap install "${m[12]}" &> "${f[null]}" \
+            || show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]"
+
+        [[ ! -d "${d[2]}" ]] \
+            && show "\n${c[YELLOW]}${m[13]:u} ${c[WHITE]}${linen:${#m[13]}} [INSTALLING]" \
+            && bash -c "$(curl --location --silent ${l[1]})" &> "${f[out]}" \
+            || show "\n${c[GREEN]}${m[13]:u} ${c[WHITE]}${linei:${#m[13]}} [INSTALLED]"
+
+        for (( ; ; )); do
+
+            [[ $(grep --no-messages "That's it" "${f[out]}") ]] \
+                && break \
+                || continue
+
+        done
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
-    [[ ! -d "${d[2]}" ]] \
-        && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}"
-
-    [[ $(grep --no-messages "let g:spacevim_relativenumber          = 1" "${f[config]}") ]] \
-        && sed --in-place 's|let g:spacevim_relativenumber          = 1|let g:spacevim_relativenumber          = 0|g' "${f[config]}"
+    # These character class match once only, so we need +
+    # https://www.petefreitag.com/cheatsheets/regex/character-classes/
+    [[ $(grep --no-messages --extended-regexp '([[:space:]]+ = )1' "${f[cfg]}") ]] \
+        && sed --in-place --regexp-extended 's|([[:space:]]+ = )1|\10|g' "${f[cfg]}"
 
     [[ ! $(grep --no-messages AutoKey "${f[autokey]}") ]] \
         && sudo tee "${f[autokey]}" > "${f[null]}" <<< '[Desktop Entry]
@@ -3082,8 +3107,8 @@ X-GNOME-Autostart-Delay=0'
 
     # set wrap breaks line when is too long
     # set mouse allow mouse highligh text
-    [[ ! $(grep --no-messages mouse "${f[cfg]}") ]] \
-        && sudo tee --append "${f[cfg]}" > "${f[null]}" <<< 'set mouse=a
+    [[ ! $(grep --no-messages mouse "${f[load]}") ]] \
+        && sudo tee --append "${f[load]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
     [[ ! $(grep --no-messages vlc_kill "${f[zshrc]}") ]] \
