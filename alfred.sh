@@ -2626,36 +2626,35 @@ ruby_stuffs() {
 
     local -a l=(
         'https://www.ruby-lang.org/en/downloads/'  # 0
-        'https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-installer'  # 1
+        'https://github.com/rbenv/rbenv.git'  # 1
         'https://github.com/rbenv/ruby-build.git'  # 2
         'https://dl.yarnpkg.com/debian/pubkey.gpg'  # 3
     )
 
     local -a m=(
         'ruby'  # 0
-        'gawk'  # 1
-        'git'  # 2
-        'curl'  # 3
-        'autoconf'  # 4
-        'bison'  # 5
-        'build-essential'  # 6
-        'libssl-dev'  # 7
-        'libyaml-dev'  # 8
-        'libreadline6-dev'  # 9
-        'zlib1g-dev'  # 10
-        'libncurses5-dev'  # 11
-        'libffi-dev'  # 12
-        'libgdbm6'  # 13
-        'libgdbm-dev'  # 14
-        'libdb-dev'  # 15
-        'rbenv'  # 16
-        'rails'  # 17
-        'yarn'  # 18
+        'yarn'  # 1
+        'gawk'  # 2
+        'rbenv'  # 3
+        'ruby-build'  # 4
+        'git'  # 5
+        'zlib1g-dev'  # 6
+        'build-essential'  # 7
+        'libssl-dev'  # 8
+        'libreadline-dev'  # 9
+        'libyaml-dev'  # 10
+        'libsqlite3-dev'  # 11
+        'sqlite3'  # 12
+        'libxml2-dev'  # 13
+        'libxslt1-dev'  # 14
+        'libcurl4-openssl-dev'  # 15
+        'software-properties-common'  # 16
+        'libffi-dev'  # 17
     )
 
-    [[ ! $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]] \
+    [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
-        && install_packages "${m[1]}"
+        && install_packages "${m[2]}"
 
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
@@ -2676,7 +2675,7 @@ ruby_stuffs() {
 
                 show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" &> "${f[null]}"
+                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -2717,7 +2716,7 @@ ruby_stuffs() {
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
             && update
 
-        install_packages "${m[0]}" "${m[18]}"
+        install_packages "${m[0]}" "${m[1]}"
 
     fi
 
@@ -2728,29 +2727,32 @@ ruby_stuffs() {
 
     latest=$(curl --silent "${l[0]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')
 
-    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        echo; read -p $'\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[16]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[3]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
-                install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}"
+                install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}"
 
+                # rbenv
                 [[ ! -d "${d[0]}" ]] \
-                    && show "\n${c[YELLOW]}${m[16]^^} ${c[WHITE]}${linen:${#m[16]}} [INSTALLING]" \
-                    && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
-                    || show "\n${c[GREEN]}${m[16]^^} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
-
-                echo; show "INITIALIZING CONFIGS..."
+                    && show "\n${c[YELLOW]}${m[3]^^} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]" \
+                    && git clone --quiet "${l[1]}" "${d[0]}" \
+                    || show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]"
 
                 # Install don't comes by default on rbenv until ruby-build was installed
                 [[ ! -d "${d[2]}" ]] \
-                    && git clone --quiet "${l[2]}" "${d[0]}"
+                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && git clone --quiet "${l[2]}" "${d[2]}" \
+                    || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+
+                echo; show "INITIALIZING CONFIGS..."
 
                 [[ ! $(grep --no-messages rbenv "${f[bashrc]}") ]] \
                     && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< '

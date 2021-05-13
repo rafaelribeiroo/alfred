@@ -2365,42 +2365,41 @@ ruby_stuffs() {
 
     local -a l=(
         'https://www.ruby-lang.org/en/downloads/'  # 1
-        'https://github.com/rbenv/rbenv-installer/raw/master/bin/rbenv-installer'  # 2
+        'https://github.com/rbenv/rbenv.git'  # 2
         'https://github.com/rbenv/ruby-build.git'  # 3
         'https://dl.yarnpkg.com/debian/pubkey.gpg'  # 4
     )
 
-    local -a m=(
+     local -a m=(
         'ruby'  # 1
-        'gawk'  # 2
-        'git'  # 3
-        'curl'  # 4
-        'autoconf'  # 5
-        'bison'  # 6
-        'build-essential'  # 7
-        'libssl-dev'  # 8
-        'libyaml-dev'  # 9
-        'libreadline6-dev'  # 10
-        'zlib1g-dev'  # 11
-        'libncurses5-dev'  # 12
-        'libffi-dev'  # 13
-        'libgdbm6'  # 14
-        'libgdbm-dev'  # 15
-        'libdb-dev'  # 16
-        'rbenv'  # 17
-        'rails'  # 18
-        'yarn'  # 19
+        'yarn'  # 2
+        'gawk'  # 3
+        'rbenv'  # 4
+        'ruby-build'  # 5
+        'git'  # 6
+        'zlib1g-dev'  # 7
+        'build-essential'  # 8
+        'libssl-dev'  # 9
+        'libreadline-dev'  # 10
+        'libyaml-dev'  # 11
+        'libsqlite3-dev'  # 12
+        'sqlite3'  # 13
+        'libxml2-dev'  # 14
+        'libxslt1-dev'  # 15
+        'libcurl4-openssl-dev'  # 16
+        'software-properties-common'  # 17
+        'libffi-dev'  # 18
     )
 
-    [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
+    [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
-        && install_packages "${m[2]}"
+        && install_packages "${m[3]}"
 
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
-        ~/.rbenv  # 0
-        ~/.rbenv/versions/$(curl --silent "${l[1]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')  # 1
-        ~/.rbenv/plugins/ruby-build  # 2
+        ~/.rbenv  # 1
+        ~/.rbenv/versions/$(curl --silent "${l[1]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')  # 2
+        ~/.rbenv/plugins/ruby-build  # 3
     )
 
    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
@@ -2415,9 +2414,9 @@ ruby_stuffs() {
 
                 show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[1]:u}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" &> "${f[null]}"
+                sudo apt remove --purge --assume-yes "${m[1]}" "${m[2]}" &> "${f[null]}"
 
-                sudo rm --force --recursive "${d[0]}"
+                sudo rm --force --recursive "${d[1]}"
 
                 sudo sed --in-place '/rbenv/d' "${f[zshrc]}"
 
@@ -2456,7 +2455,7 @@ ruby_stuffs() {
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
             && update
 
-        install_packages "${m[1]}" "${m[19]}"
+        install_packages "${m[1]}" "${m[2]}"
 
     fi
 
@@ -2467,29 +2466,32 @@ ruby_stuffs() {
 
     latest=$(curl --silent "${l[1]}" | grep --no-messages stable | awk '{print $6}' | sed 's|.||6')
 
-    if ( $(dpkg --compare-versions "${local}" eq "${latest}") ); then
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        read $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+        echo; read $'?\033[1;37mSIR, SHOULD I UPGRADE VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[17]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
-                install_packages "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}"
+                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}""${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}"
 
-                [[ ! -d "${d[0]}" ]] \
-                    && show "\n${c[YELLOW]}${m[17]:u} ${c[WHITE]}${linen:${#m[17]}} [INSTALLING]" \
-                    && bash -c "$(curl --location --silent ${l[2]})" &> "${f[null]}" \
-                    || show "\n${c[GREEN]}${m[17]:u} ${c[WHITE]}${linei:${#m[17]}} [INSTALLED]"
-
-                echo; show "INITIALIZING CONFIGS..."
+                # rbenv
+                [[ ! -d "${d[1]}" ]] \
+                    && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && git clone --quiet "${l[2]}" "${d[1]}" \
+                    || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
                 # Install don't comes by default on rbenv until ruby-build was installed
-                [[ ! -d "${d[2]}" ]] \
-                    && git clone --quiet "${l[3]}" "${d[0]}"
+                [[ ! -d "${d[3]}" ]] \
+                    && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
+                    && git clone --quiet "${l[3]}" "${d[3]}" \
+                    || show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
+
+                echo; show "INITIALIZING CONFIGS..."
 
                 [[ ! $(grep --no-messages rbenv "${f[zshrc]}") ]] \
                     && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< '
@@ -2500,7 +2502,7 @@ eval "$(rbenv init -)"' \
 
                 # rbenv versions
                 # rbenv install -l
-                [[ ! -d "${d[1]}" ]] && rbenv install "${latest}" &> "${f[null]}"
+                [[ ! -d "${d[2]}" ]] && rbenv install "${latest}" &> "${f[null]}"
 
                 rbenv global "${latest}" > "${f[null]}"
 
