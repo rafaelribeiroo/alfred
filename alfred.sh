@@ -1179,7 +1179,7 @@ github_stuffs() {
 
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[3]}") ]] \
             && sudo apt-add-repository "${l[3]}" \
-            && sudo apt update
+            && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[5]}" "${m[6]}"
 
