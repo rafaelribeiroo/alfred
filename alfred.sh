@@ -89,6 +89,7 @@ declare -A f=(
     [mimebkp]=~/.config/mimeapps.bkp
     [null]=/dev/null
     [public_ssh]=~/.ssh/id_rsa.pub
+    [tmp_tk]=/tmp/check_token.txt
     [user_dirs]=~/.config/user-dirs.dirs
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d/
@@ -273,7 +274,7 @@ install_pip(){
 #======================#
 remove_useless() {
 
-    sudo apt autoremove --assume-yes &> "${f[null]}"
+    sudo apt autoremove --yes &> "${f[null]}"
 
     sudo apt autoclean > "${f[null]}"
 
@@ -420,7 +421,7 @@ bash_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                # sudo apt remove --purge --assume-yes "${m[3]}" &> "${f[null]}"
+                # sudo apt remove --purge --yes "${m[3]}" &> "${f[null]}"
 
                 # --force: ignore nonexistent files, never prompt
                 # --recursive: remove directories
@@ -667,7 +668,7 @@ brave_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
                 sudo sed --in-place '/brave/d' "${d[0]}"*.json
 
@@ -1116,12 +1117,12 @@ github_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[2]}" "${m[3]}" &> "${f[null]}"
 
                 sudo rm --force "${f[config]}"
 
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[0]}") ]] \
-                    && sudo add-apt-repository --remove --assume-yes ppa:git-core/ppa &> "${f[null]}"
+                    && sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
 
                 sudo sed --in-place --null-data 's|Host github.com\nHostname ssh.github.com\nPort 443||g' "${f[config-ssh]}"
 
@@ -1209,7 +1210,7 @@ github_stuffs() {
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep git-core) ]] \
-            && sudo add-apt-repository --assume-yes ppa:git-core/ppa &> "${f[null]}"
+            && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
 
         update && sudo apt install --assume-yes "${m[0]}" &> "${f[null]}"
 
@@ -1320,7 +1321,7 @@ chrome_stuffs() {
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 # Only libappindicator1 doesn't come default in debian distros
-                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" &> "${f[null]}"
 
                 sudo sed --in-place '/google-chrome/d' "${f[mimeapps]}"
 
@@ -1444,7 +1445,7 @@ flameshot_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -1570,7 +1571,7 @@ heroku_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force "${f[auth]}" "${f[ppa]}"
 
@@ -1774,7 +1775,7 @@ minidlna_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force "${f[config]}" "${f[default_minidlna]}"
 
@@ -1896,9 +1897,9 @@ nvidia_stuffs() {
                     show "\n${c[RED]}R${c[WHITE]}ESTORING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
                     [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep graphics) ]] \
-                        && sudo add-apt-repository --remove --assume-yes ppa:graphics-drivers/ppa &> "${f[null]}"
+                        && sudo add-apt-repository --remove --yes ppa:graphics-drivers/ppa &> "${f[null]}"
 
-                    sudo apt remove --purge --assume-yes "${m[2]}" "${m[0]}-"* &> "${f[null]}"
+                    sudo apt remove --purge --yes "${m[2]}" "${m[0]}-"* &> "${f[null]}"
 
                     sudo rm --force "${f[config]}"
 
@@ -1951,7 +1952,7 @@ nvidia_stuffs() {
             show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
-                && sudo add-apt-repository --assume-yes ppa:graphics-drivers/ppa &> "${f[null]}" \
+                && sudo add-apt-repository --yes ppa:graphics-drivers/ppa &> "${f[null]}" \
                 && update
 
             install_packages "${m[0]}-${latest}" "${m[2]}"
@@ -2000,7 +2001,7 @@ alias lbm-nouveau off'
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep graphics) ]] \
-            && sudo add-apt-repository --assume-yes ppa:graphics-drivers/ppa &> "${f[null]}"
+            && sudo add-apt-repository --yes ppa:graphics-drivers/ppa &> "${f[null]}"
 
         update && install_packages "${m[0]}-${latest}"
 
@@ -2061,7 +2062,7 @@ postgres_stuffs() {
 
                 show "${c[RED]}\nU${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" &> "${f[null]}"
 
                 sudo rm --force "${f[ppa]}"
 
@@ -2318,7 +2319,7 @@ python_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]} AND ${c[RED]}${m[17]:u}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -2446,7 +2447,7 @@ upgrade() {
     [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
         || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
-    sudo apt update &> "${f[null]}"; sudo apt upgrade --assume-yes &> "${f[null]}"
+    sudo apt update &> "${f[null]}"; sudo apt upgrade --yes &> "${f[null]}"
 
 }
 #======================#
@@ -2480,7 +2481,7 @@ reduceye_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -2675,7 +2676,7 @@ ruby_stuffs() {
 
                 show "\n${c[VERMELHO]}U${c[WHITE]}NINSTALLING ${c[VERMELHO]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -2851,7 +2852,7 @@ sublime_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[1]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -3153,7 +3154,7 @@ upgrade() {
     [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
         || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
-    sudo apt update &> "${f[null]}"; sudo apt upgrade --assume-yes &> "${f[null]}"
+    sudo apt update &> "${f[null]}"; sudo apt upgrade --yes &> "${f[null]}"
 
 }
 #======================#
@@ -3177,7 +3178,7 @@ tmate_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
                 remove_useless
 
@@ -3270,13 +3271,13 @@ usefull_pkgs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}, ${c[RED]}${m[1]^^}${c[WHITE]}, ${c[RED]}${m[2]^^}${c[WHITE]}, ${c[RED]}${m[3]^^}${c[WHITE]} AND ${c[RED]}${m[4]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --assume-yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" &> "${f[null]}"
 
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[4]}") ]] \
-                    && sudo add-apt-repository --remove --assume-yes ppa:atareao/telegram &> "${f[null]}"
+                    && sudo add-apt-repository --remove --yes ppa:atareao/telegram &> "${f[null]}"
 
                 [[ $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[5]}") ]] \
-                    && sudo add-apt-repository --remove --assume-yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
+                    && sudo add-apt-repository --remove --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
                 sudo rm --recursive --force "${f[vimrc]}"
 
@@ -3315,10 +3316,10 @@ usefull_pkgs() {
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[4]}") ]] \
-            && sudo add-apt-repository --assume-yes ppa:atareao/telegram &> "${f[null]}"
+            && sudo add-apt-repository --yes ppa:atareao/telegram &> "${f[null]}"
 
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[5]}") ]] \
-            && sudo add-apt-repository --assume-yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
+            && sudo add-apt-repository --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
         [[ -e "${f[lock]}" ]] && rm --force "${f[lock]}"
 
@@ -3607,13 +3608,13 @@ change_panelandgui() {
 
     # START PPA ADDITION
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) ]] \
-        && sudo add-apt-repository --assume-yes ppa:transmissionbt/ppa &> "${f[null]}" \
+        && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
         && update \
         && sudo apt install --assume-yes "${m[5]}" &> "${f[null]}"  # END PPA
 
     # START PPA ADDITION
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
-        && sudo add-apt-repository --assume-yes ppa:caldas-lopes/ppa &> "${f[null]}" \
+        && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}" \
         && update \
         && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
 
