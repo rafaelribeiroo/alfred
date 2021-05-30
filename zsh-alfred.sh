@@ -974,13 +974,14 @@ github_stuffs() {
 
         gh auth login --with-token < "${f[tmp_tk]}" &> "${f[tmp_success]}"
 
+        # let --ignore-case as below, api github always changing sensitive case
+        # best way to grep AND
         [[ \
-            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[5]}" | grep "^X-OAuth-Scopes:" | awk --field-separator=, '{print $1}' | cut -c16- | xargs) =~ 'admin:org' &&
-            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[5]}" | grep "^X-OAuth-Scopes:" | awk --field-separator=, '{print $2}' | xargs) =~ 'admin:public_key' &&
-            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[5]}" | grep "^X-OAuth-Scopes:" | awk --field-separator=, '{print $3}' | xargs) =~ 'repo' &&
-            ! $(egrep --no-messages "401|402|403" "${f[tmp_success]}") \
+            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[5]}" | grep --extended-regexp --ignore-case '^x-oauth-scopes' | grep 'admin:org' | grep 'admin:public_key' | grep 'repo') &&
+            ! -z "${f[tmp_success]}" \
         ]] \
             && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1
+        # if file is empty, is 200 OK
 
     done
 
