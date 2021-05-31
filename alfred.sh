@@ -2933,8 +2933,9 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 ------ END LICENSE ------'
 
     # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
+    # After 4th line, insert...
     [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
-        && sudo sed --in-place "3a 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
+        && sudo sed --in-place "4 i 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
