@@ -808,7 +808,9 @@ deemix_stuffs() {
 
                 sudo rm --force --recursive "${d[2]}"
 
-                sudo sed --in-place --null-data "s|alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'\n\nalias deemix='( nohup /home/ribeiro/Music/deemix/deemix-pyweb & ) &> /dev/null'||g" "${f[bashrc]}"
+                sudo sed --in-place '/clear_thumbnail/d' "${f[bashrc]}"
+
+                sudo sed --in-place '/deemix/d' "${f[bashrc]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2293,6 +2295,7 @@ postman_stuffs() {
         [file]="${XDG_DOWNLOAD_DIR}"/Postman-linux-x64-latest.tar.gz
         [interceptor]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1.zip
         [exe]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1/InterceptorBridge_Linux/install_host.sh
+        [uninstall]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1/InterceptorBridge_Linux/uninstall_host.sh
         [bin]=/usr/local/bin/postman
         [run]=/opt/Postman/Postman
         [postman]=/usr/share/applications/postman.desktop
@@ -2317,9 +2320,27 @@ postman_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
+                rm --force "${f[postman]}" "${f[bin]}"
 
-                remove_useless
+                rm --force --recursive "${d[0]}"
+
+                [[ ! -e "${f[interceptor]}" ]] \
+                    && wget --quiet "${l[1]}" --output-document "${f[interceptor]}"
+
+                unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}"
+
+                sudo rm --force "${f[interceptor]}"
+
+                ( nohup sudo "${f[uninstall]}" & ) &> "${f[out]}"
+
+                for (( ; ; )); do
+
+                    [[ $(grep --no-messages 'has been uninstalled' "${f[out]}") ]] \
+                        && sudo rm --force --recursive "${d[2]}" \
+                        && break \
+                        || continue
+
+                done
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3118,7 +3139,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-    read -p $'\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
+    read -p $'\033[1;37m\nSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 

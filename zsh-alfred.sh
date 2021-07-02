@@ -544,7 +544,9 @@ deemix_stuffs() {
 
                 sudo rm --force --recursive "${d[3]}"
 
-                sudo sed --in-place --null-data "s|alias clear_thumbnail='rm -rf ~/.cache/thumbnails/fail'\n\nalias deemix='( nohup /home/ribeiro/Music/deemix/deemix-pyweb & ) &> /dev/null'||g" "${f[zshrc]}"
+                sudo sed --in-place '/clear_thumbnail/d' "${f[bashrc]}"
+
+                sudo sed --in-place '/deemix/d' "${f[bashrc]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2056,9 +2058,27 @@ postman_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
+                rm --force "${f[postman]}" "${f[bin]}"
 
-                remove_useless
+                rm --force --recursive "${d[1]}"
+
+                [[ ! -e "${f[interceptor]}" ]] \
+                    && wget --quiet "${l[2]}" --output-document "${f[interceptor]}"
+
+                unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}"
+
+                sudo rm --force "${f[interceptor]}"
+
+                ( nohup sudo "${f[uninstall]}" & ) &> "${f[out]}"
+
+                for (( ; ; )); do
+
+                    [[ $(grep --no-messages 'has been uninstalled' "${f[out]}") ]] \
+                        && sudo rm --force --recursive "${d[3]}" \
+                        && break \
+                        || continue
+
+                done
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2857,7 +2877,7 @@ DD9AF44B 99C49590 D2DBDEE1 75860FD2
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
-    read $'?\033[1;37mSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
+    read $'?\033[1;37m\nSIR, WANT TO INSTALL SOME ADITTIONAL PACKAGE FROM PACKAGE CONTROL? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
