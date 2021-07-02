@@ -2720,8 +2720,8 @@ eval "$(rbenv init -)"' \
 sublime_stuffs() {
 
     declare -a d=(
-        ~/.config/sublime-text-3  # 1
-        ~/.config/sublime-text-3/Installed\ Packages  # 2
+        ~/.config/sublime-text  # 1
+        ~/.config/sublime-text/Installed\ Packages  # 2
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 3
         ~/.pyenv  # 4
         /.Trash-1000/  # 5
@@ -2729,18 +2729,18 @@ sublime_stuffs() {
 
     f+=(
         [file]=~/.pyenv/shims/python
-        [config]=~/.config/sublime-text-3/Packages/User/Preferences.sublime-settings
+        [config]=~/.config/sublime-text/Packages/User/Preferences.sublime-settings
         [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
-        [license]=~/.config/sublime-text-3/Local/License.sublime_license
-        [pkg_ctrl]=~/.config/sublime-text-3/Installed\ Packages/Package\ Control.sublime-package
-        [pkgs]=~/.config/sublime-text-3/Packages/User/Package\ Control.sublime-settings
-        [anaconda]=~/.config/sublime-text-3/Packages/Anaconda/Anaconda.sublime-settings
-        [keymap]=~/.config/sublime-text-3/Packages/User/Default\ \(Linux\).sublime-keymap
-        [REPL]=~/.config/sublime-text-3/Packages/SublimeREPL/SublimeREPL.sublime-settings
-        [REPLPY]=~/.config/sublime-text-3/Packages/SublimeREPL/config/Python/Main.sublime-menu
-        [REPLPYT]=~/.config/sublime-text-3/Packages/SublimeREPL/sublimerepl.py
+        [license]=~/.config/sublime-text/Local/License.sublime_license
+        [pkg_ctrl]=~/.config/sublime-text/Installed\ Packages/Package\ Control.sublime-package
+        [pkgs]=~/.config/sublime-text/Packages/User/Package\ Control.sublime-settings
+        [anaconda]=~/.config/sublime-text/Packages/Anaconda/Anaconda.sublime-settings
+        [keymap]=~/.config/sublime-text/Packages/User/Default\ \(Linux\).sublime-keymap
+        [REPL]=~/.config/sublime-text/Packages/SublimeREPL/SublimeREPL.sublime-settings
+        [REPLPY]=~/.config/sublime-text/Packages/SublimeREPL/config/Python/Main.sublime-menu
+        [REPLPYT]=~/.config/sublime-text/Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
     )
 
@@ -2779,6 +2779,8 @@ sublime_stuffs() {
                 sudo rm --force --recursive "${d[1]}"
 
                 sudo sed --in-place '/sublime_text/d' "${f[mimeapps]}"
+
+                sudo sed --in-place '/sublime/d' "${f[hosts]}"
 
                 remove_useless
 
@@ -2821,42 +2823,41 @@ sublime_stuffs() {
 
     while [[ ! -e "${d[1]}" ]]; do
 
-        show "\nOPENING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        show "\nRESTARTING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
         ( nohup subl & ) &> "${f[null]}"
 
-        sleep 10s
+        take_a_break
 
         sudo pkill subl
 
     done
 
-    # hexed.it: get position and convert to decimal, put in seek
-    # Change executable binary sequence
-    [[ $(xxd -plain -seek 158612 -len 3 "${f[exec]}") =~ 97940d ]] \
-        && sudo pkill subl \
-        && printf '\00\00\00' | sudo dd of="${f[exec]}" bs=1 seek=158612 count=3 conv=notrunc status=none
+    sudo sed --in-place 's/\x55\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x68\x24\x00\x00/\x48\x31\xC0\xC3\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90/g' "${f[exec]}"
 
     # Adding license key
-    [[ ! $(grep --no-messages Member "${f[license]}") ]] \
+    [[ ! $(grep --no-messages You "${f[license]}") ]] \
         && sudo tee "${f[license]}" > "${f[null]}" <<< '----- BEGIN LICENSE -----
-Member J2TeaM
-Single User License
-EA7E-1011316
-D7DA350E 1B8B0760 972F8B60 F3E64036
-B9B4E234 F356F38F 0AD1E3B7 0E9C5FAD
-FA0A2ABE 25F65BD8 D51458E5 3923CE80
-87428428 79079A01 AA69F319 A1AF29A4
-A684C2DC 0B1583D4 19CBD290 217618CD
-5653E0A0 BACE3948 BB2EE45E 422D2C87
-DD9AF44B 99C49590 D2DBDEE1 75860FD2
-8C8BB2AD B2ECE5A4 EFC08AF2 25A9B864
+You
+Unlimited User License
+EA7E-81044230
+0C0CD4A8 CAA317D9 CCABD1AC 434C984C
+7E4A0B13 77893C3E DD0A5BA1 B2EB721C
+4BAAB4C4 9B96437D 14EB743E 7DB55D9C
+7CA26EE2 67C3B4EC 29B2C65A 88D90C59
+CB6CCBA5 7DE6177B C02C2826 8C9A21B0
+6AB1A5B6 20B09EA2 01C979BD 29670B19
+92DC6D90 6E365849 4AB84739 5B4C3EA1
+048CC1D0 9748ED54 CAC9D585 90CAD815
 ------ END LICENSE ------'
 
     # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
     # After 4th line, insert...
     [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
-        && sudo sed --in-place "4 i 127.0.0.1   www.sublimetext.com\n127.0.0.1   license.sublimehq.com\n" "${f[hosts]}"
+        && sudo tee "${f[hosts]}" > "${f[null]}" <<< '
+127.0.0.1 license.sublimehq.com
+
+127.0.0.1 www.sublimetext.com'
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
