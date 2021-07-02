@@ -95,23 +95,20 @@ work() {
     xrandr --output $EXTERN1 --primary
 
 }
+linen='-----------------------------------------'
+linei='------------------------------------------'
+lineu='-------------------------------------------'
+linec='--------------------------------------------'
+lineh='----------------------------------------------'
 
-# show "${c[RED]}=======================================================" 1
+declare -a m=(
+    'postman'  # 1
+    'gawk'  # 1
+)
+local -a m=(
+    'interceptor bridge'
+    'postman'  # 0
+    'gawk'  # 1
+)
 
-read '?[Y/N] R: ' option
-
-for (( ; ; )); do
-
-    if [[ "${option:0:1}" == +(y|Y|s|S) ]] ; then
-
-        echo 'passei aqui'
-
-        break
-
-    else
-
-        echo 'nao passei'
-
-    fi
-
-done
+show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"

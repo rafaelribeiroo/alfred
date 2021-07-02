@@ -65,6 +65,7 @@ declare -A e=(
     [popcorn]=$'\360\237\215\277'
     [n]=$'\360\235\223\235'
     [elephant]=$'\360\237\220\230'
+    [satellite]=$'\360\237\233\260'
     [snake]=$'\360\237\220\215'
     [moon]=$'\360\237\214\230'
     [ruby]=$'\342\231\246\357\270\217'
@@ -2006,6 +2007,167 @@ postgres_stuffs() {
 #======================#
 
 #======================#
+postman_stuffs() {
+
+    local -a d=(
+        /opt/Postman  # 1
+        "${XDG_DOWNLOAD_DIR}"/  # 2
+        "${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1  # 3
+    )
+
+    local -a m=(
+        'postman'  # 1
+        'gawk'  # 2
+        'interceptor bridge'  # 3
+        'google-chrome-stable'  # 4
+    )
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[2]}"
+
+    source "${f[user_dirs]}"
+
+    f+=(
+        [file]="${XDG_DOWNLOAD_DIR}"/Postman-linux-x64-latest.tar.gz
+        [interceptor]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1.zip
+        [exe]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1/InterceptorBridge_Linux/install_host.sh
+        [bin]=/usr/local/bin/postman
+        [run]=/opt/Postman/Postman
+        [postman]=/usr/share/applications/postman.desktop
+        [out]=/tmp/interceptor.out
+        [principal]="${HOME}"/.postman/InterceptorBridge
+    )
+
+    local -a l=(
+        'https://dl.pstmn.io/download/latest/linux64'  # 1
+        'https://go.pstmn.io/interceptor-bridge-linux'  # 2
+    )
+
+    if [[ -f "${f[bin]}" ]]; then
+
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
+
+                sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[2]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
+
+        [[ ! -e "${f[file]}" ]] \
+            && curl --location --silent --output "${f[file]}" --create-dirs "${l[1]}"
+
+        tar -xzf "${f[file]}" --directory="${d[1]}"
+
+        sudo rm --force "${f[file]}"
+
+        sudo ln --symbolic "${f[run]}" "${f[bin]}"
+
+        [[ $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+            && show "\nI NEED A BROWSER TO INSTALL INTERCEPTOR BRIDGE, TRANSFERRING..." \
+            && chrome_stuffs
+
+        if [[ ! -e "${f[principal]}" ]]; then
+
+            show "\n${c[YELLOW]}${m[3]:u} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]"
+
+            [[ ! -e "${f[interceptor]}" ]] \
+                && wget --quiet "${l[2]}" --output-document "${f[interceptor]}"
+
+            unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}"
+
+            sudo rm --force "${f[interceptor]}"
+
+            ( nohup sudo "${f[exe]}" & ) &> "${f[out]}"
+
+            for (( ; ; )); do
+
+                [[ $(grep --no-messages 'has been installed' "${f[out]}") ]] \
+                    && sudo rm --force --recursive "${d[3]}" \
+                    && break \
+                    || continue
+
+            done
+
+        else
+
+            show "\n${c[GREEN]}${m[3]:u} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]"
+
+        fi
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    [[ ! $(grep --no-messages Postman "${f[postman]}") ]] \
+        && sudo tee "${f[postman]}" > "${f[null]}" <<< '[Desktop Entry]
+Type=Application
+Name=Postman
+Icon=/opt/Postman/app/resources/app/assets/icon.png
+Exec="${f[run]}"
+Comment=Postman GUI
+Categories=Development;Code;'
+
+    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN POSTMAN? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            ( nohup "${m[1]}" & ) &> "${f[null]}"
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
 python_stuffs() {
 
     local -a l=(
@@ -3772,15 +3934,16 @@ evoke_functions() {
         9|09) minidlna_stuffs && return_menu ;;
         10) nvidia_stuffs && return_menu ;;
         11) postgres_stuffs && return_menu ;;
-        12) python_stuffs && return_menu ;;
-        13) reduceye_stuffs && return_menu ;;
-        14) ruby_stuffs && return_menu ;;
-        15) sublime_stuffs && return_menu ;;
-        16) tmate_stuffs && return_menu ;;
-        17) usefull_pkgs && return_menu ;;
-        18) workspace_stuffs && return_menu ;;
-        19) zsh_stuffs && return_menu ;;
-        20) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        12) postman_stuffs && return_menu ;;
+        13) python_stuffs && return_menu ;;
+        14) reduceye_stuffs && return_menu ;;
+        15) ruby_stuffs && return_menu ;;
+        16) sublime_stuffs && return_menu ;;
+        17) tmate_stuffs && return_menu ;;
+        18) usefull_pkgs && return_menu ;;
+        19) workspace_stuffs && return_menu ;;
+        20) zsh_stuffs && return_menu ;;
+        21) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         echo; read $'?\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
 
@@ -3819,6 +3982,7 @@ evoke_functions() {
         minidlna_stuffs
         nvidia_stuffs
         postgres_stuffs
+        postman_stuffs
         python_stuffs
         reduceye_stuffs
         ruby_stuffs
@@ -3902,15 +4066,16 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
         sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
         sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ALL ${e[whale]}" 1
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 1
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
+        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 1
+        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}ALL ${e[whale]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         # zsh convention, anything after a ? is used as the prompt string
