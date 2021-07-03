@@ -1760,6 +1760,7 @@ postgres_stuffs() {
 
     local -a d=(
         /etc/postgresql/  # 1
+        /var/log/postgresql/  # 2
     )
 
     f+=(
@@ -1809,7 +1810,7 @@ postgres_stuffs() {
 
                 sudo rm --force "${f[ppa]}"
 
-                sudo rm --force --recursive "${d[1]}"
+                sudo rm --force --recursive "${d[1]}" "${d[2]}"
 
                 remove_useless
 
@@ -2893,7 +2894,7 @@ CB6CCBA5 7DE6177B C02C2826 8C9A21B0
             if ! [[ "${pkg}" =~ ^(Anaconda|Djaneiro|Restart|SublimeREPL|Sublimerge Pro|Dracula Color Scheme)$ ]]; then
 
                 # Append new pkg to the last index of tuple
-                sudo sed --in-place "s|\(.*\)\"|\1\", \"${pkg}\"|" "${f[pkgs]}"
+                sudo sed --in-place --regexp-extended "s|(.*)\"|\1\", \"${pkg}\"|" "${f[pkgs]}"
 
                 echo; read $'?\033[1;37mSIR, DO U WANT INSTALL ONE MORE? \n[Y/N] R: \033[m' option
 
