@@ -60,7 +60,7 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
 
-    [bin]=/usr/local/bin/postman
+    [rat_page]=/tmp/rat_search
 )
 
 #vim ~/.bashrc
@@ -98,5 +98,4 @@ work() {
 
 }
 
-[[ ! -L "${f[bin]}" ]] \
-    && echo 'not exists' || echo 'exists'
+# show "${c[RED]}============================================================="

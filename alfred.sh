@@ -3117,11 +3117,11 @@ CB6CCBA5 7DE6177B C02C2826 8C9A21B0
 
     # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
     # After 4th line, insert...
-    [[ ! $(grep --no-messages sublimetext "${f[hosts]}") ]] \
+    [[ ! $(grep --no-messages sublime "${f[hosts]}") ]] \
         && sudo tee "${f[hosts]}" > "${f[null]}" <<< '
-127.0.0.1 license.sublimehq.com
+127.0.0.1 license.sublimehq.com # SublimeText
 
-127.0.0.1 www.sublimetext.com'
+127.0.0.1 www.sublimetext.com # SublimeText'
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
@@ -3785,14 +3785,20 @@ change_panelandgui() {
         'colorls'  # 4
         'transmission-gtk'  # 5
         'nemo-mediainfo-tab'  # 6
+        'neofetch'  # 7
     )
 
-    install_packages "${m[0]}" "${m[1]}" "${m[2]}"
+    install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[7]}"
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
         && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}" \
         && sudo update-grub &> "${f[null]}" # END RESOLUTION
+
+    # START FIXING CHROME DETECTING NETWORK CHANGE (CONNECTION WAS INTERRUPTED)
+    [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
+        && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' \
+        && sudo update-grub &> "${f[null]}"  # END
 
     # START PPA ADDITION
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) ]] \
