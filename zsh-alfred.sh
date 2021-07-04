@@ -1915,19 +1915,19 @@ postgres_stuffs() {
             # if empty string
             [[ -z "${user}" ]] && user="${USER}"
 
-            [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+            [[ $(sudo --user=postgres psql --command "SELECT 1 FROM pg_roles WHERE rolname='${user}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                 && show "\nUSER ${c[RED]}${user:u}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                 && break
 
             password=$("${f[askpass]}" $'\033[1;37mPASSWORD OF USER '"${user:u}"$':\033[m')
 
-            sudo -u postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
+            sudo --user=postgres psql --command "CREATE USER ${user} WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'" &> "${f[null]}"
+            sudo --user=postgres psql --command "ALTER ROLE ${user} SET client_encoding TO 'utf8'" &> "${f[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'" &> "${f[null]}"
+            sudo --user=postgres psql --command "ALTER ROLE ${user} SET default_transaction_isolation TO 'read committed'" &> "${f[null]}"
 
-            sudo -u postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${f[null]}"
+            sudo --user=postgres psql --command "ALTER ROLE ${user} SET timezone TO 'America/Sao_Paulo'" &> "${f[null]}"
 
             read $'?\033[1;37m\nDO U WANT A DATABASE, '"${name[random]}"$'?\n[Y/N] R: \033[m' option
 
@@ -1937,15 +1937,15 @@ postgres_stuffs() {
 
                     read $'?\033[1;37m\nENTER THE DATABASE NAME: \033[m' database
 
-                    [[ $(sudo -u postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
+                    [[ $(sudo --user=postgres psql --command "SELECT 1 FROM pg_database WHERE datname='${database}'" | egrep "registro|row" | awk '{print $1}' | sed 's|(||') -ge 1 ]] \
                         && show "\nDATABASE ${c[RED]}${database:u}${c[WHITE]} ALREADY EXISTS. EXITING..." \
                         && break
 
-                    sudo -u postgres psql --command "CREATE DATABASE ${database}" &> "${f[null]}"
+                    sudo --user=postgres psql --command "CREATE DATABASE ${database}" &> "${f[null]}"
 
-                    sudo -u postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE ${database} TO ${user}" &> "${f[null]}"
+                    sudo --user=postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE ${database} TO ${user}" &> "${f[null]}"
 
-                    sudo -u postgres psql -d "${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}" &> "${f[null]}"
+                    sudo --user=postgres psql --dbname="${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}" &> "${f[null]}"
 
                     # Check this resource running: "psql -U <user> -d <database>" and selecting all data from some table.
                     install_packages "${m[6]}"
@@ -1994,7 +1994,7 @@ postgres_stuffs() {
         # Before change cryptography, we need add a password for postgres
         password=$("${f[askpass]}" $'\033[1;37m\nPASSWORD OF USER POSTGRES \033[31;1m(root)\033[1;37m:\033[m')
 
-        sudo -u postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
+        sudo --user=postgres psql --command "ALTER USER postgres WITH ENCRYPTED PASSWORD '${password}'" &> "${f[null]}"
 
         sudo sed --in-place --regexp-extended 's|(postgres[[:space:]]+)peer|\1md5|g' "${f[hba]}"
 
@@ -2013,7 +2013,7 @@ postgres_stuffs() {
 postman_stuffs() {
 
     local -a d=(
-        /opt/Postman  # 1
+        /opt/  # 1
         "${XDG_DOWNLOAD_DIR}"/  # 2
         "${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1  # 3
     )
@@ -2051,7 +2051,7 @@ postman_stuffs() {
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
-        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
@@ -2108,13 +2108,14 @@ postman_stuffs() {
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[1]}"
 
-        tar -xzf "${f[file]}" --directory="${d[1]}"
+        sudo tar -xzf "${f[file]}" --directory="${d[1]}"> "${f[null]}"
 
         sudo rm --force "${f[file]}"
 
-        sudo ln --symbolic "${f[run]}" "${f[bin]}"
+        [[ ! -L "${f[bin]}" ]] \
+            && sudo ln --symbolic "${f[run]}" "${f[bin]}"
 
-        [[ $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+        [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
             && show "\nI NEED A BROWSER TO INSTALL INTERCEPTOR BRIDGE, TRANSFERRING..." \
             && chrome_stuffs
 
@@ -2159,7 +2160,7 @@ Exec="${f[run]}"
 Comment=Postman GUI
 Categories=Development;Code;'
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN POSTMAN? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, SHOULD I OPEN POSTMAN? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 

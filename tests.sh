@@ -59,6 +59,8 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
+
+    [bin]=/usr/local/bin/postman
 )
 
 #vim ~/.bashrc
@@ -95,24 +97,6 @@ work() {
     xrandr --output $EXTERN1 --primary
 
 }
-linen='-----------------------------------------'
-linei='------------------------------------------'
-lineu='-------------------------------------------'
-linec='--------------------------------------------'
-lineh='----------------------------------------------'
 
-declare -a m=(
-    'postman'  # 1
-    'gawk'  # 1
-)
-local -a m=(
-    'interceptor bridge'
-    'postman'  # 0
-    'gawk'  # 1
-)
-
-#show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
-
-pkg='Eita'
-
-sudo sed --in-place --regexp-extended "s|(.*)\"|\1\", \"${pkg}\"|" "${f[try]}"
+[[ ! -L "${f[bin]}" ]] \
+    && echo 'not exists' || echo 'exists'
