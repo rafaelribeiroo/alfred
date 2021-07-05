@@ -3673,7 +3673,7 @@ workspace_stuffs() {
 
                         clear
 
-                        read -p $'\033[1;37m\nWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
+                        read -p $'\033[1;37mWANT DOWNLOAD MORE REPO? \n[Y/N] R: \033[m' option
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
