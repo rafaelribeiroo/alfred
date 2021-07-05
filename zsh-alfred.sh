@@ -2246,7 +2246,7 @@ python_stuffs() {
 
                 sudo apt remove --purge --yes "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" &> "${f[null]}"
 
-                sudo rm --force --recursive "${d[0]}"
+                sudo rm --force --recursive "${d[1]}"
 
                 sudo sed --in-place '/pyenv/Id' "${f[zshrc]}"
 
@@ -2288,7 +2288,7 @@ python_stuffs() {
     latest=$(curl --silent "${l[1]}" | grep -A 2 '_le' | tail -1 | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && pip install --quiet --upgrade pip
+        && pip install --no-warn-script-location --quiet --upgrade pip
 
     # python versions
     # apt version python don't works, because it shows only packages added by
@@ -2310,7 +2310,7 @@ python_stuffs() {
                 # Dependencies
                 install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[24]}" "${m[25]}"
 
-                [[ ! -d "${d[0]}" ]] \
+                [[ ! -d "${d[1]}" ]] \
                     && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
                     && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
                     || show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
@@ -2327,11 +2327,9 @@ eval "$(pyenv virtualenv-init -)"' \
 
                 # pyenv versions
                 # pyenv install --list | grep " 3\.[678]"
-                [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
+                [[ ! -d "${d[2]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
                 pyenv global "${latest}" > "${f[null]}"
-
-                echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 break
 
