@@ -89,6 +89,7 @@ declare -A f=(
     [mimeapps]=~/.config/mimeapps.list
     [mimebkp]=~/.config/mimeapps.bkp
     [null]=/dev/null
+    [os_release]=/etc/os-release
     [public_ssh]=~/.ssh/id_rsa.pub
     [tmp_tk]=/tmp/check_token.txt
     [user_dirs]=~/.config/user-dirs.dirs
@@ -100,10 +101,6 @@ declare -A f=(
 
 #======================#
 check_distro() {
-
-    f+=(
-        [os_release]=/etc/os-release
-    )
 
     source "${f[os_release]}"
 
@@ -1081,6 +1078,7 @@ github_stuffs() {
         [config]=~/.gitconfig
         [config-ssh]=~/.ssh/config
         [tmp_success]=/tmp/check_success.txt
+        [all_ssh_gh]=./all_sh
     )
 
     local -a l=(
@@ -1255,22 +1253,27 @@ github_stuffs() {
     # Se não existir nenhuma chave no github
     if [[ -z $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}") ]]; then
 
-        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
+        source "${f[os_release]}"
+
+        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"$(echo ${NAME})"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
 
     else
 
         install_packages "${m[3]}"
 
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
-        [[ \
-            $(awk '{print $2}' "${f[public_ssh]}") != \
-            $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||') \
-        ]] \
+        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||' &> "${all_ssh_gh}"
+
+        [[ $(! grep --no-messages "$(awk '{print $2}' ${f[public_ssh]})" "${all_ssh_gh}") ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
-            && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq '.[] | .id')" \
-            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my Iphone","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" > "${f[null]}"
+            && source "${f[os_release]}" \
+            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"$(echo ${NAME})"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
+
+        #&& curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq '.[] | .id')" \
 
     fi
+
+    rm --force "${all_ssh_gh}"
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 

@@ -60,7 +60,8 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
 
-    [rat_page]=/tmp/rat_search
+    [public_ssh]=~/.ssh/id_rsa.pub
+    [tmp_tk]=/tmp/check_token.txt
 )
 
 #vim ~/.bashrc
@@ -99,3 +100,4 @@ work() {
 }
 
 # show "${c[RED]}============================================================="
+
