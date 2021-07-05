@@ -100,5 +100,3 @@ work() {
 }
 
 # show "${c[RED]}============================================================="
-link='https://pypi.org/project/pip/'
-sh -c "$(curl --location --silent ${link})"

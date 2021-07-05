@@ -1255,7 +1255,7 @@ flameshot_stuffs() {
     # If these instructions below stay in for, don't works
     sudo pkill "${m[1]}" && take_a_break
 
-    [[ ! $(grep --no-messages disabledTrayIcon "${f[config]}") ]] \
+    [[ ! $(grep --no-messages '@Variant' "${f[config]}") ]] \
         && source "${f[user_dirs]}" \
         && sudo tee "${f[config]}" > "${f[null]}" <<< "[General]
 buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
@@ -1403,7 +1403,7 @@ hide_devices() {
         'devices'  # 1
     )
 
-    check_devices=$(sudo fdisk --list | egrep "Microsoft dados básico|Microsoft basic data" | awk '{print $1}')
+    check_devices=$(sudo fdisk --list 2>&- | grep 'HPFS/NTFS/exFAT' | awk '{print $1}')
 
     if [[ -z "${check_devices}" ]]; then
 
