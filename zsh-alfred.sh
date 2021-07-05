@@ -2329,6 +2329,7 @@ eval "$(pyenv virtualenv-init -)"' \
                 # pyenv install --list | grep " 3\.[678]"
                 [[ ! -d "${d[2]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
+                # check with pyenv versions
                 pyenv global "${latest}" > "${f[null]}"
 
                 break
