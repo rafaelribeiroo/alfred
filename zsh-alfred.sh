@@ -2199,9 +2199,9 @@ python_stuffs() {
     )
 
     local -a m=(
-        'python'  # 1
-        'python-pip'  # 2
-        'python-dev'  # 3
+        'python-is-python3'  # 1
+        'python3-pip'  # 2
+        'python-dev-is-python3'  # 3
         'build-essential'  # 4
         'pyenv'  # 5
         'curl'  # 6
@@ -3178,6 +3178,7 @@ usefull_pkgs() {
         'snapd'  # 11
         'compress-video'  # 12
         'spacevim'  # 13
+        'dos2unix'  # 14
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -3185,7 +3186,8 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" 1
 
@@ -3249,7 +3251,7 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && rm --force "${f[lock]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}"
 
         [[ ! $(snap list | grep "${m[12]}") ]] \
             && show "\n${c[YELLOW]}${m[12]:u} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
@@ -3488,7 +3490,9 @@ zsh_stuffs() {
     )
 
     local -a l=(
-        'https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh'  # 0
+        'https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh'  # 1
+        'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 2
+        'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 3
     )
 
     local -a m=(
@@ -3600,7 +3604,7 @@ zsh_stuffs() {
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
-        sh -c "$(curl --show-error --fail --silent --location ${l[0]})" "" --unattended &> "${f[null]}"
+        sh -c "$(curl --show-error --fail --silent --location ${l[1]})" "" --unattended &> "${f[null]}"
 
     fi
 
@@ -3616,7 +3620,7 @@ zsh_stuffs() {
 
         # --location follows to last URL (github provides a few redirects)
         # --output write content to file
-        curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
+        curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[2]}"
 
         # Update font cache
         sudo fc-cache --force "${d[2]}"
@@ -3631,7 +3635,7 @@ zsh_stuffs() {
             && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[3]%conf.d}"
 
-        curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
+        curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[3]}"
 
         # Workaround to prevent terminal restart
         xdotool key Ctrl+plus && xdotool key Ctrl+minus

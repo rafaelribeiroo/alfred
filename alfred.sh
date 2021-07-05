@@ -2461,9 +2461,9 @@ python_stuffs() {
     )
 
     local -a m=(
-        'python'  # 0
-        'python-pip'  # 1
-        'python-dev'  # 2
+        'python-is-python3'  # 0
+        'python3-pip'  # 1
+        'python-dev-is-python3'  # 2
         'build-essential'  # 3
         'pyenv'  # 4
         'curl'  # 5
@@ -3440,6 +3440,7 @@ usefull_pkgs() {
         'snapd'  # 10
         'compress-video'  # 11
         'spacevim'  # 12
+        'dos2unix'  # 13
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
@@ -3447,7 +3448,8 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[13]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" 1
 
@@ -3511,7 +3513,7 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && rm --force "${f[lock]}"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}"
 
         [[ ! $(snap list | grep "${m[11]}") ]] \
             && show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
