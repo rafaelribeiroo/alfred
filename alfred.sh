@@ -2490,7 +2490,7 @@ python_stuffs() {
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
         ~/.pyenv  # 0
-        ~/.pyenv/versions/$(curl --silent "${l[1]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
+        ~/.pyenv/versions/$(curl --silent "${l[2]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
@@ -2508,7 +2508,7 @@ python_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]} AND ${c[RED]}${m[17]:u}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
+                sudo apt remove --purge --yes "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
 
                 sudo rm --force --recursive "${d[0]}"
 
@@ -2574,10 +2574,10 @@ python_stuffs() {
                 # Dependencies
                 install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}"
 
-                [[ ! -d "${d[0]}" ]] \
-                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                    && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}" \
-                    || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+                [[ -d "${d[0]}" ]] \
+                    && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
+                    || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}"
 
                 echo; show "INITIALIZING CONFIGS..."
 

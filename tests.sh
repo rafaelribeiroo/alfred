@@ -100,5 +100,5 @@ work() {
 }
 
 # show "${c[RED]}============================================================="
-
-pip install --quiet --upgrade pip
+link='https://pypi.org/project/pip/'
+sh -c "$(curl --location --silent ${link})"

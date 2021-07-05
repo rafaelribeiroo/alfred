@@ -2225,8 +2225,8 @@ python_stuffs() {
 
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
-        ~/.pyenv  # 0
-        ~/.pyenv/versions/$(curl --silent "${l[2]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
+        ~/.pyenv  # 1
+        ~/.pyenv/versions/$(curl --silent "${l[3]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 2
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -2308,12 +2308,12 @@ python_stuffs() {
                 show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
-                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[24]}" "${m[25]}"
+                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}"
 
-                [[ ! -d "${d[1]}" ]] \
-                    && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-                    && bash -c "$(curl --location --silent ${l[1]})" &> "${f[null]}" \
-                    || show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
+                [[ -d "${d[1]}" ]] \
+                    && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
+                    || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
+                    && sh -c "$(curl --location --silent ${l[2]})" &> "${f[null]}"
 
                 echo; show "INITIALIZING CONFIGS..."
 
@@ -3259,7 +3259,7 @@ usefull_pkgs() {
 
         [[ ! -d "${d[2]}" ]] \
             && show "\n${c[YELLOW]}${m[13]:u} ${c[WHITE]}${linen:${#m[13]}} [INSTALLING]" \
-            && bash -c "$(curl --location --silent ${l[1]})" &> "${f[out]}" \
+            && sh -c "$(curl --location --silent ${l[1]})" &> "${f[out]}" \
             || show "\n${c[GREEN]}${m[13]:u} ${c[WHITE]}${linei:${#m[13]}} [INSTALLED]"
 
         for (( ; ; )); do
