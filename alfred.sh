@@ -2552,7 +2552,7 @@ python_stuffs() {
     latest=$(curl --silent "${l[0]}" | grep -A 2 '_le' | tail -1 | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && pip install --quiet --upgrade pip
+        && pip install --no-warn-script-location --quiet --upgrade pip
 
     # python versions
     # apt version python don't works, because it shows only packages added by
@@ -2594,8 +2594,6 @@ eval "$(pyenv virtualenv-init -)"' \
                 [[ ! -d "${d[1]}" ]] && pyenv install "${latest}" &> "${f[null]}"
 
                 pyenv global "${latest}" > "${f[null]}"
-
-                echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 break
 
