@@ -2896,7 +2896,8 @@ CB6CCBA5 7DE6177B C02C2826 8C9A21B0
 6AB1A5B6 20B09EA2 01C979BD 29670B19
 92DC6D90 6E365849 4AB84739 5B4C3EA1
 048CC1D0 9748ED54 CAC9D585 90CAD815
------- END LICENSE ------'
+------ END LICENSE ------' \
+        && sudo chown "${USER}":"${USER}" "${f[license]}"
 
     # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
     # After 4th line, insert...

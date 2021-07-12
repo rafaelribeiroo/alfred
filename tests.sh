@@ -103,30 +103,5 @@ work() {
 
 }
 
-local -a l=(
-    'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 1
-    'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 2
-    'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
-    'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 4
-)
-
-local -a d=(
-    ~/.local/share/cinnamon/applets/  # 1
-    ~/.local/share/cinnamon/applets/betterlock  # 2
-    ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
-    ~/.rbenv  # 4
-    ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
-)
-
-local -a m=(
-        'lanzou-gui'  # 1
-        'xplayer'  # 2
-    )
-
 #show "${c[RED]}=============================================================" 1
 
-for (( iterator=4; iterator<=22; iterator++ )); do
-
-    echo ${iterator}
-
-done
