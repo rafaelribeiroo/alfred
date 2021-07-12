@@ -118,18 +118,15 @@ local -a d=(
     ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
 )
 
-# show "${c[RED]}============================================================="
+local -a m=(
+        'lanzou-gui'  # 1
+        'xplayer'  # 2
+    )
 
-#[[ ! -e "${f[forceqt]}" ]] \
-#    && wget --quiet "${l[4]}" --output-document "${f[forceqt]}" \
-#    && unzip "${d[5]}"*.zip -d "${d[5]}" &> "${f[null]}" \
-#    && sudo rm --force "${f[forceqt]}"
+#show "${c[RED]}=============================================================" 1
 
-#[[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
- #   && sudo apt-key adv --keyserver "${l[6]}" --recv-key C99B11DEB97541F0 &> "${f[null]}"
+for (( iterator=4; iterator<=22; iterator++ )); do
 
-# sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB &> "${f[null]}"
+    echo ${iterator}
 
-# gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
-
-#sh -c "$(curl --location --silent 'https://raw.githubusercontent.com/rvm/rvm/master/binscripts/rvm-installer')" &> ./rvm
+done

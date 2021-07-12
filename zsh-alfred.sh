@@ -83,10 +83,10 @@ declare -A e=(
 # usefull files
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
-    [dmrc]=~/.dmrc
     [zshrc]=~/.zshrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
+    [locale]=/etc/default/locale
     [mimeapps]=~/.config/mimeapps.list
     [mimebkp]=~/.config/mimeapps.bkp
     [null]=/dev/null
@@ -480,31 +480,30 @@ deemix_stuffs() {
 
     local -a d=(
         "${XDG_MUSIC_DIR}"/  # 1
-        ~/.cache/thumbnails/fail  # 2
-        "${XDG_MUSIC_DIR}"/deemix  # 3
-        ~/.pyenv  # 4
-        ~/Musicas\ Deemix/  # 5
+        ~/.pyenv  # 2
+        ~/Musicas\ Deemix/  # 3
+        ~/.cache/thumbnails/fail  # 4
+        ~/.config/deemix  # 5
     )
 
     f+=(
-        [file]="${d[1]}"deemix/deemix-pyweb
-        [py]=~/.pyenv/shims/python
+        [file]="${d[1]}"linux-x86_64-latest.deb
+        [py_versions]=~/.pyenv/versions/
+        [decrypt]=/tmp/browser_cookie3_n.py
+        [cookies]=/tmp/cookies
+        [arl_value]=~/.config/deemix/.arl
         [cfg]=~/.config/deemix/config.json
-        [compact]="${d[1]}"linux-x86_64-latest.zip
-        [decryptcookie]=/tmp/browser_cookie3_n.py
-        [cookies]=/tmp/cookies.txt
-        [arl]=~/.config/deemix/.arl
     )
 
     local -a l=(
-        'https://download.deemix.app/0:/pyweb/linux-x86_64-latest.zip'  # 1
+        'https://download.deemix.app/gui/linux-x86_64-latest.deb'  # 1
         'https://raw.githubusercontent.com/rachpt/lanzou-gui/master/lanzou/browser_cookie3_n.py'  # 2
         'https://www.python.org/doc/versions/'  # 3
     )
 
     local -a m=(
-        'xplayer'  # 1
-        'deemix'  # 2
+        'deemix-gui'  # 1
+        'xplayer'  # 2
         'certifi'  # 3
         'cffi'  # 4
         'chardet'  # 5
@@ -525,11 +524,12 @@ deemix_stuffs() {
         'SecretStorage'  # 20
         'six'  # 21
         'urllib3'  # 22
+        'lanzou-gui'  # 23
     )
 
-    if [[ -e "${f[file]}" ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -537,13 +537,15 @@ deemix_stuffs() {
 
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[2]:u}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
-                sudo rm --force --recursive "${d[3]}"
+                sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
 
-                sudo sed --in-place '/clear_thumbnail/d' "${f[bashrc]}"
 
-                sudo sed --in-place '/deemix/d' "${f[bashrc]}"
+
+
+
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -565,35 +567,55 @@ deemix_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[2]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}"
+        # Dependencies
+        install_packages "${m[1]}" "${m[2]}"
+
+        show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
-            && show "\n${c[YELLOW]}${m[2]:u} ${c[WHITE]}${linen:${#m[2]}} [INSTALLING]" \
-            && wget --quiet "${l[1]}" --output-document "${f[compact]}" \
-            && unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}" \
-            && rm --force "${f[compact]}" \
-            || show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]"
+            && curl --location --silent --output "${f[file]}" --create-dirs "${l[1]}"
+
+        sudo dpkg --install "${f[file]}" &> "${f[null]}"
+
+        sudo rm --force "${f[file]}"
+
+        latest=$(curl --silent "${l[3]}" | grep release/ | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+
+        [[ ! -d "${d[2]}" && ! -e "${f[py_versions]}${latest}" ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+            && python_stuffs
+
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        install_pip "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}"
+
+        [[ ! -e "${f[decrypt]}" ]] \
+            && show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]" \
+            && curl --silent --output "${f[decrypt]}" --create-dirs "${l[2]}" \
+            || show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]" \
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[4]}" | grep release | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+    while [[ ! -e "${d[5]}" ]]; do
 
-    [[ ! -d "${d[4]}" && ! -e "${f[py]}${latest}" ]] \
-        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
-        && python_stuffs
+        show "\nRESTARTING DEEMIX TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
-    install_pip "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}"
+        ( nohup "${m[1]}" & ) &> "${f[null]}"
 
-    [[ ! -e "${f[decryptcookie]}" ]] \
-        && curl --silent --output "${f[decryptcookie]}" --create-dirs "${l[2]}"
+        take_a_break
+
+        sudo pkill "${m[1]}"
+
+    done
+
 
     for (( ; ; )); do
 
-        python "${f[decryptcookie]}" &> "${f[cookies]}"
+        python "${f[decrypt]}" &> "${f[cookies]}"
 
         [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
             && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
@@ -602,33 +624,52 @@ deemix_stuffs() {
 
     done
 
-    [[ ! -e "${f[arl]}" ]] \
-        && tee --append "${f[arl]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')"
+    [[ ! -e "${f[arl_value]}" ]] \
+        && sudo tee --append "${f[arl_value]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')"
 
-    [[ $(grep --no-messages en_US "${f[dmrc]}") ]] \
+    source "${f[locale]}"
+
+    [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'en_US' ]] \
         && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}\",|g" "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
-    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+    if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[5]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[5]}"
+        [[ ! -d "${d[3]}" || $(stat -c "%U" "${d[3]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[3]}"
 
-        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${d[5]}\",|g" "${f[cfg]}"
+        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${d[3]}\",|g" "${f[cfg]}"
 
     fi
 
-    echo; read $'?\033[1;37mENTER THE NAME TO ACCESS DEEMIX FROM COMMAND LINE ('"${m[2]}"$'): \033[m' name
-
-    # if empty string
-    [[ -z "${user}" ]] && user="${m[2]}"
-
-    [[ ! $(grep --no-messages deemix "${f[zshrc]}") ]] \
+    [[ ! $(grep --no-messages clear_thumbnail "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias clear_thumbnail='rm --recursive --force ${d[2]}'
+alias ct='rm --recursive --force ${d[4]}'"
 
-alias deemix='( nohup ${f[file]} & ) &> ${f[null]}'"
+    echo; read $'?\033[1;37mSIR, SHOULD I OPEN DEEMIX? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            ( nohup "${m[1]}" & ) &> "${f[null]}"
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -998,9 +1039,9 @@ github_stuffs() {
         install_packages "${m[4]}"
 
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
-        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||' &> "${all_ssh_gh}"
+        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||' &> "${f[all_ssh_gh]}"
 
-        [[ $(! grep --no-messages "$(awk '{print $2}' ${f[public_ssh]})" "${all_ssh_gh}") ]] \
+        [[ ! $(grep --no-messages "$(awk '{print $2}' ${f[public_ssh]})" "${f[all_ssh_gh]}") ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
             && source "${f[os_release]}" \
             && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"$(echo ${NAME})"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[1]}" &> "${f[null]}"
@@ -1008,6 +1049,8 @@ github_stuffs() {
         # && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[1]}"/"$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq '.[] | .id')" \
 
     fi
+
+    rm --force "${f[all_ssh_gh]}"
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
@@ -2217,6 +2260,7 @@ python_stuffs() {
         'libffi-dev'  # 15
         'gawk'  # 16
         'dependencies'  # 17
+        'git'  # 18
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[16]}[[:space:]]/ {print }") ]] \
@@ -2274,7 +2318,7 @@ python_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
 
@@ -2308,7 +2352,7 @@ python_stuffs() {
                 show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
-                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}"
+                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[18]}"
 
                 [[ -d "${d[1]}" ]] \
                     && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
@@ -3832,7 +3876,9 @@ activate-numlock=true'
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
     # START STARTUP SONG CHANGE
-    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+    source "${f[locale]}"
+
+    if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
         [[ ! -e "${f[ogg_file]}" ]] \
             && curl --location --output "${f[ogg]}" --create-dirs "${l[3]}"

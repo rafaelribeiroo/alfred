@@ -83,7 +83,6 @@ declare -A e=(
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
-    [dmrc]=~/.dmrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [mimeapps]=~/.config/mimeapps.list
@@ -869,11 +868,13 @@ deemix_stuffs() {
     [[ ! -e "${f[arl]}" ]] \
         && tee --append "${f[arl]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')"
 
-    [[ $(grep --no-messages en_US "${f[dmrc]}") ]] \
+    source "${f[locale]}"
+
+    [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'en_US' ]] \
         && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}\",|g" "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
-    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+    if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
         [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[4]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
@@ -1262,9 +1263,9 @@ github_stuffs() {
         install_packages "${m[3]}"
 
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
-        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||' &> "${all_ssh_gh}"
+        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||' &> "${f[all_ssh_gh]}"
 
-        [[ $(! grep --no-messages "$(awk '{print $2}' ${f[public_ssh]})" "${all_ssh_gh}") ]] \
+        [[ ! $(grep --no-messages "$(awk '{print $2}' ${f[public_ssh]})" "${f[all_ssh_gh]}") ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
             && source "${f[os_release]}" \
             && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"$(echo ${NAME})"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
@@ -1273,7 +1274,7 @@ github_stuffs() {
 
     fi
 
-    rm --force "${all_ssh_gh}"
+    rm --force "${f[all_ssh_gh]}"
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
@@ -2481,6 +2482,7 @@ python_stuffs() {
         'libffi-dev'  # 14
         'gawk'  # 15
         'dependencies'  # 16
+        'git'  # 17
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[15]}[[:space:]]/ {print }") ]] \
@@ -2538,7 +2540,7 @@ python_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
@@ -2572,7 +2574,7 @@ python_stuffs() {
                 show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
-                install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}"
+                install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[17]}"
 
                 [[ -d "${d[0]}" ]] \
                     && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
@@ -3859,7 +3861,9 @@ activate-numlock=true'
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
     # START STARTUP SONG CHANGE
-    if [[ $(grep --no-messages pt_BR "${f[dmrc]}") ]]; then
+    source "${f[locale]}"
+
+    if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
         [[ ! -e "${f[ogg_file]}" ]] \
             && curl --location --output "${f[ogg]}" --create-dirs "${l[2]}"
