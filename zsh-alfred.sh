@@ -2013,6 +2013,8 @@ postgres_stuffs() {
 #======================#
 postman_stuffs() {
 
+    source "${f[user_dirs]}"
+
     local -a d=(
         /opt/  # 1
         "${XDG_DOWNLOAD_DIR}"/  # 2
@@ -2029,8 +2031,6 @@ postman_stuffs() {
     [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[2]}"
-
-    source "${f[user_dirs]}"
 
     f+=(
         [file]="${XDG_DOWNLOAD_DIR}"/Postman-linux-x64-latest.tar.gz
@@ -2157,7 +2157,7 @@ postman_stuffs() {
 Type=Application
 Name=Postman
 Icon=/opt/Postman/app/resources/app/assets/icon.png
-Exec="${f[run]}"
+Exec='"${f[run]}"'
 Comment=Postman GUI
 Categories=Development;Code;'
 
@@ -2575,6 +2575,7 @@ ruby_stuffs() {
         'libcurl4-openssl-dev'  # 16
         'software-properties-common'  # 17
         'libffi-dev'  # 18
+        'ruby-dev'  # 19
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
@@ -2641,7 +2642,7 @@ ruby_stuffs() {
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
             && update
 
-        install_packages "${m[1]}" "${m[2]}"
+        install_packages "${m[1]}" "${m[2]}" "${m[19]}"
 
     fi
 
@@ -3724,11 +3725,11 @@ change_panelandgui() {
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
-        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/14.json
+        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/
         [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
         [computer_icon]=/org/nemo/desktop/computer-icon-visible
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
-        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
+        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/
         [grub-modified]=/etc/default/grub
         [volumes_icon]=/org/nemo/desktop/volumes-visible
         [default_sort_order]=/org/nemo/preferences/default-sort-order
@@ -3749,9 +3750,9 @@ change_panelandgui() {
 
     local -a l=(
         'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 1
-        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 2
+        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip'  # 2
         'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
-        'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip?time=1613376235'  # 4
+        'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 4
     )
 
     local -a m=(
@@ -3774,7 +3775,7 @@ change_panelandgui() {
 
     # START FIXING CHROME DETECTING NETWORK CHANGE (CONNECTION WAS INTERRUPTED)
     [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
-        && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' \
+        && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' "${f[grub-modified]}" \
         && sudo update-grub &> "${f[null]}"  # END
 
     # START PPA ADDITION
@@ -3790,7 +3791,7 @@ change_panelandgui() {
         && sudo apt install --assume-yes "${m[7]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
-    if [[ ! -d "${d[2]}" && ! -d "${d[3]}" ]]; then
+    if [[ ! -d "${d[2]}" && ! -d "${d[3]}" && ! -d "${d[5]}" ]]; then
 
         [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
             && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
@@ -3808,15 +3809,17 @@ change_panelandgui() {
 
         [[ ! -e "${f[forceqt]}" ]] \
             && wget --quiet "${l[4]}" --output-document "${f[forceqt]}" \
-            && unzip "${d[5]}"*.zip -d "${d[5]}" &> "${f[null]}" \
+            && unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}" \
             && sudo rm --force "${f[forceqt]}"
 
         dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:force-quit@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:xapp-status@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:network@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:betterlock:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
 
         # use custom format
-        sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
+        sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
 
-        sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"
+        sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
+
+        sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"*.json
 
     fi  # END APPLETS
 
@@ -3872,9 +3875,9 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
                 && zsh_stuffs
 
-            [[ ! $(gem list | grep "${m[5]}") ]] \
+            [[ ! $(gem list 2>&- | grep --no-messages "${m[5]}") ]] \
                 && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-                && sudo gem install "${m[5]}" &> "${f[null]}" \
+                && gem install "${m[5]}" &> "${f[null]}" \
                 || show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]"
 
             [[ ! $(grep --no-messages "${m[5]}" "${f[zshrc]}") ]] \
@@ -3901,16 +3904,16 @@ alias ls='${m[5]}'"
     done
 
     # START NOMENCLATURE ICON ARRANGEMENT
-    [[ ! $(grep --no-messages sublime_text "${f[grouped]}") \
-        && ! $(grep --no-messages telegram "${f[grouped]}") \
-        && ! $(grep --no-messages google-chrome "${f[grouped]}") ]] \
-        && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${f[grouped]}" \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${f[grouped]}" \
-        && sudo sed --in-place '/"nemo.desktop"/,2d' "${f[grouped]}" \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${f[grouped]}" \
-        && sudo sed --in-place --null-data 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${f[grouped]}" \
-        && sudo sed --in-place 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${f[grouped]}" \
-        && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${f[grouped]}"  # END
+    [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) \
+        && ! $(grep --no-messages telegram "${f[grouped]}"*.json) \
+        && ! $(grep --no-messages google-chrome "${f[grouped]}"*.json) ]] \
+        && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${f[grouped]}"*.json \
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${f[grouped]}"*.json \
+        && sudo sed --in-place '/"nemo.desktop"/,2d' "${f[grouped]}"*.json \
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${f[grouped]}"*.json \
+        && sudo sed --in-place --null-data 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${f[grouped]}"*.json \
+        && sudo sed --in-place 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${f[grouped]}"*.json \
+        && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${f[grouped]}"*.json  # END
 
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"

@@ -62,6 +62,10 @@ declare -A f=(
 
     [public_ssh]=~/.ssh/id_rsa.pub
     [tmp_tk]=/tmp/check_token.txt
+
+    [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
+
+    [run]=/opt/Postman/Postman
 )
 
 #vim ~/.bashrc
@@ -99,4 +103,33 @@ work() {
 
 }
 
+local -a l=(
+    'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 1
+    'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip?time=1610269354'  # 2
+    'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
+    'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 4
+)
+
+local -a d=(
+    ~/.local/share/cinnamon/applets/  # 1
+    ~/.local/share/cinnamon/applets/betterlock  # 2
+    ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
+    ~/.rbenv  # 4
+    ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
+)
+
 # show "${c[RED]}============================================================="
+
+#[[ ! -e "${f[forceqt]}" ]] \
+#    && wget --quiet "${l[4]}" --output-document "${f[forceqt]}" \
+#    && unzip "${d[5]}"*.zip -d "${d[5]}" &> "${f[null]}" \
+#    && sudo rm --force "${f[forceqt]}"
+
+#[[ ! $(sudo apt-key list 2> /dev/null | grep 'Nate Smith') ]] \
+ #   && sudo apt-key adv --keyserver "${l[6]}" --recv-key C99B11DEB97541F0 &> "${f[null]}"
+
+# sudo apt-key adv --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB &> "${f[null]}"
+
+# gpg --keyserver hkp://pool.sks-keyservers.net --recv-keys 409B6B1796C275462A1703113804BB82D39DC0E3 7D2BAF1CF37B13E2069D6956105BD0E739499BDB
+
+#sh -c "$(curl --location --silent 'https://raw.githubusercontent.com/rvm/rvm/master/binscripts/rvm-installer')" &> ./rvm
