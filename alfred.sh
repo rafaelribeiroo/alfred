@@ -1078,8 +1078,8 @@ github_stuffs() {
     f+=(
         [config]=~/.gitconfig
         [config-ssh]=~/.ssh/config
-        [tmp_success]=/tmp/check_success.txt
-        [all_ssh_gh]=./all_sh
+        [tmp_success]=/tmp/check_success
+        [all_title_gh]=/tmp/all_title
     )
 
     local -a l=(
@@ -1263,18 +1263,19 @@ github_stuffs() {
         install_packages "${m[3]}"
 
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
-        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq ".[] | .key" | awk '{print $2}' | sed 's|"||' &> "${f[all_ssh_gh]}"
+        curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .title"  &> "${f[all_title_gh]}"
 
-        [[ ! $(grep --no-messages "$(awk '{print $2}' ${f[public_ssh]})" "${f[all_ssh_gh]}") ]] \
+        source "${f[os_release]}"
+
+        [[ $(grep --no-messages "Sent from my ${NAME}" "${f[all_title_gh]}") ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
-            && source "${f[os_release]}" \
-            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"$(echo ${NAME})"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
+            && old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq -r ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1) \
+            && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"${old_ssh_id}" \
+            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my "'"${NAME}"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
 
-        #&& curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq '.[] | .id')" \
+        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my "'"${NAME}"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
 
     fi
-
-    rm --force "${f[all_ssh_gh]}"
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
