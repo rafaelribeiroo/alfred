@@ -1039,12 +1039,43 @@ github_stuffs() {
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
         curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq --raw-output ".[] | .title"  &> "${f[all_title_gh]}"
 
-        [[ $(grep --no-messages "Sent from my ${NAME}" "${f[all_title_gh]}") ]] \
-            && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
-            && old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq --raw-output ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1) \
-            && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[1]}"/"${old_ssh_id}" \
-            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[1]}" &> "${f[null]}" \
-            || curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[1]}" &> "${f[null]}"
+        if [[ $(grep --no-messages "Sent from my ${NAME}" "${f[all_title_gh]}") ]]; then
+
+            echo; read $'?\033[1;37mSIR, SHOULD I REPLACE YOUR SSH ON GITHUB? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1
+
+                    old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq --raw-output ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1)
+
+                    curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[1]}"/"${old_ssh_id}"
+
+                    curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[1]}" &> "${f[null]}"
+
+                    break
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I REPLACE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+        else
+
+            curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[1]}" &> "${f[null]}"
+
+        fi
 
     fi
 
