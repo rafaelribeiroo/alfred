@@ -1232,7 +1232,7 @@ github_stuffs() {
 
         echo; show "${c[RED]}${user^^}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 1
 
-        echo; read -n 40 -p $'\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
+        echo; read -p $'\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
 
         [[ ! -e "${f[tmp_tk]}" ]] && sudo touch "${f[tmp_tk]}"
 
@@ -1243,7 +1243,7 @@ github_stuffs() {
         # let --ignore-case as below, api github always changing sensitive case
         # best way to grep AND
         [[ \
-            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[5]}" | grep --extended-regexp --ignore-case '^x-oauth-scopes' | grep 'admin:org' | grep 'admin:public_key' | grep 'repo') &&
+            $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[0]}" | grep --extended-regexp --ignore-case '^x-oauth-scopes' | grep 'admin:org' | grep 'admin:public_key' | grep 'repo') &&
             ! -z "${f[tmp_success]}" \
         ]] \
             && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1
@@ -1251,12 +1251,12 @@ github_stuffs() {
 
     done
 
+    source "${f[os_release]}"
+
     # Se não existir nenhuma chave no github
     if [[ -z $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}") ]]; then
 
-        source "${f[os_release]}"
-
-        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"$(echo ${NAME})"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
+        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
 
     else
 
@@ -1265,15 +1265,12 @@ github_stuffs() {
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
         curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .title"  &> "${f[all_title_gh]}"
 
-        source "${f[os_release]}"
-
         [[ $(grep --no-messages "Sent from my ${NAME}" "${f[all_title_gh]}") ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
             && old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq -r ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1) \
             && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"${old_ssh_id}" \
-            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my "'"${NAME}"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
-
-        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my "'"${NAME}"'","key": "'"$(cat "${f[public_ssh]}")"'"}' "${l[0]}" &> "${f[null]}"
+            && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}" \
+            || curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
 
     fi
 
