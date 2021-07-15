@@ -1253,8 +1253,8 @@ github_stuffs() {
 
     source "${f[os_release]}"
 
-    # Se não existir nenhuma chave no github
-    if [[ -z $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}") ]]; then
+    # -z for empty not works, github api was changes, if empty: [ ] (3 line)
+    if [[ $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | wc --lines) -eq 3 ]]; then
 
         curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
 
@@ -1267,7 +1267,7 @@ github_stuffs() {
 
         [[ $(grep --no-messages "Sent from my ${NAME}" "${f[all_title_gh]}") ]] \
             && show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1 \
-            && old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq -r ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1) \
+            && old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1) \
             && curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"${old_ssh_id}" \
             && curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}" \
             || curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
