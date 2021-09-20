@@ -90,7 +90,7 @@ declare -A f=(
     [null]=/dev/null
     [os_release]=/etc/os-release
     [public_ssh]=~/.ssh/id_rsa.pub
-    [tmp_tk]=/tmp/check_token.txt
+    [tmp_tk]=/tmp/check_token
     [user_dirs]=~/.config/user-dirs.dirs
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d/
@@ -701,7 +701,7 @@ brave_stuffs() {
             && update
 
         # Dependencies
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[0]}"
 
     fi
 
@@ -743,31 +743,30 @@ deemix_stuffs() {
 
     local -a d=(
         "${XDG_MUSIC_DIR}"/  # 0
-        ~/.cache/thumbnails/fail  # 1
-        "${XDG_MUSIC_DIR}"/deemix  # 2
-        ~/.pyenv  # 3
-        ~/Musicas\ Deemix/  # 4
+        ~/.pyenv  # 1
+        ~/Musicas\ Deemix/  # 2
+        ~/.cache/thumbnails/fail  # 3
+        ~/.config/deemix  # 4
     )
 
     f+=(
-        [file]="${d[0]}"deemix/deemix-pyweb
-        [py]=~/.pyenv/shims/python
+        [file]="${d[0]}"linux-x86_64-latest.deb
+        [py_versions]=~/.pyenv/versions/
+        [decrypt]=/etc/browser_cookie3_n.py
+        [cookies]=/tmp/cookies
+        [arl_value]=~/.config/deemix/.arl
         [cfg]=~/.config/deemix/config.json
-        [compact]="${d[0]}"linux-x86_64-latest.zip
-        [decryptcookie]=/tmp/browser_cookie3_n.py
-        [cookies]=/tmp/cookies.txt
-        [arl]=~/.config/deemix/.arl
     )
 
     local -a l=(
-        'https://download.deemix.app/0:/pyweb/linux-x86_64-latest.zip'  # 0
+        'https://download.deemix.app/gui/linux-x86_64-latest.deb'  # 0
         'https://raw.githubusercontent.com/rachpt/lanzou-gui/master/lanzou/browser_cookie3_n.py'  # 1
-        'https://www.python.org/doc/versions/'  # 3
+        'https://www.python.org/doc/versions/'  # 2
     )
 
     local -a m=(
-        'xplayer'  # 0
-        'deemix'  # 1
+        'deemix-gui'  # 0
+        'xplayer'  # 1
         'certifi'  # 2
         'cffi'  # 3
         'chardet'  # 4
@@ -788,31 +787,34 @@ deemix_stuffs() {
         'SecretStorage'  # 19
         'six'  # 20
         'urllib3'  # 21
+        'lanzou-gui'  # 22
     )
 
-    if [[ -e "${f[file]}" ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]^^}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
 
-                sudo rm --force --recursive "${d[2]}"
+                sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
-                sudo sed --in-place '/clear_thumbnail/d' "${f[bashrc]}"
 
-                sudo sed --in-place '/deemix/d' "${f[bashrc]}"
+
+
+
+                remove_useless
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
                 return_menu && break
 
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+            elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
 
                 break
 
@@ -828,72 +830,113 @@ deemix_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[0]}"
+        # Dependencies
+        install_packages "${m[0]}" "${m[1]}"
+
+        show "\n${c[YELLOW]}${m[0]:u} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
-            && show "\n${c[YELLOW]}${m[1]^^} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]" \
-            && wget --quiet "${l[0]}" --output-document "${f[compact]}" \
-            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-            && rm --force "${f[compact]}" \
-            || show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]"
+            && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
+
+        sudo dpkg --install "${f[file]}" &> "${f[null]}"
+
+        sudo rm --force "${f[file]}"
+
+        latest=$(curl --silent "${l[2]}" | grep release/ | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+
+        [[ ! -d "${d[1]}" && ! -e "${f[py_versions]}${latest}" ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+            && python_stuffs
+
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[22]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        install_pip "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}"
+
+        [[ -e "${f[decrypt]}" ]] \
+            && show "\n${c[GREEN]}${m[22]:u} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]" \
+            || show "\n${c[YELLOW]}${m[22]:u} ${c[WHITE]}${linen:${#m[22]}} [INSTALLING]" \
+            && curl --silent --output "${f[decrypt]}" --create-dirs "${l[1]}" \
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[3]}" | grep release | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+    while [[ ! -e "${d[4]}" ]]; do
 
-    [[ ! -d "${d[3]}" && ! -e "${f[py]}${latest}" ]] \
-        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
-        && python_stuffs
+        show "\nRESTARTING DEEMIX TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
-    install_pip "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}"
+        ( nohup "${m[0]}" & ) &> "${f[null]}"
 
-    [[ ! -e "${f[decryptcookie]}" ]] \
-        && curl --silent --output "${f[decryptcookie]}" --create-dirs "${l[1]}"
+        take_a_break
 
-    for (( ; ; )); do
-
-        python "${f[decryptcookie]}" &> "${f[cookies]}"
-
-        [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
-            && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
-            && clear \
-            || break
+        sudo pkill "${m[0]}"
 
     done
 
-    [[ ! -e "${f[arl]}" ]] \
-        && tee --append "${f[arl]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')"
+    if [[ ! -e "${f[arl_value]}" ]]; then
+
+        for (( ; ; )); do
+
+            python "${f[decrypt]}" &> "${f[cookies]}"
+
+            [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
+                && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
+                && clear \
+                || sudo tee --append "${f[arl_value]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')" \
+                && break
+
+        done
+
+    fi
 
     source "${f[locale]}"
 
     [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'en_US' ]] \
-        && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}\",|g" "${f[cfg]}"
+        && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music/\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}/\",|g" "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[4]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[4]}"
+        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
 
-        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music\",|\"downloadLocation\": \"${d[4]}\",|g" "${f[cfg]}"
+        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music/\",|\"downloadLocation\": \"${d[2]}\",|g" "${f[cfg]}"
 
     fi
 
-    echo; read -p $'\033[1;37mENTER THE NAME TO ACCESS DEEMIX FROM COMMAND LINE ('"${m[1]}"$'): \033[m' name
+    [[ ! $(grep --no-messages '"albumTracknameTemplate": "%artist% - %title%"' "${f[cfg]}") ]] \
+        && sudo sed --in-place 's|"albumTracknameTemplate": "%tracknumber% - %title%",|"albumTracknameTemplate": "%artist% - %title%",|g' "${f[cfg]}"
 
-    # if empty string
-    [[ -z "${name}" ]] && name="${m[1]}"
+    [[ ! $(grep --no-messages 'alias ct' "${f[zshrc]}") ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
+alias ct='rm --recursive --force ${d[3]}'"
 
-    [[ ! $(grep --no-messages deemix "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-alias clear_thumbnail='rm --recursive --force ${d[1]}'
+    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN DEEMIX? \n[Y/N] R: \033[m' option
 
-alias ${name}='( nohup ${f[file]} & ) &> ${f[null]}'"
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
+
+            ( nohup "${m[0]}" & ) &> "${f[null]}"
+
+            break
+
+        elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2033,7 +2076,7 @@ alias lbm-nouveau off'
 
     fi
 
-    local=$(apt version "${m[0]}-"*)
+    local=$(apt show "${m[0]}-"* 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -2183,7 +2226,7 @@ postgres_stuffs() {
     latest=$(curl --silent "${l[1]}" | grep scope | head -1 | tr --complement --delete 0-9,.)
 
     # Match perhaps with -10 or -11 etc (fixed installation)
-    local=$(apt version "${m[0]}")
+    local=$(apt show "${m[0]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && show "\nPOSTGRES IS IN VERSION ${c[GREEN]}${latest}${c[WHITE]}, NOT IN ${c[RED]}${local:0:2} ${c[WHITE]}ANYMORE.\n" \
@@ -2396,7 +2439,7 @@ postman_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
@@ -2578,7 +2621,7 @@ python_stuffs() {
     echo; show "INITIALIZING CONFIGS..."
 
     # pip versions
-    local=$(apt version "${m[1]}")
+    local=$(apt show "${m[1]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
 
     latest=$(curl --silent "${l[0]}" | grep -A 2 '_le' | tail -1 | awk '{print $2}')
 
@@ -2962,16 +3005,16 @@ ruby_stuffs() {
                 install_packages "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}"
 
                 # rbenv
-                [[ ! -d "${d[0]}" ]] \
-                    && show "\n${c[YELLOW]}${m[3]^^} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]" \
+                [[ -d "${d[0]}" ]] \
+                    && show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" \
+                    || show "\n${c[YELLOW]}${m[3]^^} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]" \
                     && git clone --quiet "${l[1]}" "${d[0]}" \
-                    || show "\n${c[GREEN]}${m[3]^^} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]"
 
                 # Install don't comes by default on rbenv until ruby-build was installed
-                [[ ! -d "${d[2]}" ]] \
-                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                    && git clone --quiet "${l[2]}" "${d[2]}" \
-                    || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+                [[ -d "${d[2]}" ]] \
+                    && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
+                    || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                    && git clone --quiet "${l[2]}" "${d[2]}"
 
                 echo; show "INITIALIZING CONFIGS..."
 
@@ -3173,7 +3216,7 @@ CB6CCBA5 7DE6177B C02C2826 8C9A21B0
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme", "AutoPEP8"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
@@ -3546,23 +3589,23 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[5]}") ]] \
             && sudo add-apt-repository --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
 
-        [[ -e "${f[lock]}" ]] && rm --force "${f[lock]}"
+        [[ -e "${f[lock]}" ]] && sudo rm --force "${f[lock]}"
 
         update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}"
 
-        [[ ! $(snap list | grep "${m[11]}") ]] \
-            && show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
-            && sudo snap install "${m[11]}" &> "${f[null]}" \
-            || show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]"
+        [[ $(snap list 2>&- | grep "${m[11]}") ]] \
+            && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \
+            || show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
+            && snap install "${m[11]}" &> "${f[null]}"
 
-        [[ ! -d "${d[1]}" ]] \
-            && show "\n${c[YELLOW]}${m[12]^^} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
+        [[ -d "${d[1]}" ]] \
+            && show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]"
+            || show "\n${c[YELLOW]}${m[12]^^} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
             && bash -c "$(curl --location --silent ${l[0]})" &> "${f[out]}" \
-            || show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]"
 
         for (( ; ; )); do
 
-            [[ $(grep --no-messages "That's it" "${f[out]}") ]] \
+            [[ $(grep --no-messages "Updating font cache" "${f[out]}") ]] \
                 && break \
                 || continue
 
@@ -3936,10 +3979,10 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
                 && bash_stuffs
 
-            [[ ! $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
-                && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && gem install "${m[4]}" &> "${f[null]}" \
-                || show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+            [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
+                && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                && gem install "${m[4]}" &> "${f[null]}"
 
             [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
                 && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
