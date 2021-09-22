@@ -103,11 +103,6 @@ work() {
 
 }
 
-#show "${c[RED]}=============================================================" 1
-files=()
-
-for file in $(ls -p ~/Downloads/Season\ 1); do
-    files += ("${file}")
-done
-
-echo $files
+m=$'python-is-python3'
+show "${c[RED]}=============================================================" 1
+show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
