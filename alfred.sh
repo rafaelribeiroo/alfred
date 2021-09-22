@@ -2355,6 +2355,7 @@ postman_stuffs() {
         /opt/  # 0
         "${XDG_DOWNLOAD_DIR}"/  # 1
         "${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1  # 2
+        /opt/Postman  # 3
     )
 
     local -a m=(
@@ -2399,7 +2400,7 @@ postman_stuffs() {
 
                 rm --force "${f[postman]}" "${f[bin]}"
 
-                rm --force --recursive "${d[0]}"
+                rm --force --recursive "${d[3]}"
 
                 [[ ! -e "${f[interceptor]}" ]] \
                     && wget --quiet "${l[1]}" --output-document "${f[interceptor]}"
