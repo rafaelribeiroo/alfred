@@ -1098,6 +1098,7 @@ chrome_stuffs() {
 
     local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 1
+        ~/.config/google-chrome/  # 2
     )
 
     local -a m=(
@@ -1141,6 +1142,8 @@ chrome_stuffs() {
                 sudo sed --in-place '/google-chrome/d' "${f[mimeapps]}"
 
                 sudo sed --in-place '/google-chrome/d' "${d[1]}"*.json
+
+                sudo rm --force --recursive "${d[2]}"
 
                 sudo rm --force "${f[garbage]}"
 
@@ -2184,7 +2187,7 @@ postman_stuffs() {
         [[ ! -e "${f[file]}" ]] \
             && curl --location --silent --output "${f[file]}" --create-dirs "${l[1]}"
 
-        sudo tar -xzf "${f[file]}" --directory="${d[1]}"> "${f[null]}"
+        sudo tar --extract --gzip --file="${f[file]}" --directory="${d[1]}" > "${f[null]}"
 
         sudo rm --force "${f[file]}"
 
