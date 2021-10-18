@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# curl --silent --output alfred.sh --create-dirs 'https://raw.githubusercontent.com/rafaelribeiroo/alfred/build/zsh-alfred.sh'
+
 #======================#
 # ALFRED, programa de provisionamento de distro linux.
 #======================#
