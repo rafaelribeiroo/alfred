@@ -132,9 +132,11 @@ work() {
 
 #curl --location --silent --output ~/Downloads/geos-3.4.2.tar.bz2 --create-dirs http://download.osgeo.org/geos/geos-3.4.2.tar.bz2
 #sudo tar --extract --bzip2 --file=/home/ribeiro/Downloads/geos-3.4.2.tar.bz2 --directory=/home/ribeiro/Downloads
-cd ~/Downloads/geos-3.4.2
+#cd ~/Downloads/geos-3.4.2
 # ( nohup sudo ./configure & ) &> ~/Downloads/install  # PHP bindings: false
 # sudo make &> ~/Downloads/make_aqui
-sudo make install &> /dev/null
-cd -
+#sudo make install &> /dev/null
 #cd -
+#cd -
+
+sudo sed -zi "s|(.Rafael.,)|\1 & \"Gabriel\",|g" try
