@@ -3962,7 +3962,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
             [[ $(gem list 2>&- | grep --no-messages "${m[5]}") ]] \
                 && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-                && gem install --silent "${m[5]}"
+                && sudo gem install --silent "${m[5]}"
 
             [[ ! $(grep --no-messages "${m[5]}" "${f[zshrc]}") ]] \
                 && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "

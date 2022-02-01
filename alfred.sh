@@ -3988,7 +3988,7 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
             [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && gem install --silent "${m[4]}"
+                && sudo gem install --silent "${m[4]}"
 
             [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
                 && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
