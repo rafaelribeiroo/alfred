@@ -241,6 +241,8 @@ install_packages() {
 
                 sudo apt install --assume-yes "${package}" &> "${f[null]}"
 
+                notify-send "${package:u} INSTALLED SUCCESSFULLY" --icon="${f[alfred]}"
+
             fi
 
         fi
@@ -255,7 +257,7 @@ install_pip(){
 
     for package in "$@"; do
 
-        if [[ $(pip show "${package}" 2>&-) ]]; then
+        if [[ ! $(pip list 2>&- | grep --no-messages "${package}") ]]; then
 
             echo && show "${c[GREEN]}${package:u} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
@@ -486,6 +488,7 @@ deemix_stuffs() {
         ~/Musicas\ Deemix/  # 3
         ~/.cache/thumbnails/fail  # 4
         ~/.config/deemix  # 5
+        /etc/  # 6
     )
 
     f+=(
@@ -569,7 +572,7 @@ deemix_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
         install_packages "${m[1]}" "${m[2]}"
@@ -589,14 +592,25 @@ deemix_stuffs() {
             && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
             && python_stuffs
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_pip "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}"
 
-        [[ -e "${f[decrypt]}" ]] \
-            && show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]" \
-            || show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]" \
-            && curl --silent --output "${f[decrypt]}" --create-dirs "${l[2]}" \
+        if [[ ! -e "${f[decrypt]}" ]]; then
+
+            [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
+                && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
+
+            show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]"
+
+            wget --quiet "${l[2]}" --output-document "${f[decrypt]}"
+
+        else
+
+            show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]"
+
+        fi
 
     fi
 
@@ -622,7 +636,7 @@ deemix_stuffs() {
 
             [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
                 && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
-                && clear \
+                && continue \
                 || sudo tee --append "${f[arl_value]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')" \
                 && break
 
@@ -634,6 +648,14 @@ deemix_stuffs() {
 
     [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'en_US' ]] \
         && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music/\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}/\",|g" "${f[cfg]}"
+
+    sudo sed --in-place 's|"saveArtwork": true,|"saveArtwork": false,|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"explicit": false,|"explicit": true,|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"syncedLyrics": false,|"syncedLyrics": true,|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"queueConcurrency": 9,|"queueConcurrency": 50,|g' "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
@@ -695,7 +717,6 @@ dualmonitor_stuffs() {
         [fightclub]=/usr/share/backgrounds/linuxmint-random/cl.png
         [kyloren]=/usr/share/backgrounds/linuxmint-random/kr.jpg
         [default]=/usr/share/backgrounds/linuxmint/default_background.jpg
-        [src]=/usr/share/cinnamon-background-properties/linuxmint-random.xml
         [picture]=/org/cinnamon/desktop/background/picture-uri
         [option]=/org/cinnamon/desktop/background/picture-options
         [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
@@ -795,53 +816,9 @@ dualmonitor_stuffs() {
 
         dconf write "${f[slideshow]}" true
 
-        dconf write "${f[source]}" "'xml://${f[src]}'"
+        dconf write "${f[source]}" "'directory://${d[1]}'"
 
         dconf write "${f[delay]}" 15
-
-        [[ ! -e "${f[src]}" ]] \
-            && sudo tee "${f[src]}" > "${f[null]}" <<< '<?xml version="1.0"?>
-<!DOCTYPE wallpapers SYSTEM "cinnamon-wp-list.dtd">
-<wallpapers>
-
-<wallpaper deletelocal -a d="false">
-    <name>Jedi vs Sith</name>
-    <filename>/usr/share/backgrounds/linuxmint-random/sw.jpg</filename>
-    <options>spanned</options>
-    <shade_type>solid</shade_type>
-    <pcolor>#000000</pcolor>
-    <scolor>#333333</scolor>
-    <artist>Torino GT</artist>
-</wallpaper>
-<wallpaper deletelocal -a d="false">
-    <name>Stormtrooper</name>
-    <filename>/usr/share/backgrounds/linuxmint-random/st.jpg</filename>
-    <options>spanned</options>
-    <shade_type>solid</shade_type>
-    <pcolor>#000000</pcolor>
-    <scolor>#333333</scolor>
-    <artist>Duane</artist>
-</wallpaper>
-<wallpaper deletelocal -a d="false">
-    <name>Fight Club</name>
-    <filename>/usr/share/backgrounds/linuxmint-random/cl.jpg</filename>
-    <options>spanned</options>
-    <shade_type>solid</shade_type>
-    <pcolor>#000000</pcolor>
-    <scolor>#333333</scolor>
-    <artist>Joker Boy</artist>
-</wallpaper>
-<wallpaper deletelocal -a d="false">
-    <name>Kylo Ren</name>
-    <filename>/usr/share/backgrounds/linuxmint-random/kr.jpg</filename>
-    <options>spanned</options>
-    <shade_type>solid</shade_type>
-    <pcolor>#000000</pcolor>
-    <scolor>#333333</scolor>
-    <artist>Duane</artist>
-</wallpaper>
-
-</wallpapers>'
 
     else
 
@@ -989,7 +966,7 @@ github_stuffs() {
 
     local=$(git --version | awk '{print $3}')
 
-    latest=$(curl --silent "${l[2]}" | grep -A 1 '"version"' | tail -1 | xargs)
+    latest=$(curl --silent "${l[2]}" | grep --after-context=1 '"version"' | tail -1 | xargs)
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -1055,7 +1032,7 @@ github_stuffs() {
 
                     show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1
 
-                    old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq --raw-output ".[] | .id, .title" | grep -B 1 "Sent from my ${NAME}" | head -1)
+                    old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq --raw-output ".[] | .id, .title" | grep --before-context=1 "Sent from my ${NAME}" | head -1)
 
                     curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[1]}"/"${old_ssh_id}"
 
@@ -1084,6 +1061,10 @@ github_stuffs() {
         fi
 
     fi
+
+    [[ ! $(grep --no-messages 'alias sent' "${f[zshrc]}") ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
+alias sent='\$(git remote add origin git@github.com:${user}/\${PWD##*/}.git)'"
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
@@ -2099,6 +2080,7 @@ postman_stuffs() {
         "${XDG_DOWNLOAD_DIR}"/  # 2
         "${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1  # 3
         /opt/Postman  # 4
+        /tmp/  # 5
     )
 
     local -a m=(
@@ -2147,11 +2129,14 @@ postman_stuffs() {
                 [[ ! -e "${f[interceptor]}" ]] \
                     && wget --quiet "${l[2]}" --output-document "${f[interceptor]}"
 
-                unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}"
+                unzip "${d[2]}"*.zip -d "${d[5]}" &> "${f[null]}"
 
                 sudo rm --force "${f[interceptor]}"
 
-                ( nohup sudo "${f[uninstall]}" & ) &> "${f[out]}"
+                [[ $(stat -c '%a' "${f[exe]}") -ne 776 ]] \
+                    && sudo chmod 776 "${f[exe]}"
+
+                ( nohup sudo "${f[exe]}" & ) &> "${f[out]}"
 
                 for (( ; ; )); do
 
@@ -2207,9 +2192,12 @@ postman_stuffs() {
             [[ ! -e "${f[interceptor]}" ]] \
                 && wget --quiet "${l[2]}" --output-document "${f[interceptor]}"
 
-            unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}"
+            unzip "${d[2]}"*.zip -d "${d[5]}" &> "${f[null]}"
 
             sudo rm --force "${f[interceptor]}"
+
+            [[ $(stat -c '%a' "${f[exe]}") -ne 776 ]] \
+                && sudo chmod 776 "${f[exe]}"
 
             ( nohup sudo "${f[exe]}" & ) &> "${f[out]}"
 
@@ -2366,7 +2354,7 @@ python_stuffs() {
     # pip versions
     local=$(apt show "${m[2]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
 
-    latest=$(curl --silent "${l[1]}" | grep -A 2 '_le' | tail -1 | awk '{print $2}')
+    latest=$(curl --silent "${l[1]}" | grep --after-context=2 '_le' | tail -1 | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
         && pip install --no-warn-script-location --quiet --upgrade pip
@@ -2959,7 +2947,7 @@ CB6CCBA5 7DE6177B C02C2826 8C9A21B0
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme", "AutoPEP8"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
@@ -3232,6 +3220,9 @@ usefull_pkgs() {
     local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 1
         ~/.SpaceVim  # 2
+        ~/.config/vlc/  # 3
+        /etc/  # 4
+        /etc/series-renamer  # 5
     )
 
     f+=(
@@ -3240,10 +3231,16 @@ usefull_pkgs() {
         [autokey]=~/.config/autostart/autokey-gtk.desktop
         [lock]=/etc/apt/preferences.d/nosnap.pref
         [out]=/tmp/spacevim.out
+        [vlc]=~/.config/vlc/vlcrc
+        [series]=/etc/series-renamer/RenameMyTVSeries
+        [rar-file]=/etc/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz
+        [startup]=~/.local/share/applications/rename-series.desktop
+        [icon]=/etc/series-renamer/icons/128x128.png
     )
 
     local -a l=(
         'https://spacevim.org/install.sh'  # 1
+        'https://www.tweaking4all.com/downloads/video/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz'  # 2
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -3262,6 +3259,9 @@ usefull_pkgs() {
         'compress-video'  # 12
         'spacevim'  # 13
         'dos2unix'  # 14
+        'glow'  # 15
+        'ffmpeg'  # 16
+        'rename-tv-series'  # 17
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -3270,7 +3270,8 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[16]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" 1
 
@@ -3334,17 +3335,82 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && sudo rm --force "${f[lock]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[12]:u} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
             && snap install "${m[12]}" &> "${f[null]}"
 
+        [[ $(snap list 2>&- | grep "${m[15]}") ]] \
+            && show "\n${c[GREEN]}${m[15]:u} ${c[WHITE]}${linei:${#m[15]}} [INSTALLED]" \
+            || show "\n${c[YELLOW]}${m[15]:u} ${c[WHITE]}${linen:${#m[15]}} [INSTALLING]" \
+            && snap install "${m[15]}" &> "${f[null]}"
+
         [[ -d "${d[2]}" ]] \
             && show "\n${c[GREEN]}${m[13]:u} ${c[WHITE]}${linei:${#m[13]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[13]:u} ${c[WHITE]}${linen:${#m[13]}} [INSTALLING]" \
             && zsh -c "$(curl --location --silent ${l[1]})" &> "${f[out]}"
+
+        if [[ ! -e "${f[series]}" ]]; then
+
+            [[ ! -d "${d[4]}" || $(stat -c "%U" "${d[4]}" 2>&-) != "${USER}" ]] \
+                && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[4]}"
+
+            show "\n${c[YELLOW]}${m[17]:u} ${c[WHITE]}${linen:${#m[17]}} [INSTALLING]"
+
+            wget --quiet "${l[2]}" --output-document "${f[rar-file]}"
+
+            sudo mkdir --parents "${d[5]}" > "${f[null]}"
+
+            tar --extract --gzip --file="${f[rar-file]}" --directory="${d[5]}" > "${f[null]}"
+
+            sudo rm --force "${f[rar-file]}"
+
+            [[ ! -x "${f[series]}" ]] \
+                && sudo chmod +x "${f[series]}"
+
+            [[ ! $(grep --no-messages Rename "${f[startup]}") ]] \
+                && sudo tee "${f[startup]}" > "${f[null]}" <<< "[Desktop Entry]
+Type=Application
+Encoding=UTF-8
+Name=Rename TV Series
+Icon=${f[icon]}
+Comment=Renamemytvseries
+Exec=${f[series]}
+Terminal=false
+StartupNotify=true"
+
+            echo; read $'?\033[1;37mSIR, SHOULD I OPEN RENAME TV SERIES? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    ( nohup "${f[series]}" & ) &> "${f[null]}"
+
+                    break
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+        else
+
+            show "\n${c[GREEN]}${m[17]:u} ${c[WHITE]}${linei:${#m[17]}} [INSTALLED]"
+
+        fi
 
         for (( ; ; )); do
 
@@ -3357,6 +3423,24 @@ usefull_pkgs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    while [[ ! -e "${d[3]}" ]]; do
+
+        show "\nRESTARTING VLC TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+
+        ( nohup "${m[2]}" & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill "${m[2]}"
+
+    done
+
+    sudo sed --in-place 's|#avcodec-hw=any|avcodec-hw=none|g' "${f[vlc]}"
+
+    sudo sed --in-place 's|#freetype-rel-fontsize=0|freetype-rel-fontsize=12|g' "${f[vlc]}"
+
+    sudo sed --in-place 's|#freetype-color=16777215|freetype-color=16776960|g' "${f[vlc]}"
 
     # These character class match once only, so we need +
     # https://www.petefreitag.com/cheatsheets/regex/character-classes/
@@ -3386,9 +3470,9 @@ X-GNOME-Autostart-Delay=0'
         && sudo tee --append "${f[load]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
-    [[ ! $(grep --no-messages vlc_kill "${f[zshrc]}") ]] \
+    [[ ! $(grep --no-messages 'alias vk' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias vlc_kill='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
+alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3736,7 +3820,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
     [[ ! $(grep --no-messages 'ZSH_THEME="agnoster"' "${f[zshrc]}") && ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
         && sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}" \
-        && sudo sed --in-place --null-data 's|git|git django python pyenv pip virtualenv copyfile|4' "${f[zshrc]}"
+        && sudo sed --in-place --null-data 's|git|git python pip virtualenv copyfile|4' "${f[zshrc]}"
 
     echo; read $'?\033[1;37mSIR, SHOULD I SET ZSH DEFAULT SHELL? \n[Y/N] R: \033[m' option
 
@@ -3744,7 +3828,7 @@ set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
 
         if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            [[ $(echo "${SHELL}") = '/bin/bash' ]] \
+            [[ $(ps --pid $$ | tail -1 | awk '{print $4}') = 'bash' ]] \
                 && chsh --shell $(which zsh)
 
             echo; read $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
@@ -3799,11 +3883,16 @@ change_panelandgui() {
         ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
         ~/.rbenv  # 4
         ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
+        /boot/grub/themes/linuxmint-2k/  # 6
+        /usr/share/icons  # 7
     )
 
     f+=(
         [automount]=/org/cinnamon/desktop/media-handling/automount
         [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
+        [bkg-grubtheme]=/boot/grub/themes/linuxmint-2k/background.jpg
+        [bkg-grubtheme-png]=/boot/grub/themes/linuxmint-2k/background.png
+        [bkg-grubtheme_old]=/boot/grub/themes/linuxmint-2k/background_old.png
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
@@ -3828,6 +3917,9 @@ change_panelandgui() {
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
         [thumbnail-limit]=/org/nemo/preferences/thumbnail-limit
+        [reverse-order]=/org/nemo/preferences/default-sort-in-reverse-order
+        [default-order]=/org/nemo/preferences/default-sort-order
+        [alfred]="/usr/share/icons/jenkins-128x128.png"
     )
 
     local -a l=(
@@ -3835,6 +3927,8 @@ change_panelandgui() {
         'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip'  # 2
         'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
         'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 4
+        'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 5
+        'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 6
     )
 
     local -a m=(
@@ -3846,14 +3940,38 @@ change_panelandgui() {
         'transmission-gtk'  # 6
         'nemo-mediainfo-tab'  # 7
         'neofetch'  # 8
+        'ruby-colorize'  # 9
+        'imagemagick'  # 10
     )
 
-    install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[8]}"
+    # START ADITTION ICON ALFRED
+    [[ ! -d "${d[7]}" || $(stat -c "%U" "${d[7]}" 2>&-) != "${USER}" ]] \
+        && sudo mkdir --parents "${d[7]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[7]}"
+
+    [[ ! -e "${f[alfred]}" ]] \
+        && curl --location --output "${f[alfred]}" --create-dirs "${l[6]}"  # END ICON
+
+    install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[8]}" "${m[9]}" "${m[10]}"
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
         && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}" \
         && sudo update-grub &> "${f[null]}" # END RESOLUTION
+
+    # START GRUB WALLPAPER CHANGE
+    [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
+        && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
+
+    [[ ! -e "${f[bkg-grubtheme_old]}" ]] \
+        && sudo mv "${f[bkg-grubtheme]}" "${f[bkg-grubtheme_old]}"
+
+    [[ ! -e "${f[bkg-grubtheme]}" ]] \
+        && wget --quiet "${l[5]}" --output-document "${f[bkg-grubtheme]}"
+
+    [[ ! -e "${f[bkg-grubtheme-png]}" ]] \
+        && sudo convert "${f[bkg-grubtheme]}" "${f[bkg-grubtheme-png]}"  # END WALLPAPER
 
     # START FIXING CHROME DETECTING NETWORK CHANGE (CONNECTION WAS INTERRUPTED)
     [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
@@ -3894,14 +4012,14 @@ change_panelandgui() {
             && unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}" \
             && sudo rm --force "${f[forceqt]}"
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:force-quit@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:xapp-status@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:network@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:betterlock:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator@cinnamon.org:16', 'panel1:right:17:separator@cinnamon.org:17', 'panel1:right:18:betterlock:18', 'panel1:right:19:separator2@zyzz:19', 'panel1:right:20:calendar@cinnamon.org:20']"
 
         # use custom format
-        sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
 
-        sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
 
-        sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"*.json
 
     fi  # END APPLETS
 
@@ -3989,15 +4107,14 @@ alias ls='${m[5]}'"
 
     # START NOMENCLATURE ICON ARRANGEMENT
     [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) \
-        && ! $(grep --no-messages telegram "${f[grouped]}"*.json) \
-        && ! $(grep --no-messages google-chrome "${f[grouped]}"*.json) ]] \
-        && sudo sed --in-place 's|"firefox.desktop",|"google-chrome.desktop",\n\t\t\t"firefox.desktop",\n\t\t\t"transmission-gtk.desktop",|g' "${f[grouped]}"*.json \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",\n\t\t\t"org.gnome.Terminal.desktop"|2' "${f[grouped]}"*.json \
-        && sudo sed --in-place '/"nemo.desktop"/,2d' "${f[grouped]}"*.json \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"org.gnome.Terminal.desktop"|1' "${f[grouped]}"*.json \
-        && sudo sed --in-place --null-data 's|"transmission-gtk.desktop",|"transmission-gtk.desktop",\n\t\t\t"nemo.desktop",|2' "${f[grouped]}"*.json \
-        && sudo sed --in-place 's|"nemo.desktop",|"nemo.desktop",\n\t\t\t"sublime_text.desktop",|g' "${f[grouped]}"*.json \
-        && sudo sed --in-place 's|"google-chrome.desktop",|"google-chrome.desktop",\n\t    "telegramdesktop.desktop",|g' "${f[grouped]}"*.json  # END
+        && ! $(grep --no-messages brave-browser "${f[grouped]}"*.json) ]] \
+        && sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json \
+        && sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json \
+        && sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json \
+        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"*.json \
+        && sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"*.json \
+        && sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"*.json \
+        && sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"*.json  # END
 
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
@@ -4031,6 +4148,10 @@ alias ls='${m[5]}'"
     dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
 
     dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
+
+    dconf write "${f[reverse-order]}" false
+
+    dconf write "${f[default-order]}" "'name'"
 
     dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
 

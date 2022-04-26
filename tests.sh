@@ -70,7 +70,7 @@ declare -A f=(
 
 #vim ~/.bashrc
 
-work() {
+boilerplate() {
 
     read -p $'\033[1;37mSIR, ? \n[Y/N] R: \033[m' option
 
@@ -101,42 +101,23 @@ work() {
     xrandr --output $EXTERN1 --left-of $EXTERN2
     xrandr --output $EXTERN1 --primary
 
+    jq -r '.lyrics.lines[].startTimeMs' lyrics.json
+    jq -r '.lyrics.lines[].words' lyrics.json
+    awk "BEGIN {print 38740/86400000}"
+
+    milliseconds_to_duration () {
+        local mins secs msec
+        local tmp=$1
+        (( mins = tmp / 60000, tmp %= 60000, secs = tmp / 1000, msec = tmp % 1000 ))
+        printf "%02d:%02d.%03d\n" "$mins" "$secs" "$msec"
+    }
+
+
 }
 
-#curl --location --silent --output ~/Downloads/proj-4.9.1.tar.gz --create-dirs http://download.osgeo.org/proj/proj-4.9.1.tar.gz
-#curl --location --silent --output ~/Downloads/proj-datumgrid-1.5.tar.gz --create-dirs http://download.osgeo.org/proj/proj-datumgrid-1.5.tar.gz
-
-# sudo tar --extract --gzip --file=/home/ribeiro/Downloads/proj-4.9.1.tar.gz --directory=/home/ribeiro/Downloads > ~/Downloads/installation.txt
-# sudo tar --extract --gzip --file=/home/ribeiro/Downloads/proj-datumgrid-1.5.tar.gz --directory=/tmp > ~/Downloads/installation.txt
-
-#cd ~/Downloads/proj-4.9.1
-#( nohup ./configure & ) &> ./install  # src/proj_config.h is unchanged
-
-# make &> ~/Downloads/install
-
-# sudo make install &> ~/Downloads/install
-
-# rm -rf ~/Downloads/proj-4.9.1
-
-# cd - &> /dev/null
-
-#curl --location --silent --output ~/Downloads/gdal-1.11.2.tar.gz --create-dirs http://download.osgeo.org/gdal/1.11.2/gdal-1.11.2.tar.gz
-#sudo tar --extract --gzip --file=/home/ribeiro/Downloads/gdal-1.11.2.tar.gz --directory=/home/ribeiro/Downloads
-#cd ~/Downloads/gdal-1.11.2
-#( nohup sudo ./configure & ) &> ~/Downloads/install  # hide internal symbols:     no
-#sudo make &> ~/Downloads/make_aqui
-#sudo make install
-#cd -
-
-
-
-#curl --location --silent --output ~/Downloads/geos-3.4.2.tar.bz2 --create-dirs http://download.osgeo.org/geos/geos-3.4.2.tar.bz2
-#sudo tar --extract --bzip2 --file=/home/ribeiro/Downloads/geos-3.4.2.tar.bz2 --directory=/home/ribeiro/Downloads
-#cd ~/Downloads/geos-3.4.2
-# ( nohup sudo ./configure & ) &> ~/Downloads/install  # PHP bindings: false
-# sudo make &> ~/Downloads/make_aqui
-#sudo make install &> /dev/null
-#cd -
-#cd -
-
-sudo sed -zi "s|(.Rafael.,)|\1 & \"Gabriel\",|g" try
+# show "${c[RED]}=======================================================" 1
+# https://stackoverflow.com/a/41212803/5465165
+echo "${(@f)$( < try)}"; do
+    first+=("${line}")
+done
+echo $first[1]
