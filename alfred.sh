@@ -384,7 +384,6 @@ bash_stuffs() {
 
     f+=(
         [powerline_otf]=~/.fonts/PowerlineSymbols.otf
-        [powerline_uuid]=~/.fonts/.uuid
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
         [original]=/etc/skel/.bashrc
         [bkp_bash]=~/.bashrc_bkp
@@ -432,7 +431,7 @@ bash_stuffs() {
 
                 cp "${f[bashrc]}" "${f[bkp_bash]}" &> "${f[null]}"
 
-                sudo rm --force "${f[powerline_otf]}" "${f[powerline_uuid]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
+                sudo rm --force "${f[powerline_otf]}" "${f[powerline_conf]}" "${f[bashrc]}" "${f[blerc]}"
 
                 # Could be mv "${f[bkp]}" "${f[bashrc]}", but if user format
                 # disk and maintain home intact, returns error
@@ -493,8 +492,6 @@ bash_stuffs() {
 
         # Update font cache
         sudo fc-cache --force "${d[1]}"
-
-        sudo chown "${USER}":"${USER}" "${f[powerline_uuid]}"
 
     fi
 
@@ -1278,7 +1275,7 @@ github_stuffs() {
     # -z for empty not works, github api was changes, if empty: [ ] (3 line)
     if [[ $(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | wc --lines) -eq 3 ]]; then
 
-        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
+        curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME//Linux/}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
 
     else
 
@@ -1287,7 +1284,7 @@ github_stuffs() {
         # https://developer.github.com/changes/2020-02-14-deprecating-password-auth/
         curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .title"  &> "${f[all_title_gh]}"
 
-        if [[ $(grep --no-messages "Sent from my ${NAME}" "${f[all_title_gh]}") ]]; then
+        if [[ $(grep --no-messages "Sent from my ${NAME//Linux/}" "${f[all_title_gh]}") ]]; then
 
             echo; read -p $'\033[1;37mSIR, SHOULD I REPLACE YOUR SSH ON GITHUB? \n[Y/N] R: \033[m' option
 
@@ -1297,11 +1294,11 @@ github_stuffs() {
 
                     show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1
 
-                    old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .id, .title" | grep --before-context=1 "Sent from my ${NAME}" | head -1)
+                    old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .id, .title" | grep --before-context=1 "Sent from my ${NAME//Linux/}" | head -1)
 
                     curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" --request DELETE "${l[0]}"/"${old_ssh_id}"
 
-                    curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
+                    curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME//Linux/}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
 
                     break
 
@@ -1321,7 +1318,7 @@ github_stuffs() {
 
         else
 
-            curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
+            curl --silent --include --user "${user}":"$(cat ${f[tmp_tk]})" --data '{"title": "Sent from my '"${NAME//Linux/}"'", "key": "'"$(cat ${f[public_ssh]})"'"}' "${l[0]}" &> "${f[null]}"
 
         fi
 
