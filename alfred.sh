@@ -87,6 +87,7 @@ declare -A f=(
     [bashrc]=~/.bashrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
+    [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
     [mimeapps]=~/.config/mimeapps.list
     [mimebkp]=~/.config/mimeapps.bkp
     [null]=/dev/null
@@ -239,7 +240,7 @@ install_packages() {
 
                 sudo apt install --assume-yes "${package}" &> "${f[null]}"
 
-                notify-send "${package^^} INSTALLED SUCCESSFULLY" --icon="${f[alfred]}"
+                notify-send "Status from Alfred" "${package} was installed successfully" --icon="${f[alfred]}"
 
             fi
 
@@ -472,7 +473,7 @@ bash_stuffs() {
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         # First /dev/null hide download progress, second hide thirty commands
-        0> "${f[null]}" sh -c "$(curl --show-error --fail --silent --location ${l[0]})" &> "${f[null]}"
+        0> "${f[null]}" sh -c "$(curl --silent --show-error --fail --location ${l[0]})" &> "${f[null]}"
 
     fi
 
@@ -488,7 +489,7 @@ bash_stuffs() {
 
         # --location follows to last URL (github provides a few redirects)
         # --output write content to file
-        curl --location --silent --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
+        curl --silent --location --output "${f[powerline_otf]}" --create-dirs "${l[1]}"
 
         # Update font cache
         sudo fc-cache --force "${d[1]}"
@@ -501,7 +502,7 @@ bash_stuffs() {
             && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
 
-        curl --location --silent --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
+        curl --silent --location --output "${f[powerline_conf]}" --create-dirs "${l[2]}"
 
         # Workaround to prevent terminal restart
         xdotool key Ctrl+plus && xdotool key Ctrl+minus
@@ -840,7 +841,7 @@ deemix_stuffs() {
         show "\n${c[YELLOW]}${m[0]:u} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
-            && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
+            && curl --silent --location --output "${f[file]}" --create-dirs "${l[0]}"
 
         sudo dpkg --install "${f[file]}" &> "${f[null]}"
 
@@ -1423,7 +1424,7 @@ chrome_stuffs() {
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
-            && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
+            && curl --silent --location --output "${f[file]}" --create-dirs "${l[0]}"
 
         sudo dpkg --install "${f[file]}" &> "${f[null]}"
 
@@ -2433,7 +2434,7 @@ postman_stuffs() {
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
-            && curl --location --silent --output "${f[file]}" --create-dirs "${l[0]}"
+            && curl --silent --location --output "${f[file]}" --create-dirs "${l[0]}"
 
         tar --extract --gzip --file="${f[file]}" --directory="${d[0]}" > "${f[null]}"
 
@@ -2640,7 +2641,7 @@ python_stuffs() {
                 [[ -d "${d[0]}" ]] \
                     && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                     || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                    && bash -c "$(curl --location --silent ${l[0]})" &> "${f[null]}"
+                    && bash -c "$(curl --silent --location ${l[0]})" &> "${f[null]}"
 
                 echo; show "INITIALIZING CONFIGS..."
 
@@ -3217,7 +3218,7 @@ CB6CCBA5 7DE6177B C02C2826 8C9A21B0
 
             echo; read -p $'\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
 
-            [[ $(curl --write-out %{http_code} --silent --output "${f[null]}" "${l[4]}""${pkg}") -ne 200 ]] \
+            [[ $(curl --silent --write-out %{http_code} --output "${f[null]}" "${l[4]}""${pkg}") -ne 200 ]] \
                 && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
                 && continue
 
@@ -3608,7 +3609,7 @@ usefull_pkgs() {
         [[ -d "${d[1]}" ]] \
             && show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]"
             || show "\n${c[YELLOW]}${m[12]^^} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
-            && bash -c "$(curl --location --silent ${l[0]})" &> "${f[out]}"
+            && bash -c "$(curl --silent --location ${l[0]})" &> "${f[out]}"
 
         if [[ ! -e "${f[series]}" ]]; then
 
@@ -3911,9 +3912,9 @@ change_panelandgui() {
     f+=(
         [automount]=/org/cinnamon/desktop/media-handling/automount
         [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
-        [bkg-grubtheme]=/boot/grub/themes/linuxmint-2k/background.png
-        [bkg-grubtheme-png]=/boot/grub/themes/linuxmint-2k/background.png
-        [bkg-grubtheme_old]=/boot/grub/themes/linuxmint-2k/background_old.png
+        [background_grub_jpg]=/boot/grub/themes/linuxmint-2k/background.jpg
+        [background_grub_png]=/boot/grub/themes/linuxmint-2k/background.png
+        [old_background_grub]=/boot/grub/themes/linuxmint-2k/background_old.png
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
@@ -3926,9 +3927,11 @@ change_panelandgui() {
         [volumes_icon]=/org/nemo/desktop/volumes-visible
         [default_sort_order]=/org/nemo/preferences/default-sort-order
         [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
+        [default_sort_reverse_gnome]=/org/gnome/nautilus/preferences/default-sort-in-reverse-order
         [grub]=/boot/grub/grub.cfg
         [home_icon]=/org/nemo/desktop/home-icon-visible
         [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
+        [icon_theme_gnome]=/org/gnome/desktop/interface/icon-theme
         [login-file]=/org/cinnamon/sounds/login-file
         [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
         [numlock]=/etc/lightdm/slick-greeter.conf
@@ -3937,10 +3940,12 @@ change_panelandgui() {
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
+        [show_hidden_gnome]=/org/gnome/nautilus/preferences/show-hidden-files
         [thumbnail-limit]=/org/nemo/preferences/thumbnail-limit
+        [thumbnail-limit-gnome]=/org/gnome/nautilus/preferences/thumbnail-limit
         [reverse-order]=/org/nemo/preferences/default-sort-in-reverse-order
         [default-order]=/org/nemo/preferences/default-sort-order
-        [alfred]="/usr/share/icons/jenkins-128x128.png"
+        [alfred]=/usr/share/icons/jenkins-128x128.png
     )
 
     local -a l=(
@@ -3971,7 +3976,7 @@ change_panelandgui() {
         && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
 
     [[ ! -e "${f[alfred]}" ]] \
-        && curl --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
+        && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
 
     install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[7]}" "${m[8]}" "${m[9]}"
 
@@ -3985,14 +3990,12 @@ change_panelandgui() {
         && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
         && sudo chown --recursive "${USER}":"${USER}" "${d[5]}"
 
-    [[ ! -e "${f[bkg-grubtheme_old]}" ]] \
-        && sudo mv "${f[bkg-grubtheme]}" "${f[bkg-grubtheme_old]}"
-
-    [[ ! -e "${f[bkg-grubtheme]}" ]] \
-        && wget --quiet "${l[4]}" --output-document "${f[bkg-grubtheme]}"
-
-    [[ ! -e "${f[bkg-grubtheme-png]}" ]] \
-        && sudo convert "${f[bkg-grubtheme]}" "${f[bkg-grubtheme-png]}"  # END WALLPAPER
+    [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
+        && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
+        [[ ! -e "${f[background_grub_jpg]}" ]] \
+            && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
+            && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
+            && rm --force "${f[background_grub_jpg]}" # END WALLPAPER
 
     # START FIXING CHROME DETECTING NETWORK CHANGE (CONNECTION WAS INTERRUPTED)
     [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
@@ -4058,7 +4061,7 @@ activate-numlock=true'
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
         [[ ! -e "${f[ogg_file]}" ]] \
-            && curl --location --output "${f[ogg]}" --create-dirs "${l[2]}"
+            && curl --silent --location --output "${f[ogg]}" --create-dirs "${l[2]}"
 
         dconf write "${f[login-file]}" "'${f[path-ogg]}'"
 
@@ -4140,41 +4143,30 @@ alias ls='${m[4]}'"
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
 
-    dconf write "${f[computer_icon]}" false
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+        && dconf write "${f[show_hidden]}" true \
+        && dconf write "${f[thumbnail-limit]}" 'uint64 34359738368' \
+        && dconf write "${f[default_sort_reverse]}" false \
+        && dconf write "${f[gtk_theme_gnome]}" "'Yaru-viridian-dark'" \
+        && dconf write "${f[icon_theme]}" "'Yaru-viridian'"
 
-    dconf write "${f[volumes_icon]}" false
-
-    dconf write "${f[home_icon]}" false
-
-    dconf write "${f[automount]}" true
-
-    dconf write "${f[automount_open]}" true
-
-    dconf write "${f[open_folder]}" "['x-content/bootable-media']"
-
-    dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']"
-
-    dconf write "${f[show_hidden]}" true
-
-    dconf write "${f[thumbnail-limit]}" "uint64 34359738368"
-
-    dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']"
-
-    dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']"
-
-    dconf write "${f[default_sort_order]}" "'name'"
-
-    dconf write "${f[default_sort_reverse]}" false
-
-    dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'"
-
-    dconf write "${f[icon_theme]}" "'Mint-Y-Red'"
-
-    dconf write "${f[reverse-order]}" false
-
-    dconf write "${f[default-order]}" "'name'"
-
-    dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+        && dconf write "${f[computer_icon]}" false \
+        && dconf write "${f[volumes_icon]}" false \
+        && dconf write "${f[home_icon]}" false \
+        && dconf write "${f[automount]}" true \
+        && dconf write "${f[automount_open]}" true \
+        && dconf write "${f[open_folder]}" "['x-content/bootable-media']" \
+        && dconf write "${f[start_app]}" "['x-content/unix-software', 'x-content/bootable-media']" \
+        && dconf write "${f[show_hidden]}" true \
+        && dconf write "${f[thumbnail-limit]}" 'uint64 34359738368' \
+        && dconf write "${f[looking_glass]}" "['<Ctrl><Alt>l']" \
+        && dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']" \
+        && dconf write "${f[default_sort_order]}" "'name'" \
+        && dconf write "${f[default_sort_reverse]}" false \
+        && dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'" \
+        && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
+        && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
 
 }
 #======================#
