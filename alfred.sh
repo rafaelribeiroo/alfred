@@ -261,7 +261,7 @@ install_pip(){
 
     for package in "$@"; do
 
-        if [[ ! $(pip list 2>&- | grep --no-messages "${package}") ]]; then
+        if [[ $(pip list 2>&- | grep --no-messages "${package}") ]]; then
 
             echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
