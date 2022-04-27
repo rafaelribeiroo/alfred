@@ -3896,9 +3896,9 @@ change_panelandgui() {
     f+=(
         [automount]=/org/cinnamon/desktop/media-handling/automount
         [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
-        [background_grub_jpg]=/boot/grub/themes/linuxmint-2k/background.jpg
-        [background_grub_png]=/boot/grub/themes/linuxmint-2k/background.png
-        [old_background_grub]=/boot/grub/themes/linuxmint-2k/background_old.png
+        [background_grub_jpg]=/boot/grub/themes/*/background.jpg
+        [background_grub_png]=/boot/grub/themes/*/background.png
+        [old_background_grub]=/boot/grub/themes/*/background_old.png
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
@@ -3931,6 +3931,7 @@ change_panelandgui() {
         [default-order]=/org/nemo/preferences/default-sort-order
         [alfred]=/usr/share/icons/jenkins-128x128.png
         [meslo]=~/.fonts/Meslo.zip
+        [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
     )
 
     local -a l=(
@@ -3941,6 +3942,7 @@ change_panelandgui() {
         'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 5
         'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 6
         'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 7
+        'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 8
     )
 
     local -a m=(
@@ -3955,6 +3957,7 @@ change_panelandgui() {
         'ruby-colorize'  # 9
         'imagemagick'  # 10
         'gawk'  # 11
+        'grub2-theme-mint'  # 12
     )
 
     # START ADITTION ICON ALFRED
@@ -3969,16 +3972,34 @@ change_panelandgui() {
 
     # START GRUB WALLPAPER CHANGE
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-        && install_packages "${m[3]}" \
-        && [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
-            && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[6]}" \
-            && [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
-                && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
-                && [[ ! -e "${f[background_grub_jpg]}" ]] \
-                    && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
-                    && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
-                    && rm --force "${f[background_grub_jpg]}"  # END WALLPAPER CHANGE
+        && install_packages "${m[3]}"
+
+    if [[ $(dpkg --list | awk "/ii  ${m[12]}[[:space:]]/ {print }") && "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]]; then
+
+        show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]"
+
+    else
+
+        show "\n${c[YELLOW]}${m[12]:u} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]"
+
+        [[ ! -e "${f[grub2_theme]}" ]] \
+            && wget --quiet "${l[8]}" --output-document "${f[grub2_theme]}" \
+            && sudo dpkg --install "${f[grub2_theme]}" &> "${f[null]}" \
+            && sudo rm --force "${f[file]}"
+
+    fi
+
+
+    [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
+        && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
+
+    [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
+        && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
+        && [[ ! -e "${f[background_grub_jpg]}" ]] \
+            && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
+            && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
+            && rm --force "${f[background_grub_jpg]}"  # END WALLPAPER CHANGE
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
