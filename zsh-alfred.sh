@@ -1223,6 +1223,7 @@ flameshot_stuffs() {
 
     f+=(
         [config]=~/.config/Dharkael/flameshot.ini
+        [config_gnome]=~/.config/flameshot/flameshot.ini
         [dskt]=~/.config/autostart/Flameshot.desktop
         [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
         [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
@@ -1233,6 +1234,7 @@ flameshot_stuffs() {
         [prtscr1_gnome]=/org/gnome/shell/keybindings/show-screenshot-ui
         [prtscr2_gnome]=/org/gnome/shell/keybindings/screenshot
         [prtscr3_gnome]=/org/gnome/shell/keybindings/screenshot-window
+        [wayland]=/etc/gdm3/custom.conf
     )
 
     local -a m=(
@@ -1291,6 +1293,31 @@ flameshot_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
+    sudo sed --in-place 's|#WaylandEnable=false|WaylandEnable=false|g' "${f[wayland]}"
+
+    # sudo systemctl restart gdm3
+    echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            sudo reboot
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
     source "${f[user_dirs]}"
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
@@ -1298,7 +1325,7 @@ flameshot_stuffs() {
         && dconf write "${f[prtscr2_gnome]}" "['']" \
         && dconf write "${f[prtscr3_gnome]}" "['']" \
         && dconf write "${f[custom_gnome]}" "['${f[custom_first]}', '${f[custom_second]}']" \
-        && dconf write "${f[custom_print]}binding" "['Print', '<Shift>Print']" \
+        && dconf write "${f[custom_print]}binding" "'Print'" \
         && dconf write "${f[custom_print]}command" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
         && dconf write "${f[custom_print]}name" "'Take a PrintScreen'"
 
@@ -1312,17 +1339,17 @@ flameshot_stuffs() {
 
     for (( ; ; )); do
 
-        [[ ! -e "${f[config]}" ]] \
-            && flameshot full -p "${d[2]}" \
-            && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..." \
-            || break
+        [[ -e "${f[config]}" || -e "${f[config_gnome]}" ]] \
+            && break \
+            || flameshot full -p "${d[2]}"  &> "${f[null]}" \
+            && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..."
 
     done
 
     # If these instructions below stay in for, don't works
     sudo pkill "${m[1]}" && take_a_break
 
-    [[ ! $(grep --no-messages '@Variant' "${f[config]}") ]] \
+    [[ ! $(grep --no-messages '@Variant' "${f[config]}") && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && source "${f[user_dirs]}" \
         && sudo tee "${f[config]}" > "${f[null]}" <<< "[General]
 buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
@@ -1332,7 +1359,17 @@ drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
 drawThickness=0
 savePath=${XDG_PICTURES_DIR}"
 
-    [[ ! $(grep --no-messages flameshot "${f[dskt]}") ]] \
+    [[ ! $(grep --no-messages '@Variant' "${f[config_gnome]}") && "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+        && source "${f[user_dirs]}" \
+        && sudo tee "${f[config_gnome]}" > "${f[null]}" <<< "[General]
+buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
+contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
+disabledTrayIcon=true
+drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
+drawThickness=0
+savePath=${XDG_PICTURES_DIR}"
+
+    [[ ! $(grep --no-messages flameshot "${f[dskt]}") && "${XDG_CURRENT_DESKTOP:u}" ]] \
         && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
 Name=flameshot
 Icon=flameshot
@@ -3891,6 +3928,7 @@ change_panelandgui() {
         /usr/share/icons  # 7
         ~/.oh-my-zsh/  # 8
         ~/.fonts  # 9
+        ~/.config/autostart  # 10
     )
 
     f+=(
@@ -3969,6 +4007,11 @@ change_panelandgui() {
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[6]}"  # END ICON
 
     install_packages "${m[1]}" "${m[2]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
+
+    # START AUTOSTART APPLICATIONS
+    [[ ! -d "${d[10]}" || $(stat -c "%U" "${d[10]}" 2>&-) != "${USER}" ]] \
+        && sudo mkdir --parents "${d[10]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[10]}"  # END AUTOSTART APPLICATIONS
 
     # START GRUB WALLPAPER CHANGE
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
