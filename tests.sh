@@ -60,12 +60,6 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
 
-    [public_ssh]=~/.ssh/id_rsa.pub
-    [tmp_tk]=/tmp/check_token.txt
-
-    [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
-
-    [run]=/opt/Postman/Postman
 )
 
 #vim ~/.bashrc
@@ -117,7 +111,5 @@ boilerplate() {
 
 # show "${c[RED]}=======================================================" 1
 # https://stackoverflow.com/a/41212803/5465165
-echo "${(@f)$( < try)}"; do
-    first+=("${line}")
-done
-echo $first[1]
+
+# curl --silent --location --output /usr/share/mint-artwork/sounds/manias.ogg --create-dirs 'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'
