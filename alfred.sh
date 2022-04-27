@@ -4003,48 +4003,44 @@ change_panelandgui() {
         && sudo update-grub &> "${f[null]}"  # END
 
     # START PPA ADDITION
-    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) ]] \
-        && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
-        && update \
-        && sudo apt install --assume-yes "${m[5]}" &> "${f[null]}"  # END PPA
-
-    # START PPA ADDITION
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
         && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}" \
         && update \
         && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
-    if [[ ! -d "${d[1]}" && ! -d "${d[2]}" && ! -d "${d[4]}" ]]; then
+    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
+        if [[ ! -d "${d[1]}" && ! -d "${d[2]}" && ! -d "${d[4]}" ]]; then
 
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
-            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
+                && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-        [[ ! -e "${f[capslock]}" ]] \
-            && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
-            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-            && sudo rm --force "${f[capslock]}"
+            [[ ! -e "${f[capslock]}" ]] \
+                && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
+                && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
+                && sudo rm --force "${f[capslock]}"
 
-        [[ ! -e "${f[separator2]}" ]] \
-            && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
-            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-            && sudo rm --force "${f[separator2]}"
+            [[ ! -e "${f[separator2]}" ]] \
+                && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
+                && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
+                && sudo rm --force "${f[separator2]}"
 
-        [[ ! -e "${f[forceqt]}" ]] \
-            && wget --quiet "${l[3]}" --output-document "${f[forceqt]}" \
-            && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-            && sudo rm --force "${f[forceqt]}"
+            [[ ! -e "${f[forceqt]}" ]] \
+                && wget --quiet "${l[3]}" --output-document "${f[forceqt]}" \
+                && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
+                && sudo rm --force "${f[forceqt]}"
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator@cinnamon.org:16', 'panel1:right:17:separator@cinnamon.org:17', 'panel1:right:18:betterlock:18', 'panel1:right:19:separator2@zyzz:19', 'panel1:right:20:calendar@cinnamon.org:20']"
+            dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator@cinnamon.org:16', 'panel1:right:17:separator@cinnamon.org:17', 'panel1:right:18:betterlock:18', 'panel1:right:19:separator2@zyzz:19', 'panel1:right:20:calendar@cinnamon.org:20']"
 
-        # use custom format
-        sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
+            # use custom format
+            sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
 
-        sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
+            sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
 
-        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"*.json
+            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"*.json
 
+        fi
     fi  # END APPLETS
 
     # START NUMLOCK ALWAYS ACTIVE AT STARTUP
