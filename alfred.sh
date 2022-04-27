@@ -88,6 +88,7 @@ declare -A f=(
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
+    [locale]=/etc/default/locale
     [mimeapps]=~/.config/mimeapps.list
     [mimebkp]=~/.config/mimeapps.bkp
     [null]=/dev/null
@@ -795,7 +796,7 @@ deemix_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
         read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -803,7 +804,7 @@ deemix_stuffs() {
 
             if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
@@ -833,12 +834,12 @@ deemix_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
         install_packages "${m[0]}" "${m[1]}"
 
-        show "\n${c[YELLOW]}${m[0]:u} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
         [[ ! -e "${f[file]}" ]] \
             && curl --silent --location --output "${f[file]}" --create-dirs "${l[0]}"
@@ -853,7 +854,7 @@ deemix_stuffs() {
             && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
             && python_stuffs
 
-        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[22]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[22]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_pip "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}"
 
@@ -863,13 +864,13 @@ deemix_stuffs() {
                 && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
                 && sudo chown --recursive "${USER}":"${USER}" "${d[5]}"
 
-            show "\n${c[YELLOW]}${m[22]:u} ${c[WHITE]}${linen:${#m[22]}} [INSTALLING]"
+            show "\n${c[YELLOW]}${m[22]^^} ${c[WHITE]}${linen:${#m[22]}} [INSTALLING]"
 
             wget --quiet "${l[1]}" --output-document "${f[decrypt]}"
 
         else
 
-            show "\n${c[GREEN]}${m[22]:u} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]"
+            show "\n${c[GREEN]}${m[22]^^} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]"
 
         fi
 
@@ -1200,8 +1201,8 @@ github_stuffs() {
 
         done
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[3]}") ]] \
-            && sudo apt-add-repository "${l[3]}" \
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[3]}") && "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+            && sudo add-apt-repository --yes "${l[3]}" &> "${f[null]}" \
             && update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[5]}" "${m[6]}"
@@ -2570,7 +2571,7 @@ python_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]:u}${c[WHITE]} AND ${c[RED]}${m[17]:u}${c[WHITE]}!\n"
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]} AND ${c[RED]}${m[17]^^}${c[WHITE]}!\n"
 
                 sudo apt remove --purge --yes "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" &> "${f[null]}"
 
@@ -3907,6 +3908,7 @@ change_panelandgui() {
         ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 4
         /boot/grub/themes/linuxmint-2k/  # 5
         /usr/share/icons  # 6
+        ~/.oh-my-bash/  # 7
     )
 
     f+=(
@@ -3968,6 +3970,7 @@ change_panelandgui() {
         'neofetch'  # 7
         'ruby-colorize'  # 8
         'imagemagick'  # 9
+        'gawk'  # 10
     )
 
     # START ADITTION ICON ALFRED
@@ -3978,7 +3981,7 @@ change_panelandgui() {
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
 
-    install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[7]}" "${m[8]}" "${m[9]}"
+    install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
@@ -3992,7 +3995,7 @@ change_panelandgui() {
 
     [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
         && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
-        [[ ! -e "${f[background_grub_jpg]}" ]] \
+        && [[ ! -e "${f[background_grub_jpg]}" ]] \
             && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
             && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
             && rm --force "${f[background_grub_jpg]}" # END WALLPAPER
@@ -4003,13 +4006,19 @@ change_panelandgui() {
         && sudo update-grub &> "${f[null]}"  # END
 
     # START PPA ADDITION
+    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+        && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
+        && update \
+        && sudo apt install --assume-yes "${m[5]}" &> "${f[null]}"  # END PPA
+
+    # START PPA ADDITION
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
         && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}" \
         && update \
         && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
-    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
+    if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
         if [[ ! -d "${d[1]}" && ! -d "${d[2]}" && ! -d "${d[4]}" ]]; then
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
@@ -4044,7 +4053,7 @@ change_panelandgui() {
     fi  # END APPLETS
 
     # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-    [[ ! -e "${f[numlock]}" ]] \
+    [[ ! -e "${f[numlock]}" && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
 activate-numlock=true'
 
@@ -4052,23 +4061,26 @@ activate-numlock=true'
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
     # START STARTUP SONG CHANGE
-    source "${f[locale]}"
+    if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
 
-    if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
+        source "${f[locale]}"
 
-        [[ ! -e "${f[ogg_file]}" ]] \
-            && curl --silent --location --output "${f[ogg]}" --create-dirs "${l[2]}"
+        if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
-        dconf write "${f[login-file]}" "'${f[path-ogg]}'"
+            [[ ! -e "${f[ogg_file]}" ]] \
+                && curl --silent --location --output "${f[path-ogg]}" --create-dirs "${l[2]}"
 
+            dconf write "${f[login-file]}" "'${f[path-ogg]}'"
+
+        fi
     fi  # END
 
     # START CHANGE DESCRIPTION WINDOWS IN GRUB
     [[ ! $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-        && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"  # END
+        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"  # END
 
     # START CHECK UNSTAGED DIRECTORIES
-    [[ ! $(grep --no-messages check_unstaged "${f[bashrc]}") ]] \
+    [[ ! $(grep --no-messages unstaged "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias c='clear'
 
@@ -4089,18 +4101,18 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! -d "${d[3]}" && ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+            [[ ! -d "${d[3]}" || ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
                 && ruby_stuffs
 
-            [[ ! -d "${d[0]}" ]] \
+            [[ ! -d "${d[7]}" ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
                 && bash_stuffs
 
             [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && sudo gem install --silent "${m[4]}"
+                && gem install --silent "${m[4]}"
 
             [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
                 && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
@@ -4125,9 +4137,15 @@ alias ls='${m[4]}'"
 
     done
 
+    # START NOMATCH
+    [[ ! $(grep --no-messages nomatch "${f[zshrc]}") && "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
+# Hides default behavior from zsh in grep: no matches found.
+setopt +o nomatch" \
+        && source "${f[zshrc]}"  # END NOMATCH
+
     # START NOMENCLATURE ICON ARRANGEMENT
-    [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) \
-        && ! $(grep --no-messages brave-browser "${f[grouped]}"*.json) ]] \
+    [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json \
         && sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json \
         && sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json \
@@ -4139,14 +4157,14 @@ alias ls='${m[4]}'"
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
 
-    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
         && dconf write "${f[show_hidden]}" true \
         && dconf write "${f[thumbnail-limit]}" 'uint64 34359738368' \
         && dconf write "${f[default_sort_reverse]}" false \
         && dconf write "${f[gtk_theme_gnome]}" "'Yaru-viridian-dark'" \
         && dconf write "${f[icon_theme]}" "'Yaru-viridian'"
 
-    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && dconf write "${f[computer_icon]}" false \
         && dconf write "${f[volumes_icon]}" false \
         && dconf write "${f[home_icon]}" false \

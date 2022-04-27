@@ -940,8 +940,8 @@ github_stuffs() {
 
         done
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[4]}") ]] \
-            && sudo apt-add-repository "${l[4]}" \
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[4]}") && "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+            && sudo add-apt-repository --yes "${l[4]}" &> "${f[null]}" \
             && update
 
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[6]}" "${m[7]}"
@@ -3885,6 +3885,7 @@ change_panelandgui() {
         ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
         /boot/grub/themes/linuxmint-2k/  # 6
         /usr/share/icons  # 7
+        ~/.oh-my-zsh/  # 8
     )
 
     f+=(
@@ -3946,6 +3947,7 @@ change_panelandgui() {
         'neofetch'  # 8
         'ruby-colorize'  # 9
         'imagemagick'  # 10
+        'gawk'  # 11
     )
 
     # START ADITTION ICON ALFRED
@@ -3956,7 +3958,7 @@ change_panelandgui() {
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[6]}"  # END ICON
 
-    install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[8]}" "${m[9]}" "${m[10]}"
+    install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}"
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
@@ -3970,7 +3972,7 @@ change_panelandgui() {
 
     [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
         && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
-        [[ ! -e "${f[background_grub_jpg]}" ]] \
+        && [[ ! -e "${f[background_grub_jpg]}" ]] \
             && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
             && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
             && rm --force "${f[background_grub_jpg]}" # END WALLPAPER
@@ -3979,6 +3981,12 @@ change_panelandgui() {
     [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
         && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' "${f[grub-modified]}" \
         && sudo update-grub &> "${f[null]}"  # END
+
+    # START PPA ADDITION
+    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+        && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
+        && update \
+        && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
 
     # START PPA ADDITION
     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
@@ -4022,7 +4030,7 @@ change_panelandgui() {
     fi  # END APPLETS
 
     # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-    [[ ! -e "${f[numlock]}" ]] \
+    [[ ! -e "${f[numlock]}" && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
 activate-numlock=true'
 
@@ -4030,23 +4038,25 @@ activate-numlock=true'
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
 
     # START STARTUP SONG CHANGE
-    source "${f[locale]}"
+    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
+        source "${f[locale]}"
 
-    if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
+        if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
-        [[ ! -e "${f[ogg_file]}" ]] \
-            && curl --silent --location --output "${f[ogg]}" --create-dirs "${l[3]}"
+            [[ ! -e "${f[ogg_file]}" ]] \
+                && curl --silent --location --output "${f[path-ogg]}" --create-dirs "${l[3]}"
 
-        dconf write "${f[login-file]}" "'${f[path-ogg]}'"
+            dconf write "${f[login-file]}" "'${f[path-ogg]}'"
 
+        fi
     fi  # END
 
     # START CHANGE DESCRIPTION WINDOWS IN GRUB
     [[ ! $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-        && sudo sed --in-place 's|Boot Manager|10|g' "${f[grub]}"  # END
+        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"  # END
 
     # START CHECK UNSTAGED DIRECTORIES
-    [[ ! $(grep --no-messages check_unstaged "${f[zshrc]}") ]] \
+    [[ ! $(grep --no-messages unstaged "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias c='clear'
 
@@ -4067,18 +4077,18 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
 
         if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            [[ ! -d "${d[4]}" && ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+            [[ ! -d "${d[4]}" || ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
                 && ruby_stuffs
 
-            [[ ! -d "${d[1]}" ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
+            [[ ! -d "${d[8]}" ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH ZSH (OH-MY-ZSH)?" \
                 && zsh_stuffs
 
             [[ $(gem list 2>&- | grep --no-messages "${m[5]}") ]] \
                 && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-                && sudo gem install --silent "${m[5]}"
+                && gem install --silent "${m[5]}"
 
             [[ ! $(grep --no-messages "${m[5]}" "${f[zshrc]}") ]] \
                 && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
@@ -4103,9 +4113,15 @@ alias ls='${m[5]}'"
 
     done
 
+    # START NOMATCH
+    [[ ! $(grep --no-messages nomatch "${f[zshrc]}") && "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
+# Hides default behavior from zsh in grep: no matches found.
+setopt +o nomatch" \
+        && source "${f[zshrc]}"  # END NOMATCH
+
     # START NOMENCLATURE ICON ARRANGEMENT
-    [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) \
-        && ! $(grep --no-messages brave-browser "${f[grouped]}"*.json) ]] \
+    [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json \
         && sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json \
         && sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json \
