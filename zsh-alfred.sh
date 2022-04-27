@@ -603,13 +603,9 @@ deemix_stuffs() {
 
         if [[ ! -e "${f[decrypt]}" ]]; then
 
-            [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
-                && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
-
             show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]"
 
-            wget --quiet "${l[2]}" --output-document "${f[decrypt]}"
+            sudo wget --quiet "${l[2]}" --output-document "${f[decrypt]}"
 
         else
 
@@ -3398,17 +3394,13 @@ usefull_pkgs() {
 
         if [[ ! -e "${f[series]}" ]]; then
 
-            [[ ! -d "${d[4]}" || $(stat -c "%U" "${d[4]}" 2>&-) != "${USER}" ]] \
-                && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[4]}"
-
             show "\n${c[YELLOW]}${m[17]:u} ${c[WHITE]}${linen:${#m[17]}} [INSTALLING]"
 
-            wget --quiet "${l[2]}" --output-document "${f[rar-file]}"
+            sudo wget --quiet "${l[2]}" --output-document "${f[rar-file]}"
 
             sudo mkdir --parents "${d[5]}" > "${f[null]}"
 
-            tar --extract --gzip --file="${f[rar-file]}" --directory="${d[5]}" > "${f[null]}"
+            sudo tar --extract --gzip --file="${f[rar-file]}" --directory="${d[5]}" > "${f[null]}"
 
             sudo rm --force "${f[rar-file]}"
 
