@@ -85,6 +85,10 @@ declare -A e=(
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
+    [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
+    [custom_first]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
+    [custom_second]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/
+    [custom_print]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
@@ -970,17 +974,19 @@ alias ct='rm --recursive --force ${d[3]}'"
 dualmonitor_stuffs() {
 
     local -a d=(
-        /usr/share/backgrounds/linuxmint-random  # 0
+        /usr/share/backgrounds/customized  # 0
     )
 
     f+=(
-        [starwars]=/usr/share/backgrounds/linuxmint-random/sw.jpg
-        [stormtrooper]=/usr/share/backgrounds/linuxmint-random/st.jpg
-        [fightclub]=/usr/share/backgrounds/linuxmint-random/cl.png
-        [kyloren]=/usr/share/backgrounds/linuxmint-random/kr.jpg
-        [default]=/usr/share/backgrounds/linuxmint/default_background.jpg
+        [starwars]=/usr/share/backgrounds/customized/sw.jpg
+        [stormtrooper]=/usr/share/backgrounds/customized/st.jpg
+        [fightclub]=/usr/share/backgrounds/customized/cl.png
+        [kyloren]=/usr/share/backgrounds/customized/kr.jpg
+        [default]=/usr/share/backgrounds/customized/default_background.jpg
         [picture]=/org/cinnamon/desktop/background/picture-uri
+        [picture_gnome]=/org/gnome/desktop/background/picture-uri
         [option]=/org/cinnamon/desktop/background/picture-options
+        [option_gnome]=/org/gnome/desktop/background/picture-options
         [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
         [source]=/org/cinnamon/desktop/background/slideshow/image-source
         [delay]=/org/cinnamon/desktop/background/slideshow/delay
@@ -1000,7 +1006,6 @@ dualmonitor_stuffs() {
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
-        && $(dconf read "${f[picture]}" 2>&-) = "'file://${f[starwars]}'" \
         && -e "${d[0]}" ]]; then
         # 2>&- if dconf not installed
 
@@ -1072,15 +1077,16 @@ dualmonitor_stuffs() {
         [[ ! -e "${f[kyloren]}" ]] \
             && curl --silent --output "${f[kyloren]}" --create-dirs "${l[3]}"
 
-        dconf write "${f[picture]}" "'file://${f[starwars]}'"
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+            && dconf write "${f[picture_gnome]}" "'file://${f[starwars]}'" \
+            && dconf write "${f[option_gnome]}" "'spanned'"
 
-        dconf write "${f[option]}" "'spanned'"
-
-        dconf write "${f[slideshow]}" true
-
-        dconf write "${f[source]}" "'directory://${d[1]}'"
-
-        dconf write "${f[delay]}" 15
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+            && dconf write "${f[picture]}" "'file://${f[starwars]}'" \
+            && dconf write "${f[option]}" "'spanned'" \
+            && dconf write "${f[slideshow]}" true \
+            && dconf write "${f[source]}" "'directory://${d[1]}'" \
+            && dconf write "${f[delay]}" 15
 
     else
 
@@ -1480,18 +1486,12 @@ flameshot_stuffs() {
     f+=(
         [config]=~/.config/Dharkael/flameshot.ini
         [dskt]=~/.config/autostart/Flameshot.desktop
-        [screenshot_ci]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
-        [screenshot_gn]=/org/gnome/settings-daemon/plugins/media-keys/screenshot
-        [area_screenshot_ci]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
-        [area_screenshot_gn]=/org/gnome/settings-daemon/plugins/media-keys/area-screenshot
-        [cmd_ci]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
-        [cmd_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/command
-        [bdg_ci]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
-        [bdg_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/binding
-        [name_ci]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
-        [name_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/name
-        [custom_ci]=/org/cinnamon/desktop/keybindings/custom-list
-        [custom_gn]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
+        [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
+        [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
+        [cmd]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
+        [bdg]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
+        [name]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
+        [custom]=/org/cinnamon/desktop/keybindings/custom-list
     )
 
     local -a m=(
@@ -1550,28 +1550,24 @@ flameshot_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    if [[ -z $(dconf read "${f[screenshot_gn]}" 2>&-) || \
-          -z $(dconf read "${f[screenshot_ci]}" 2>&-) ]]; then
+    source "${f[user_dirs]}"
 
-        source "${f[user_dirs]}"
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+        && dconf write "${f[prtscr1_gnome]}" "['']" \
+        && dconf write "${f[prtscr2_gnome]}" "['']" \
+        && dconf write "${f[prtscr3_gnome]}" "['']" \
+        && dconf write "${f[custom_gnome]}" "['${f[custom_first]}', '${f[custom_second]}']" \
+        && dconf write "${f[custom_print]}binding" "['Print', '<Shift>Print']" \
+        && dconf write "${f[custom_print]}command" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
+        && dconf write "${f[custom_print]}name" "'Take a PrintScreen'"
 
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-            && dconf write "${f[screenshot_gn]}" "['']" \
-            && dconf write "${f[area_screenshot_gn]}" "['']" \
-            && dconf write "${f[cmd_gn]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
-            && dconf write "${f[bdg_gn]}" "['Print', '<Shift>Print']" \
-            && dconf write "${f[name_gn]}" "'Flameshot'" \
-            && dconf write "${f[custom_gn]}" "['custom0']"
-
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-            && dconf write "${f[screenshot_ci]}" "['']" \
-            && dconf write "${f[area_screenshot_ci]}" "['']" \
-            && dconf write "${f[cmd_ci]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
-            && dconf write "${f[bdg_ci]}" "['Print', '<Shift>Print']" \
-            && dconf write "${f[name_ci]}" "'Flameshot'" \
-            && dconf write "${f[custom_ci]}" "['screenshot']"
-
-    fi
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+        && dconf write "${f[screenshot]}" "['']" \
+        && dconf write "${f[area_screenshot]}" "['']" \
+        && dconf write "${f[cmd]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
+        && dconf write "${f[bdg]}" "['Print', '<Shift>Print']" \
+        && dconf write "${f[name]}" "'Flameshot'" \
+        && dconf write "${f[custom]}" "['screenshot']"
 
     for (( ; ; )); do
 
@@ -3914,6 +3910,7 @@ change_panelandgui() {
         /boot/grub/themes/linuxmint-2k/  # 5
         /usr/share/icons  # 6
         ~/.oh-my-bash/  # 7
+        ~/.fonts  # 8
     )
 
     f+=(
@@ -3953,6 +3950,7 @@ change_panelandgui() {
         [reverse-order]=/org/nemo/preferences/default-sort-in-reverse-order
         [default-order]=/org/nemo/preferences/default-sort-order
         [alfred]=/usr/share/icons/jenkins-128x128.png
+        [meslo]=~/.fonts/Meslo.zip
     )
 
     local -a l=(
@@ -3962,6 +3960,7 @@ change_panelandgui() {
         'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 3
         'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 4
         'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 5
+        'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 6
     )
 
     local -a m=(
@@ -3986,24 +3985,25 @@ change_panelandgui() {
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
 
-    install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
+    install_packages "${m[0]}" "${m[1]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
+
+    # START GRUB WALLPAPER CHANGE
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+        && install_packages "${m[2]}" \
+        && [[ ! -d "${d[5]}" || $(stat -c "%U" "${d[5]}" 2>&-) != "${USER}" ]] \
+            && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[5]}" \
+            && [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
+                && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
+                && [[ ! -e "${f[background_grub_jpg]}" ]] \
+                    && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
+                    && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
+                    && rm --force "${f[background_grub_jpg]}"  # END WALLPAPER CHANGE
 
     # START GRUB RESOLUTION CHANGE
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
         && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}" \
         && sudo update-grub &> "${f[null]}" # END RESOLUTION
-
-    # START GRUB WALLPAPER CHANGE
-    [[ ! -d "${d[5]}" || $(stat -c "%U" "${d[5]}" 2>&-) != "${USER}" ]] \
-        && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
-        && sudo chown --recursive "${USER}":"${USER}" "${d[5]}"
-
-    [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
-        && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
-        && [[ ! -e "${f[background_grub_jpg]}" ]] \
-            && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
-            && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
-            && rm --force "${f[background_grub_jpg]}" # END WALLPAPER
 
     # START FIXING CHROME DETECTING NETWORK CHANGE (CONNECTION WAS INTERRUPTED)
     [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
@@ -4119,6 +4119,22 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
                 || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                 && gem install --silent "${m[4]}"
 
+            if [[ ! -e "${f[meslo]}" ]]; then
+
+                [[ ! -d "${d[8]}" || $(stat -c "%U" "${d[8]}" 2>&-) != ${USER} ]] \
+                    && sudo mkdir --parents "${d[8]}" > "${f[null]}" \
+                    && sudo chown --recursive "${USER}":"${USER}" "${d[8]}"
+
+                wget --quiet "${l[6]}" --output-document "${f[meslo]}"
+
+                unzip "${d[8]}"*.zip -d "${d[8]}" &> "${f[null]}"
+
+                rm --force "${f[meslo]}" *Windows*
+
+                sudo fc-cache --force "${d[8]}"
+
+            fi
+
             [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
                 && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 # Colorls stuffs
@@ -4167,7 +4183,11 @@ setopt +o nomatch" \
         && dconf write "${f[thumbnail-limit]}" 'uint64 34359738368' \
         && dconf write "${f[default_sort_reverse]}" false \
         && dconf write "${f[gtk_theme_gnome]}" "'Yaru-viridian-dark'" \
-        && dconf write "${f[icon_theme]}" "'Yaru-viridian'"
+        && dconf write "${f[icon_theme]}" "'Yaru-viridian'" \
+        && dconf write "${f[custom_gnome]}" "['${f[custom_first]}']" \
+        && dconf write "${f[custom_first]}binding" "'<Super>e'" \
+        && dconf write "${f[custom_first]}command" "'nautilus'" \
+        && dconf write "${f[custom_first]}name" "'Raise Nautilus'"
 
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && dconf write "${f[computer_icon]}" false \
