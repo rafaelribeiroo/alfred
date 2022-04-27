@@ -4000,9 +4000,9 @@ change_panelandgui() {
 
     else
 
-        show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]"
+        show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]"
 
-        && [[ ! -e "${f[grub2_theme]}" ]] \
+        [[ ! -e "${f[grub2_theme]}" ]] \
             && wget --quiet "${l[7]}" --output-document "${f[grub2_theme]}" \
             && sudo dpkg --install "${f[grub2_theme]}" &> "${f[null]}" \
             && sudo rm --force "${f[file]}"
