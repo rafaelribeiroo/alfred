@@ -1223,8 +1223,13 @@ github_stuffs() {
         && git config --global http.sslVerify false \
         && git config --global core.quotepath off  # Recognizes UTF-8
 
-    [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
-        && git config --global cola.icontheme dark
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme_gnome]}") =~ .*dark.* ]] \
+            && git config --global cola.icontheme dark
+
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
+            && git config --global cola.icontheme dark
 
     local=$(git --version | awk '{print $3}')
 
