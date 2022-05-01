@@ -3199,32 +3199,14 @@ sublime_stuffs() {
 
     done
 
-    sudo sed --in-place 's/\x55\x41\x57\x41\x56\x41\x55\x41\x54\x53\x48\x81\xEC\x68\x24\x00\x00/\x48\x31\xC0\xC3\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90/g' "${f[exec]}"
+
+
+
+
 
     # Adding license key
     [[ ! $(grep --no-messages You "${f[license]}") ]] \
-        && sudo tee "${f[license]}" > "${f[null]}" <<< '----- BEGIN LICENSE -----
-You
-Unlimited User License
-EA7E-81044230
-0C0CD4A8 CAA317D9 CCABD1AC 434C984C
-7E4A0B13 77893C3E DD0A5BA1 B2EB721C
-4BAAB4C4 9B96437D 14EB743E 7DB55D9C
-7CA26EE2 67C3B4EC 29B2C65A 88D90C59
-CB6CCBA5 7DE6177B C02C2826 8C9A21B0
-6AB1A5B6 20B09EA2 01C979BD 29670B19
-92DC6D90 6E365849 4AB84739 5B4C3EA1
-048CC1D0 9748ED54 CAC9D585 90CAD815
------- END LICENSE ------' \
-        && sudo chown "${USER}":"${USER}" "${f[license]}"
-
-    # To prevent the program from accessing the sublimetext site in the future to verify that the key is still valid and perhaps remove the key, hides: "Your license key is not longer valid, and has been removed"
-    # After 4th line, insert...
-    [[ ! $(grep --no-messages sublime "${f[hosts]}") ]] \
-        && sudo tee "${f[hosts]}" > "${f[null]}" <<< '
-127.0.0.1 license.sublimehq.com # SublimeText
-
-127.0.0.1 www.sublimetext.com # SublimeText'
+        && sudo tee "${f[license]}" > "${f[null]}" <<< 'Paying $99 USD For A License Is Stupid.'
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
