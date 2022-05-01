@@ -3289,8 +3289,8 @@ usefull_pkgs() {
         'vlc'  # 2
         'vim'  # 3
         'easytag'  # 4
-        'telegram'  # 5
-        'bashtop'  # 6
+        'telegram-desktop'  # 5
+        'mlocate'  # 6
         'usefull packages'  # 7
         'soundconverter'  # 8
         'at'  # 9
@@ -3302,6 +3302,8 @@ usefull_pkgs() {
         'glow'  # 15
         'ffmpeg'  # 16
         'rename-tv-series'  # 17
+        'sqlite3'  # 18
+        'libsqlite3-dev'  # 19
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -3367,15 +3369,9 @@ usefull_pkgs() {
 
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[5]}") ]] \
-            && sudo add-apt-repository --yes ppa:atareao/telegram &> "${f[null]}"
-
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${m[6]}") ]] \
-            && sudo add-apt-repository --yes ppa:bashtop-monitor/bashtop &> "${f[null]}"
-
         [[ -e "${f[lock]}" ]] && sudo rm --force "${f[lock]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
@@ -3962,6 +3958,8 @@ change_panelandgui() {
         [alfred]=/usr/share/icons/jenkins-128x128.png
         [meslo]=~/.fonts/Meslo.zip
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
+        [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
+        [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
     )
 
     local -a l=(
@@ -4222,7 +4220,9 @@ setopt +o nomatch" \
         && dconf write "${f[custom_gnome]}" "['${f[custom_first]}']" \
         && dconf write "${f[custom_first]}binding" "'<Super>e'" \
         && dconf write "${f[custom_first]}command" "'nautilus'" \
-        && dconf write "${f[custom_first]}name" "'Raise Nautilus'"
+        && dconf write "${f[custom_first]}name" "'Raise Nautilus'" \
+        && dconf write "${f[trash_gnome]}" false \
+        && dconf write "${f[mount_gnome]}" false
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && dconf write "${f[computer_icon]}" false \

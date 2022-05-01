@@ -59,7 +59,9 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
+    [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
 
+    [rar-file]=/etc/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz
 )
 
 #vim ~/.bashrc
@@ -90,11 +92,6 @@ boilerplate() {
 
     done
 
-    xrandr --output $EXTERN2 --mode 1920x1080
-    xrandr --output $EXTERN1 --mode 1920x1080
-    xrandr --output $EXTERN1 --left-of $EXTERN2
-    xrandr --output $EXTERN1 --primary
-
     jq -r '.lyrics.lines[].startTimeMs' lyrics.json
     jq -r '.lyrics.lines[].words' lyrics.json
     awk "BEGIN {print 38740/86400000}"
@@ -112,4 +109,4 @@ boilerplate() {
 # show "${c[RED]}=======================================================" 1
 # https://stackoverflow.com/a/41212803/5465165
 
-# curl --silent --location --output /usr/share/mint-artwork/sounds/manias.ogg --create-dirs 'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'
+# [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] .*GNOME
