@@ -60,7 +60,7 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
     [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
-    [meslo]=~/.fonts/Meslo.zip
+    [meslo]=~/.fonts/Meslo.zip/
 )
 
 #vim ~/.bashrc
@@ -107,7 +107,17 @@ boilerplate() {
 
 # show "${c[RED]}=======================================================" 1
 # https://stackoverflow.com/a/41212803/5465165
-
+local -a d=(
+    ~/.local/share/cinnamon/applets/  # 1
+    ~/.local/share/cinnamon/applets/betterlock  # 2
+    ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
+    ~/.rbenv  # 4
+    ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
+    /boot/grub/themes/linuxmint-2k/  # 6
+    /usr/share/icons  # 7
+    ~/.oh-my-zsh/  # 8
+    ~/.fonts/  # 9
+    ~/.config/autostart  # 10
+)
 # [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] .*GNOME
-
-rm --recursive --force "${f[meslo]}" *Windows*.ttf
+rm --force "${d[9]}"*Windows*

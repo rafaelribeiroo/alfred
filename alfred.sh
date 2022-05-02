@@ -4181,7 +4181,7 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
 
                 unzip "${d[8]}"*.zip -d "${d[8]}" &> "${f[null]}"
 
-                rm --force "${f[meslo]}" *Windows*
+                rm --force --recursive "${f[meslo]}" "${d[8]}"*Windows*
 
                 sudo fc-cache --force "${d[8]}"
 
