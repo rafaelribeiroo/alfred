@@ -1293,7 +1293,8 @@ flameshot_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    sudo sed --in-place 's|#WaylandEnable=false|WaylandEnable=false|g' "${f[wayland]}"
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+        && sudo sed --in-place 's|#WaylandEnable=false|WaylandEnable=false|g' "${f[wayland]}"
 
     # sudo systemctl restart gdm3
     echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
@@ -4166,7 +4167,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
 
                 unzip "${d[9]}"*.zip -d "${d[9]}" &> "${f[null]}"
 
-                rm --force --recursive "${f[meslo]}" "${d[9]}"*Windows*
+                rm --force --recursive "${f[meslo]}" "${d[9]}"*Windows*.ttf
 
                 sudo fc-cache --force "${d[9]}"
 
