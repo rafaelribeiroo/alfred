@@ -60,8 +60,7 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
     [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
-
-    [rar-file]=/etc/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz
+    [meslo]=~/.fonts/Meslo.zip
 )
 
 #vim ~/.bashrc
@@ -110,3 +109,5 @@ boilerplate() {
 # https://stackoverflow.com/a/41212803/5465165
 
 # [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] .*GNOME
+
+rm --recursive --force "${f[meslo]}" *Windows*.ttf

@@ -269,7 +269,7 @@ install_pip(){
 
             echo && show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
 
-            pip install --quiet "${package}"
+            pip install --quiet --no-warn-script-location "${package}"
 
         fi
 
@@ -1203,9 +1203,13 @@ github_stuffs() {
 
         done
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[3]}") && "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-            && sudo add-apt-repository --yes "${l[3]}" &> "${f[null]}" \
-            && update
+        if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]]; then
+
+            [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep "${l[4]}") ]] \
+                && sudo add-apt-repository --yes "${l[4]}" &> "${f[null]}" \
+                && update
+
+        fi
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[5]}" "${m[6]}"
 
@@ -1226,11 +1230,11 @@ github_stuffs() {
         && git config --global core.quotepath off  # Recognizes UTF-8
 
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme_gnome]}") =~ .*dark.* ]] \
+        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme_gnome]}" 2>&-) =~ .*dark.* ]] \
             && git config --global cola.icontheme dark
 
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}") =~ .*Dark.* ]] \
+        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}" 2>&-) =~ .*Dark.* ]] \
             && git config --global cola.icontheme dark
 
     local=$(git --version | awk '{print $3}')
@@ -3108,6 +3112,8 @@ sublime_stuffs() {
         [REPLPY]=~/.config/sublime-text/Packages/SublimeREPL/config/Python/Main.sublime-menu
         [REPLPYT]=~/.config/sublime-text/Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
+        [free_st]=/tmp/st_sm_cracker.c
+        [out]=/tmp/crack.out
     )
 
     declare -a l=(
@@ -3116,6 +3122,7 @@ sublime_stuffs() {
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
         'https://www.python.org/doc/versions/'  # 3
         'https://packagecontrol.io/packages/'  # 4
+        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/fdc47e555a9860392afbbceb4b9e18af8620b6b4/st_sm_cracker.c'  # 5
     )
 
     declare -a m=(
@@ -3199,10 +3206,23 @@ sublime_stuffs() {
 
     done
 
+    [[ ! -e "${f[free_st]}" ]] \
+        && wget --quiet "${l[5]}" --output-document "${f[free_st]}"
 
+    gcc "${f[free_st]}" --output "${f[free_st//.c/]}"
 
+    [[ $(stat -c '%a' "${f[free_st]}") -ne 776 ]] \
+        && sudo chmod 776 "${f[free_st]}"
 
+    ( nohup sudo "${f[free_st]}" & ) &> "${f[null]}"
 
+    for (( ; ; )); do
+
+        [[ $(grep --no-messages 'Paying' "${f[out]}") ]] \
+            && break \
+            || continue
+
+    done
 
     # Adding license key
     [[ ! $(grep --no-messages You "${f[license]}") ]] \
@@ -3911,7 +3931,7 @@ change_panelandgui() {
         /boot/grub/themes/linuxmint-2k/  # 5
         /usr/share/icons  # 6
         ~/.oh-my-bash/  # 7
-        ~/.fonts  # 8
+        ~/.fonts/  # 8
         ~/.config/autostart  # 9
     )
 
@@ -3982,6 +4002,9 @@ change_panelandgui() {
         'imagemagick'  # 9
         'gawk'  # 10
         'grub2-theme-mint'  # 11
+        'brave-browser'  # 12
+        'sublime-text'  # 13
+        'telegram-desktop'  # 14
     )
 
     # START ADITTION ICON ALFRED
@@ -3992,7 +4015,10 @@ change_panelandgui() {
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
 
-    install_packages "${m[0]}" "${m[1]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}"
+    install_packages "${m[0]}" "${m[1]}" "${m[7]}" "${m[8]}" "${m[9]}"
+
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+        && install_packages "${m[10]}"
 
     # START AUTOSTART APPLICATIONS
     [[ ! -d "${d[9]}" || $(stat -c "%U" "${d[9]}" 2>&-) != "${USER}" ]] \
@@ -4003,18 +4029,14 @@ change_panelandgui() {
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && install_packages "${m[2]}"
 
-    if [[ $(dpkg --list | awk "/ii  ${m[11]}[[:space:]]/ {print }") && "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]]; then
-
-        show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]"
-
-    else
-
-        show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]"
-
-        [[ ! -e "${f[grub2_theme]}" ]] \
-            && wget --quiet "${l[7]}" --output-document "${f[grub2_theme]}" \
-            && sudo dpkg --install "${f[grub2_theme]}" &> "${f[null]}" \
-            && sudo rm --force "${f[file]}"
+    if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]]; then
+        [[ $(dpkg --list | awk "/ii  ${m[11]}[[:space:]]/ {print }") ]] \
+            && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \
+            || show "\n${c[YELLOW]}${m[11]^^} ${c[WHITE]}${linen:${#m[11]}} [INSTALLING]" \
+            && [[ ! -e "${f[grub2_theme]}" ]] \
+                && wget --quiet "${l[7]}" --output-document "${f[grub2_theme]}" \
+                && sudo dpkg --install "${f[grub2_theme]}" &> "${f[null]}" \
+                && sudo rm --force "${f[file]}"
 
     fi
 
@@ -4053,23 +4075,23 @@ change_panelandgui() {
 
     # START APPLETS STUFFS
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
-        if [[ ! -d "${d[1]}" && ! -d "${d[2]}" && ! -d "${d[4]}" ]]; then
+        if [[ ! -d "${d[1]}" || ! -d "${d[2]}"|| ! -d "${d[4]}" ]]; then
 
             [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
                 && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
                 && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-            [[ ! -e "${f[capslock]}" ]] \
+            [[ ! -e "${f[capslock]}" && ! -d "${d[1]}" ]] \
                 && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
                 && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
                 && sudo rm --force "${f[capslock]}"
 
-            [[ ! -e "${f[separator2]}" ]] \
+            [[ ! -e "${f[separator2]}" && ! -d "${d[2]}" ]] \
                 && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
                 && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
                 && sudo rm --force "${f[separator2]}"
 
-            [[ ! -e "${f[forceqt]}" ]] \
+            [[ ! -e "${f[forceqt]}" && ! -d "${d[4]}" ]] \
                 && wget --quiet "${l[3]}" --output-document "${f[forceqt]}" \
                 && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
                 && sudo rm --force "${f[forceqt]}"
@@ -4081,7 +4103,7 @@ change_panelandgui() {
 
             sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
 
-            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"*.json
+            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B: %H:%M|2' "${f[calendar]}"*.json
 
         fi
     fi  # END APPLETS
@@ -4110,7 +4132,7 @@ activate-numlock=true'
     fi  # END
 
     # START CHANGE DESCRIPTION WINDOWS IN GRUB
-    [[ ! $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
         && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"  # END
 
     # START CHECK UNSTAGED DIRECTORIES
@@ -4143,10 +4165,11 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BASH COLORFUL?" \
                 && bash_stuffs
 
+            # ruby-dev is essential
             [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && gem install --silent "${m[4]}"
+                && sudo gem install --silent "${m[4]}"
 
             if [[ ! -e "${f[meslo]}" ]]; then
 
@@ -4169,7 +4192,8 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
 # Colorls stuffs
 source $(dirname $(gem which ${m[4]}))/tab_complete.sh
 
-alias ls='${m[4]}'"
+alias ls='${m[4]}'" \
+                && source "${f[zshrc]}"
 
             break
 
@@ -4188,21 +4212,42 @@ alias ls='${m[4]}'"
     done
 
     # START NOMATCH
-    [[ ! $(grep --no-messages nomatch "${f[zshrc]}") && "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+    [[ ! $(grep --no-messages nomatch "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 # Hides default behavior from zsh in grep: no matches found.
 setopt +o nomatch" \
         && source "${f[zshrc]}"  # END NOMATCH
 
     # START NOMENCLATURE ICON ARRANGEMENT
-    [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-        && sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json \
-        && sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json \
-        && sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json \
-        && sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"*.json \
-        && sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"*.json \
-        && sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"*.json \
-        && sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"*.json  # END
+    if [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[12]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BRAVE BROWSER?" \
+            && brave_stuffs
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[13]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH SUBLIME TEXT?" \
+            && sublime_stuffs
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH USEFULL PACKAGES?" \
+            && usefull_pkgs
+
+        sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json
+
+        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json
+
+        sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json
+
+        sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"*.json
+
+        sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"*.json
+
+        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"*.json
+
+        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"*.json  # END
+
+    fi
 
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
@@ -4269,7 +4314,7 @@ evoke_functions() {
         20) workspace_stuffs && return_menu ;;
         21) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
-        echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN GUI CHANGES? \n[Y/N] R: \033[m' option
+        echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN CHANGES? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
 
