@@ -271,6 +271,8 @@ install_pip(){
 
             pip install --quiet --no-warn-script-location "${package}"
 
+            notify-send "Status from Alfred" "${package} was installed successfully" --icon="${f[alfred]}"
+
         fi
 
     done
@@ -797,9 +799,11 @@ deemix_stuffs() {
         'urllib3'  # 21
         'lanzou-gui'  # 22
         'google-chrome-stable'  # 23
+        'xsel'  # 24
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }")
+        && $(dpkg --list | awk "/ii  ${m[24]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -842,7 +846,7 @@ deemix_stuffs() {
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
-        install_packages "${m[0]}" "${m[1]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[24]}"
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
@@ -911,6 +915,8 @@ deemix_stuffs() {
 
     fi
 
+    cat "${f[arl_value]}" | xsel --clipboard
+
     source "${f[locale]}"
 
     [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'en_US' ]] \
@@ -942,7 +948,7 @@ deemix_stuffs() {
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias ct='rm --recursive --force ${d[3]}'"
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN DEEMIX? \n[Y/N] R: \033[m' option
+    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN DEEMIX? (CLIPBOARD CONTAINS ARL) \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -1113,8 +1119,6 @@ github_stuffs() {
         'https://git-cola.github.io/downloads.html'  # 6
     )
 
-    local=$(cola --version | awk '{print $3}')
-
     latest=$(curl --silent "${l[6]}"| grep --max-count=1 'v[0-9]' | sed --expression 's|<[^>]*>||g' | sed 's|v||' | xargs)
 
     local -a d=(
@@ -1240,6 +1244,8 @@ github_stuffs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    local=$(cola --version | awk '{print $3}')
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -3270,6 +3276,7 @@ sublime_stuffs() {
             && update
 
         [[ ! -e "${f[smerge]}" ]] \
+            && show "\n${c[YELLOW]}${m[3]^^} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]" \
             && wget --quiet "${l[7]}" --output-document "${f[smerge]}" \
             && sudo dpkg --install "${f[smerge]}" &> "${f[null]}" \
             && sudo rm --force "${f[smerge]}"
@@ -3315,7 +3322,7 @@ sublime_stuffs() {
     [[ $(stat -c '%a' "${f[free_st]}") -ne 776 ]] \
         && sudo chmod 776 "${f[free_st]}"
 
-    ( nohup sudo "${f[free_st]}" & ) &> "${f[null]}"
+    ( nohup sudo "${f[free_st]//.c/}" & ) &> "${f[out]}"
 
     for (( ; ; )); do
 
@@ -4105,7 +4112,7 @@ change_panelandgui() {
         'dconf-editor'  # 0
         'numlockx'  # 1
         'grub2-theme-mint-2k'  # 2
-        'ruby'  # 3
+        'ruby-dev'  # 3
         'colorls'  # 4
         'transmission-gtk'  # 5
         'nemo-mediainfo-tab'  # 6
@@ -4270,7 +4277,7 @@ alias unstaged='find -type d -name .git | while read dir; do sh -c \"cd \${dir}/
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! -d "${d[3]}" || ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+            [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
                 && ruby_stuffs
 
