@@ -535,6 +535,7 @@ deemix_stuffs() {
         'six'  # 21
         'urllib3'  # 22
         'lanzou-gui'  # 23
+        'google-chrome-stable'  # 24
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
@@ -616,6 +617,10 @@ deemix_stuffs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[24]}[[:space:]]/ {print }") ]] \
+        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH CHROME STUFFS?" \
+        && chrome_stuffs
 
     while [[ ! -e "${d[5]}" ]]; do
 
@@ -837,11 +842,24 @@ dualmonitor_stuffs() {
 #======================#
 github_stuffs() {
 
+    local=$(cola --version | awk '{print $3}')
+
+    latest=$(curl --silent "${l[7]}"| grep --max-count=1 'v[0-9]' | sed --expression 's|<[^>]*>||g' | sed 's|v||' | xargs)
+
+    local -a d=(
+        /tmp/  # 1
+        /tmp/git-cola-"${latest}"/  # 2
+        /usr/local  # 3
+    )
+
     f+=(
         [config]=~/.gitconfig
         [config-ssh]=~/.ssh/config
         [tmp_success]=/tmp/check_success
         [all_title_gh]=/tmp/all_title
+        [cola_rar]="${d[0]}"git-cola-${latest}.tar.gz
+        [cola_old]=/usr/local/bin/cola
+        [cola_new]=/usr/bin/cola 
     )
 
     local -a l=(
@@ -851,6 +869,8 @@ github_stuffs() {
         'https://cli.github.com/packages'  # 4
         'https://api.github.com/rate_limit'  # 5
         'hkp://keyserver.ubuntu.com:80'  # 6
+        'https://git-cola.github.io/downloads.html'  # 7
+        "https://github.com/git-cola/git-cola/archive/v"${latest}".tar.gz"  # 8
     )
 
     local -a m=(
@@ -956,6 +976,47 @@ github_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+        
+        echo; read $'?\033[1;37mSIR, SHOULD I UPGRADE COLA VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = ^(s|S|y|Y)$ ]] ; then
+
+                [[ ! -e "${f[cola_rar]}" ]] \
+                    && sudo wget --quiet "${l[1]}" --output-document "${f[cola_rar]}"
+
+                [[ ! -d "${d[2]}" ]] \
+                    && sudo tar --extract --gzip --file="${f[cola_rar]}" --directory="${d[1]}" > "${f[null]}" \
+                    && sudo rm --force "${f[cola_rar]}"
+
+                cd "${d[2]}"
+
+                sudo make prefix="${d[3]}" install &> "${f[null]}"
+
+                sudo ln --symbolic "${f[cola_old]}" "${f[cola_new]}"
+
+                cd -
+
+                break
+
+            elif [[ "${option:0:1}" = ^(N|n)$ ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    fi
+
     # Any changes pushed to GitHub, BitBucket, GitLab or another Git host
     # server in a later lesson will include this information.
     # from: https://swcarpentry.github.io/git-novice/02-setup/
@@ -970,11 +1031,13 @@ github_stuffs() {
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
         && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme_gnome]}" 2>&-) =~ .*dark.* ]] \
-            && git config --global cola.icontheme dark
+            && git config --global cola.icontheme dark \
+            && git config --global cola.theme flat-dark-green 
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}" 2>&-) =~ .*Dark.* ]] \
-            && git config --global cola.icontheme dark
+            && git config --global cola.icontheme dark \
+            && git config --global cola.theme flat-dark-green
 
     local=$(git --version | awk '{print $3}')
 
@@ -1508,7 +1571,7 @@ hide_devices() {
         'devices'  # 1
     )
 
-    check_devices=$(sudo fdisk --list 2>&- | grep 'HPFS/NTFS/exFAT' | awk '{print $1}')
+    check_devices=$(sudo fdisk --list 2>&- | grep 'Microsoft basic data' | awk '{print $1}')
 
     if [[ -z "${check_devices}" ]]; then
 
@@ -3307,6 +3370,8 @@ usefull_pkgs() {
         'rename-tv-series'  # 17
         'sqlite3'  # 18
         'libsqlite3-dev'  # 19
+        'ffmpegthumbnailer'  # 20
+        'clipit'  # 21
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -3374,7 +3439,10 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && sudo rm --force "${f[lock]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep afelinczak) ]] \
+            && sudo add-apt-repository --yes ppa:afelinczak/ppa &> "${f[null]}"
+
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
@@ -3920,14 +3988,15 @@ change_panelandgui() {
         ~/.oh-my-zsh/  # 8
         ~/.fonts/  # 9
         ~/.config/autostart  # 10
+        /boot/grub/themes/  # 11
     )
 
     f+=(
         [automount]=/org/cinnamon/desktop/media-handling/automount
         [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
-        [background_grub_jpg]=/boot/grub/themes/*/background.jpg
-        [background_grub_png]=/boot/grub/themes/*/background.png
-        [old_background_grub]=/boot/grub/themes/*/background_old.png
+        [background_grub_jpg]=/boot/grub/themes/$(basename "${d[11]}"*)/background.jpg
+        [background_grub_png]=/boot/grub/themes/$(basename "${d[11]}"*)/background.png
+        [old_background_grub]=/boot/grub/themes/$(basename "${d[11]}"*)/background_old.png
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
@@ -4039,6 +4108,7 @@ change_panelandgui() {
             && rm --force "${f[background_grub_jpg]}"  # END WALLPAPER CHANGE
 
     # START GRUB RESOLUTION CHANGE
+    # vbeinfo || videoinfo
     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
         && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}" \
         && sudo update-grub &> "${f[null]}" # END RESOLUTION
@@ -4090,7 +4160,7 @@ change_panelandgui() {
 
             sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
 
-            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B: %H:%M|2' "${f[calendar]}"*.json
+            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B → %H:%M|2' "${f[calendar]}"*.json
 
         fi
     fi  # END APPLETS
@@ -4157,21 +4227,16 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
                 || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
                 && sudo gem install --silent "${m[5]}"
 
-            if [[ ! -e "${f[meslo]}" ]]; then
+            [[ ! -d "${d[9]}" || $(stat -c "%U" "${d[9]}" 2>&-) != ${USER} ]] \
+                && sudo mkdir --parents "${d[9]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[9]}"
 
-                [[ ! -d "${d[9]}" || $(stat -c "%U" "${d[9]}" 2>&-) != ${USER} ]] \
-                    && sudo mkdir --parents "${d[9]}" > "${f[null]}" \
-                    && sudo chown --recursive "${USER}":"${USER}" "${d[9]}"
+            [[ ! -e "${f[meslo]}" ]] \
+                && wget --quiet "${l[7]}" --output-document "${f[meslo]}" \
+                && unzip "${d[9]}"*.zip -d "${d[9]}" &> "${f[null]}" \
+                && rm --force --recursive "${f[meslo]}" "${d[9]}"*Windows*.ttf
 
-                wget --quiet "${l[7]}" --output-document "${f[meslo]}"
-
-                unzip "${d[9]}"*.zip -d "${d[9]}" &> "${f[null]}"
-
-                rm --force --recursive "${f[meslo]}" "${d[9]}"*Windows*.ttf
-
-                sudo fc-cache --force "${d[9]}"
-
-            fi
+            sudo fc-cache --force "${d[9]}"
 
             [[ ! $(grep --no-messages "${m[5]}" "${f[zshrc]}") ]] \
                 && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
@@ -4417,7 +4482,7 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
         sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
         sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HIDE WINDOWS DEVICES ${e[blind_monkey]}" 1
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 1
         sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
         sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
         sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
