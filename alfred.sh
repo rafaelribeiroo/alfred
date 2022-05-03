@@ -1103,6 +1103,16 @@ dualmonitor_stuffs() {
 #======================#
 github_stuffs() {
 
+    local -a l=(
+        'https://api.github.com/user/keys'  # 0
+        'https://git-scm.com/'  # 1
+        'keyserver.ubuntu.com'  # 2
+        'https://cli.github.com/packages'  # 3
+        'https://api.github.com/rate_limit'  # 4
+        'hkp://keyserver.ubuntu.com:80'  # 5
+        'https://git-cola.github.io/downloads.html'  # 6
+    )
+
     local=$(cola --version | awk '{print $3}')
 
     latest=$(curl --silent "${l[6]}"| grep --max-count=1 'v[0-9]' | sed --expression 's|<[^>]*>||g' | sed 's|v||' | xargs)
@@ -1123,15 +1133,8 @@ github_stuffs() {
         [cola_new]=/usr/bin/cola 
     )
 
-    local -a l=(
-        'https://api.github.com/user/keys'  # 0
-        'https://git-scm.com/'  # 1
-        'keyserver.ubuntu.com'  # 2
-        'https://cli.github.com/packages'  # 3
-        'https://api.github.com/rate_limit'  # 4
-        'hkp://keyserver.ubuntu.com:80'  # 5
-        'https://git-cola.github.io/downloads.html'  # 6
-        "https://github.com/git-cola/git-cola/archive/v"${latest}".tar.gz"  # 7
+    l+=(
+        "https://github.com/git-cola/git-cola/archive/v${latest}.tar.gz"  # 7
     )
 
     local -a m=(
@@ -1142,6 +1145,7 @@ github_stuffs() {
         'cryptsetup'  # 4
         'dconf-editor'  # 5
         'gh'  # 6
+        'python'  # 7
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
@@ -1246,7 +1250,7 @@ github_stuffs() {
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                 [[ ! -e "${f[cola_rar]}" ]] \
-                    && sudo wget --quiet "${l[1]}" --output-document "${f[cola_rar]}"
+                    && sudo wget --quiet "${l[7]}" --output-document "${f[cola_rar]}"
 
                 [[ ! -d "${d[1]}" ]] \
                     && sudo tar --extract --gzip --file="${f[cola_rar]}" --directory="${d[0]}" > "${f[null]}" \
@@ -1254,11 +1258,15 @@ github_stuffs() {
 
                 cd "${d[1]}"
 
+                [[ ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
+                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+                    && python_stuffs
+
                 sudo make prefix="${d[2]}" install &> "${f[null]}"
 
-                sudo ln --symbolic "${f[cola_old]}" "${f[cola_new]}"
+                sudo ln --force --symbolic "${f[cola_old]}" "${f[cola_new]}"
 
-                cd -
+                cd - &> "${f[null]}"
 
                 break
 
@@ -1290,12 +1298,12 @@ github_stuffs() {
         && git config --global http.sslVerify false \
         && git config --global core.quotepath off  # Recognizes UTF-8
 
-    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]]
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
         && [[ $(dconf dump / | grep 'gtk-theme' | awk --field-separator='=' '{print $2}' | sed "s|'||g") =~ .*dark.* ]] \
             && git config --global cola.icontheme dark \
             && git config --global cola.theme flat-dark-green
 
-    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && [[ $(dconf dump / | grep 'gtk-theme' | awk --field-separator='=' '{print $2}' | sed "s|'||g") =~ .*Dark.* ]] \
             && git config --global cola.icontheme dark \
             && git config --global cola.theme flat-dark-green
@@ -2705,7 +2713,7 @@ python_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
 
