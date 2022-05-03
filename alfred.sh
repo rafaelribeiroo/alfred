@@ -928,7 +928,7 @@ deemix_stuffs() {
 
     sudo sed --in-place 's|"syncedLyrics": false,|"syncedLyrics": true,|g' "${f[cfg]}"
 
-    sudo sed --in-place 's|"queueConcurrency": 9,|"queueConcurrency": 50,|g' "${f[cfg]}"
+    sudo sed --in-place 's|"queueConcurrency": 3,|"queueConcurrency": 50,|g' "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
