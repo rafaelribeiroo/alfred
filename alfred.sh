@@ -3028,7 +3028,8 @@ ruby_stuffs() {
         ~/.rbenv/plugins/ruby-build  # 2
     )
 
-   if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+   if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[18]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -3167,6 +3168,7 @@ sublime_stuffs() {
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
         ~/.pyenv  # 3
         /.Trash-1000/  # 4
+        ~/.config/sublime-merge/  # 5
     )
 
     f+=(
@@ -3186,6 +3188,9 @@ sublime_stuffs() {
         [recently_used]=~/.local/share/recently-used.xbel
         [free_st]=/tmp/st_sm_cracker.c
         [out]=/tmp/crack.out
+        [merge_old]=/opt/sublime_merge/sublime_merge
+        [merge_new]=/usr/bin/merge
+        [smerge]=/tmp/sublime-merge_build-2068_amd64.deb
     )
 
     declare -a l=(
@@ -3194,20 +3199,23 @@ sublime_stuffs() {
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
         'https://www.python.org/doc/versions/'  # 3
         'https://packagecontrol.io/packages/'  # 4
-        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/fdc47e555a9860392afbbceb4b9e18af8620b6b4/st_sm_cracker.c'  # 5
+        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/e62dbc5ad59096762ca4b9b3296705c818d506a0/st_sm_cracker.c'  # 5
+        'https://download.sublimetext.com/sublime-merge_build-2068_amd64.deb'  # 6
     )
 
     declare -a m=(
         'apt-transport-https'  # 0
         'sublime-text'  # 1
         'gawk'  # 2
+        'sublime-merge'  # 3
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[2]}"
 
-	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
+	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }")
+        && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
@@ -3260,6 +3268,11 @@ sublime_stuffs() {
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[1]}" \
             && update
 
+        [[ ! -e "${f[smerge]}" ]] \
+            && wget --quiet "${l[7]}" --output-document "${f[smerge]}" \
+            && sudo dpkg --install "${f[smerge]}" &> "${f[null]}" \
+            && sudo rm --force "${f[smerge]}"
+
         install_packages "${m[0]}" "${m[1]}"
 
     fi
@@ -3278,10 +3291,25 @@ sublime_stuffs() {
 
     done
 
+    [[ ! -L "${f[merge_new]}" ]] \
+        && sudo ln --symbolic "${f[merge_old]}" "${f[merge_new]}"
+
+    while [[ ! -e "${d[5]}" ]]; do
+
+        show "\nRESTARTING MERGE TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+
+        ( nohup merge & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill merge
+
+    done
+
     [[ ! -e "${f[free_st]}" ]] \
         && wget --quiet "${l[5]}" --output-document "${f[free_st]}"
 
-    gcc "${f[free_st]}" --output "${f[free_st//.c/]}"
+    gcc "${f[free_st]}" --output="${f[free_st]//.c/}"
 
     [[ $(stat -c '%a' "${f[free_st]}") -ne 776 ]] \
         && sudo chmod 776 "${f[free_st]}"
@@ -3297,7 +3325,7 @@ sublime_stuffs() {
     done
 
     # Adding license key
-    [[ ! $(grep --no-messages You "${f[license]}") ]] \
+    [[ ! $(grep --no-messages Paying "${f[license]}") ]] \
         && sudo tee "${f[license]}" > "${f[null]}" <<< 'Paying $99 USD For A License Is Stupid.'
 
     # Remove file changes history

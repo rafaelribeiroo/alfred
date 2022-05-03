@@ -2774,7 +2774,8 @@ ruby_stuffs() {
         ~/.rbenv/plugins/ruby-build  # 3
     )
 
-   if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
+   if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[19]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
@@ -2913,6 +2914,7 @@ sublime_stuffs() {
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 3
         ~/.pyenv  # 4
         /.Trash-1000/  # 5
+        ~/.config/sublime-merge/  # 6
     )
 
     f+=(
@@ -2932,6 +2934,9 @@ sublime_stuffs() {
         [recently_used]=~/.local/share/recently-used.xbel
         [free_st]=/tmp/st_sm_cracker.c
         [out]=/tmp/crack.out
+        [merge_old]=/opt/sublime_merge/sublime_merge
+        [merge_new]=/usr/bin/merge
+        [smerge]=/tmp/sublime-merge_build-2068_amd64.deb
     )
 
     declare -a l=(
@@ -2940,20 +2945,23 @@ sublime_stuffs() {
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 3
         'https://www.python.org/doc/versions/'  # 4
         'https://packagecontrol.io/packages/'  # 5
-        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/fdc47e555a9860392afbbceb4b9e18af8620b6b4/st_sm_cracker.c'  # 6
+        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/e62dbc5ad59096762ca4b9b3296705c818d506a0/st_sm_cracker.c'  # 6
+        'https://download.sublimetext.com/sublime-merge_build-2068_amd64.deb'  # 7
     )
 
     declare -a m=(
         'apt-transport-https'  # 1
         'sublime-text'  # 2
         'gawk'  # 3
+        'sublime-merge'  # 4
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[3]}"
 
-    if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") 
+        && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 1
 
@@ -3006,6 +3014,11 @@ sublime_stuffs() {
             && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[2]}" \
             && update
 
+        [[ ! -e "${f[smerge]}" ]] \
+            && wget --quiet "${l[7]}" --output-document "${f[smerge]}" \
+            && sudo dpkg --install "${f[smerge]}" &> "${f[null]}" \
+            && sudo rm --force "${f[smerge]}"
+
         install_packages "${m[1]}" "${m[2]}"
 
     fi
@@ -3024,10 +3037,25 @@ sublime_stuffs() {
 
     done
 
+    [[ ! -L "${f[merge_new]}" ]] \
+        && sudo ln --symbolic "${f[merge_old]}" "${f[merge_new]}"
+
+    while [[ ! -e "${d[6]}" ]]; do
+
+        show "\nRESTARTING MERGE TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+
+        ( nohup merge & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill merge
+
+    done
+
     [[ ! -e "${f[free_st]}" ]] \
         && wget --quiet "${l[6]}" --output-document "${f[free_st]}"
 
-    gcc "${f[free_st]}" --output "${f[free_st//.c/]}"
+    gcc "${f[free_st]}" --output="${f[free_st]//.c/}"
 
     [[ $(stat -c '%a' "${f[free_st]}") -ne 776 ]] \
         && sudo chmod 776 "${f[free_st]}"
@@ -3043,7 +3071,7 @@ sublime_stuffs() {
     done
 
     # Adding license key
-    [[ ! $(grep --no-messages You "${f[license]}") ]] \
+    [[ ! $(grep --no-messages Paying "${f[license]}") ]] \
         && sudo tee "${f[license]}" > "${f[null]}" <<< 'Paying $99 USD For A License Is Stupid.'
 
     # Remove file changes history
@@ -3814,8 +3842,9 @@ zsh_stuffs() {
 
                     if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
+                        # sudo sed --in-place 's|/bin/bash|/bin/zsh|g' /etc/passwd 
                         [[ $(echo "${SHELL}") = '/bin/zsh' ]] \
-                            && sudo chsh --shell $(which bash)
+                            && sudo chsh --shell $(which zsh)
 
                         read $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
 
