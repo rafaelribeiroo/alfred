@@ -109,3 +109,6 @@ boilerplate() {
 # https://stackoverflow.com/a/41212803/5465165
 
 # [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] .*GNOME
+
+[[ getent group sudo | grep "${USER}" ]] \
+    && echo estou || echo n estou
