@@ -922,6 +922,12 @@ deemix_stuffs() {
     [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'en_US' ]] \
         && sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music/\",|\"downloadLocation\": \"${XDG_MUSIC_DIR}/\",|g" "${f[cfg]}"
 
+    source "${f[user_dirs]}"
+
+    [[ ! $(grep --no-messages 'alias cm' "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+alias cm=\"rename 's|^[0-9]+ - ||g' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)//' ${fXDG_MUSIC_DIR}/* && rename 's/ \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*\""
+
     sudo sed --in-place 's|"saveArtwork": true,|"saveArtwork": false,|g' "${f[cfg]}"
 
     sudo sed --in-place 's|"explicit": false,|"explicit": true,|g' "${f[cfg]}"
