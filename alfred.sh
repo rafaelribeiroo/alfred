@@ -3174,6 +3174,7 @@ sublime_stuffs() {
     f+=(
         [file]=~/.pyenv/shims/python
         [config]=~/.config/sublime-text/Packages/User/Preferences.sublime-settings
+        [config_merge]=~/.config/sublime-merge/Packages/User/Preferences.sublime-settings
         [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
@@ -3426,6 +3427,11 @@ sublime_stuffs() {
     "word_wrap": false,
     "wrap_width": 80,
     "remember_open_files": true
+}'
+
+    [[ ! $(grep --no-messages update_check "${f[config_merge]}") ]] \
+        && sudo tee "${f[config_merge]}" > "${f[null]}" <<< '{
+    "update_check": false
 }'
 
     while true; do
