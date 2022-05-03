@@ -1290,13 +1290,13 @@ github_stuffs() {
         && git config --global http.sslVerify false \
         && git config --global core.quotepath off  # Recognizes UTF-8
 
-    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme_gnome]}" 2>&-) =~ .*dark.* ]] \
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]]
+        && [[ $(dconf dump / | grep 'gtk-theme' | awk --field-separator='=' '{print $2}' | sed "s|'||g") =~ .*dark.* ]] \
             && git config --global cola.icontheme dark \
             && git config --global cola.theme flat-dark-green
 
-    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-        && [[ ! $(grep --no-messages dark "${f[config]}") && $(dconf read "${f[gtk_theme]}" 2>&-) =~ .*Dark.* ]] \
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]
+        && [[ $(dconf dump / | grep 'gtk-theme' | awk --field-separator='=' '{print $2}' | sed "s|'||g") =~ .*Dark.* ]] \
             && git config --global cola.icontheme dark \
             && git config --global cola.theme flat-dark-green
 
