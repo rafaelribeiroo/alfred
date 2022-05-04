@@ -57,6 +57,7 @@ declare -A e=(
     [door]=$'\360\237\232\252'
     [leo]=$'\360\237\246\201'
     [headphone]=$'\360\237\216\247'
+    [control]=$'\360\237\216\233'
     [landscape]=$'\360\237\214\211'
     [octopus]=$'\360\237\220\231'
     [globe]=$'\360\237\214\215'
@@ -977,6 +978,144 @@ alias ct='rm --recursive --force ${d[3]}'"
         fi
 
     done
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
+docky_stuffs() {
+
+    local -a d=(
+        /tmp/  # 0
+        /.dbus/session-bus/  # 1
+    )
+
+    f+=(
+        [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
+    )
+
+    get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
+
+    f+=(
+        [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
+        [icons]=/apps/docky-2/Docky/Items/DockyItem/
+        [theme]=/apps/docky-2/Docky/Services/ThemeService/Theme
+        [dep1]=/tmp/libgconf2.0-cil_2.24.2-4_all.deb
+        [dep2]=/tmp/multiarch-support_2.27-3ubuntu1_amd64.deb
+        [dep3]=/tmp/libgnome-keyring-common_3.12.0-1build1_all.deb
+        [dep4]=/tmp/libgnome-keyring0_3.12.0-1build1_amd64.deb
+        [dep5]=/tmp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb
+        [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
+    )
+
+    local -a m=(
+        'libgconf2.0-cil'  # 0
+        'multiarch-support'  # 1
+        'libgnome-keyring-common'  # 2
+        'libgnome-keyring0:amd64'  # 3
+        'libgnome-keyring1.0-cil'  # 4
+        'docky'  # 5
+        'gconf-editor'  # 6
+    )
+
+    local -a l=(
+        'http://archive.ubuntu.com/ubuntu/pool/universe/g/gnome-sharp2/libgconf2.0-cil_2.24.2-4_all.deb'  # 0
+        'http://archive.ubuntu.com/ubuntu/pool/main/g/glibc/multiarch-support_2.27-3ubuntu1_amd64.deb'  # 1
+        'http://archive.ubuntu.com/ubuntu/pool/universe/libg/libgnome-keyring/libgnome-keyring-common_3.12.0-1build1_all.deb'  # 2
+        'http://archive.ubuntu.com/ubuntu/pool/universe/libg/libgnome-keyring/libgnome-keyring0_3.12.0-1build1_amd64.deb'  # 3
+        'http://archive.ubuntu.com/ubuntu/pool/universe/g/gnome-keyring-sharp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb'  # 4
+        'http://archive.ubuntu.com/ubuntu/pool/universe/d/docky/docky_2.2.1.1-1_all.deb'  # 5
+    )
+
+    if [[ $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]]; then
+
+        show "\n${c[GREEN]}${m[5]^^} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]\n" 1
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[5]^^}${c[WHITE]}!\n"
+
+
+
+
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        # Dependencies
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+            && install_packages "${m[6]}"
+
+        for (( iterador=0; iterador<=4; iterador++ )); do
+
+            [[ ! $(dpkg --list | awk "/ii  ${m[iterator]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[YELLOW]}${m[iterador]^^} ${c[WHITE]}${linen:${#m[iterador]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep$iterator]}" \
+                || show "\n${c[GREEN]}${m[iterador]^^} ${c[WHITE]}${linei:${#m[iterador]}} [INSTALLED]"
+
+        done
+
+        unset iterador
+
+        sudo dpkg --install "${d[0]}"* &> "${f[null]}"
+
+        sudo rm --force "${d[0]}"*.deb
+
+        [[ ! -e "${f[docky_run]}" ]] \
+            && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
+            && sudo wget --quiet "${l[5]}" --output-document "${f[docky_run]}" \
+            && sudo dpkg --install "${f[docky_run]}" &> "${f[null]}" \
+            && sudo rm --force "${f[docky_run]}"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    [[ ! $(grep --no-messages sessionfile "${f[bashrc]}") ]] \
+        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
+# DOCKY configs
+sessionfile=\$(find \${HOME}${d[1]} -type f)
+export \$(grep DBUS_SESSION_BUS_ADDRESS \${sessionfile} | sed '/^#/d')" \
+        && source "${f[bashrc]}"
+
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+        && gconftool --type bool --set "${f[icons]}"ShowDockyItem False \
+        && gconftool --type bool --set "${f[pref]}"FadeOnHide True \
+        && gconftool --type bool --set "${f[pref]}"ThreeDimensional True \
+        && gconftool --type bool --set "${f[pref]}"ZoomEnabled True \
+        && gconftool --type float --set "${f[pref]}"FadeOpacity 1 \
+        && gconftool --type int --set "${f[pref]}"IconSize 50 \
+        && gconftool --type int --set "${f[pref]}"ZoomPercent 2 \
+        && gconftool --type list --list-type string --set "${f[pref]}"Plugins '[Clock]' \
+        && gconftool --type string --set "${f[pref]}"Launchers '[]' \
+        && gconftool --type string --set "${f[pref]}"Autohide 'UniversalIntellihide' \
+        && gconftool --type string --set "${f[theme]}" 'Transparent' \
+        && gconftool --type string --set "${f[pref]}"Position 'Bottom'
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1914,6 +2053,8 @@ hide_devices() {
                 tee --append "${f[config]}" > "${f[null]}" <<< 'ENV{ID_FS_UUID}=="'"$(blkid --match-tag UUID --output value ${devices[${iterador}]})"'",ENV{UDISKS_IGNORE}="1"'
 
             done
+
+            unset iterador
 
         fi
 
@@ -4417,24 +4558,25 @@ evoke_functions() {
         1|01) bash_stuffs && return_menu ;;
         2|02) brave_stuffs && return_menu ;;
         3|03) deemix_stuffs && return_menu ;;
-        4|04) dualmonitor_stuffs && return_menu ;;
-        5|05) github_stuffs && return_menu ;;
-        6|06) chrome_stuffs && return_menu ;;
-        7|07) flameshot_stuffs && return_menu ;;
-        8|08) heroku_stuffs && return_menu ;;
-        9|09) hide_devices && return_menu ;;
-        10) minidlna_stuffs && return_menu ;;
-        11) nvidia_stuffs && return_menu ;;
-        12) postgres_stuffs && return_menu ;;
-        13) postman_stuffs && return_menu ;;
-        14) python_stuffs && return_menu ;;
-        15) reduceye_stuffs && return_menu ;;
-        16) ruby_stuffs && return_menu ;;
-        17) sublime_stuffs && return_menu ;;
-        18) tmate_stuffs && return_menu ;;
-        19) usefull_pkgs && return_menu ;;
-        20) workspace_stuffs && return_menu ;;
-        21) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        4|04) docky_stuffs && return_menu ;;
+        5|05) dualmonitor_stuffs && return_menu ;;
+        6|06) github_stuffs && return_menu ;;
+        7|07) chrome_stuffs && return_menu ;;
+        8|08) flameshot_stuffs && return_menu ;;
+        9|09) heroku_stuffs && return_menu ;;
+        10) hide_devices && return_menu ;;
+        11) minidlna_stuffs && return_menu ;;
+        12) nvidia_stuffs && return_menu ;;
+        13) postgres_stuffs && return_menu ;;
+        14) postman_stuffs && return_menu ;;
+        15) python_stuffs && return_menu ;;
+        16) reduceye_stuffs && return_menu ;;
+        17) ruby_stuffs && return_menu ;;
+        18) sublime_stuffs && return_menu ;;
+        19) tmate_stuffs && return_menu ;;
+        20) usefull_pkgs && return_menu ;;
+        21) workspace_stuffs && return_menu ;;
+        22) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN CHANGES? \n[Y/N] R: \033[m' option
 
@@ -4465,6 +4607,7 @@ evoke_functions() {
         bash_stuffs
         brave_stuffs
         deemix_stuffs
+        docky_stuffs
         dualmonitor_stuffs
         github_stuffs
         chrome_stuffs
@@ -4549,24 +4692,25 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL (OH-MY-BASH) ${e[paint]}" 1
         sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 1
         sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 1
-        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
-        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
-        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
-        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
-        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 1
-        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
-        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
-        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}ALL ${e[whale]}" 1
+        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DOCKY ${e[control]}" 1
+        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
+        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
+        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
+        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
+        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 1
+        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
+        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
+        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
+        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}ALL ${e[whale]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
