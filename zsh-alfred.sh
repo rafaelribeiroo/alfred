@@ -665,7 +665,7 @@ deemix_stuffs() {
 
     [[ ! $(grep --no-messages 'alias cm' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias cm=\"rename 's|^[0-9]+ - ||g' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)//' ${fXDG_MUSIC_DIR}/* && rename 's/ \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*\""
+alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${fXDG_MUSIC_DIR}/*\""
 
     sudo sed --in-place 's|"saveArtwork": true,|"saveArtwork": false,|g' "${f[cfg]}"
 
