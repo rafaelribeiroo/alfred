@@ -4230,6 +4230,8 @@ change_panelandgui() {
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
+        [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
+        [screen_saver]=~/.xscreensaver
     )
 
     local -a l=(
@@ -4241,6 +4243,7 @@ change_panelandgui() {
         'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 6
         'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 7
         'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 8
+        'https://launchpad.net/~alexanderk23/+archive/ubuntu/ppa/+files/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb'  # 9
     )
 
     local -a m=(
@@ -4259,6 +4262,10 @@ change_panelandgui() {
         'brave-browser'  # 13
         'sublime-text'  # 14
         'telegram-desktop'  # 15
+        'xscreensaver'  # 16
+        'xscreensaver-gl-extra'  # 17
+        'xscreensaver-data-extra'  # 18
+        'gluqlo'  # 19
     )
 
     # START ADITTION ICON ALFRED
@@ -4269,7 +4276,16 @@ change_panelandgui() {
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[6]}"  # END ICON
 
-    install_packages "${m[1]}" "${m[2]}" "${m[8]}" "${m[9]}" "${m[10]}"
+    install_packages "${m[1]}" "${m[2]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[16]}" "${m[17]}" "${m[18]}"
+
+    # START BIG CLOCK AT SCREEN SAVER
+    [[ $(dpkg --list | awk "/ii  ${m[19]}[[:space:]]/ {print }") ]] \
+        && sudo wget --quiet "${l[9]}" --output-document "${f[gluqlo]}" \
+        && sudo dpkg --install "${f[gluqlo]}" &> "${f[null]}" \
+        && sudo rm --force "${f[gluqlo]}"
+
+    [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
+        && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"  # END
 
     # START AUTOSTART APPLICATIONS
     [[ ! -d "${d[10]}" || $(stat -c "%U" "${d[10]}" 2>&-) != "${USER}" ]] \

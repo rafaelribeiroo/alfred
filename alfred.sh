@@ -4242,6 +4242,8 @@ change_panelandgui() {
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
+        [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
+        [screen_saver]=~/.xscreensaver
     )
 
     local -a l=(
@@ -4253,6 +4255,7 @@ change_panelandgui() {
         'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 5
         'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 6
         'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 7
+        'https://launchpad.net/~alexanderk23/+archive/ubuntu/ppa/+files/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb'  # 8
     )
 
     local -a m=(
@@ -4271,6 +4274,10 @@ change_panelandgui() {
         'brave-browser'  # 12
         'sublime-text'  # 13
         'telegram-desktop'  # 14
+        'xscreensaver'  # 15
+        'xscreensaver-gl-extra'  # 16
+        'xscreensaver-data-extra'  # 17
+        'gluqlo'  # 18
     )
 
     # START ADITTION ICON ALFRED
@@ -4281,15 +4288,24 @@ change_panelandgui() {
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
 
-    install_packages "${m[0]}" "${m[1]}" "${m[7]}" "${m[8]}" "${m[9]}"
+    install_packages "${m[0]}" "${m[1]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[15]}" "${m[16]}" "${m[17]}"
 
-    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-        && install_packages "${m[10]}"
+    # START BIG CLOCK AT SCREEN SAVER
+    [[ $(dpkg --list | awk "/ii  ${m[18]}[[:space:]]/ {print }") ]] \
+        && sudo wget --quiet "${l[8]}" --output-document "${f[gluqlo]}" \
+        && sudo dpkg --install "${f[gluqlo]}" &> "${f[null]}" \
+        && sudo rm --force "${f[gluqlo]}"
+
+    [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
+        && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"  # END
 
     # START AUTOSTART APPLICATIONS
     [[ ! -d "${d[9]}" || $(stat -c "%U" "${d[9]}" 2>&-) != "${USER}" ]] \
         && sudo mkdir --parents "${d[9]}" > "${f[null]}" \
         && sudo chown --recursive "${USER}":"${USER}" "${d[9]}"  # END AUTOSTART APPLICATIONS
+
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+        && install_packages "${m[10]}"
 
     # START GRUB WALLPAPER CHANGE
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
