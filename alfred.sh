@@ -417,6 +417,7 @@ bash_stuffs() {
         'ble.sh'  # 2
         'ruby-dev'  # 3
         'colorls'  # 4
+        'git'  # 5
     )
 
     if [[ -d "${d[0]}" ]]; then
@@ -478,6 +479,10 @@ bash_stuffs() {
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_packages "${m[1]}"
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
+            && github_stuffs
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
@@ -1060,6 +1065,9 @@ docky_stuffs() {
     local -a d=(
         /tmp/  # 0
         /.dbus/session-bus/  # 1
+        ~/.local/share/cinnamon/applets/  # 2
+        ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
+        ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 4
     )
 
     f+=(
@@ -1078,6 +1086,10 @@ docky_stuffs() {
         [dep4]=/tmp/libgnome-keyring0_3.12.0-1build1_amd64.deb
         [dep5]=/tmp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb
         [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
+        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/
+        [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
+        [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
+        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/
     )
 
     local -a m=(
@@ -1088,6 +1100,9 @@ docky_stuffs() {
         'libgnome-keyring1.0-cil'  # 4
         'docky'  # 5
         'gconf-editor'  # 6
+        'brave-browser'  # 7
+        'sublime-text'  # 8
+        'telegram-desktop'  # 9
     )
 
     local -a l=(
@@ -1097,6 +1112,8 @@ docky_stuffs() {
         'http://archive.ubuntu.com/ubuntu/pool/universe/libg/libgnome-keyring/libgnome-keyring0_3.12.0-1build1_amd64.deb'  # 3
         'http://archive.ubuntu.com/ubuntu/pool/universe/g/gnome-keyring-sharp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb'  # 4
         'http://archive.ubuntu.com/ubuntu/pool/universe/d/docky/docky_2.2.1.1-1_all.deb'  # 5
+        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip'  # 6
+        'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 7
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]]; then
@@ -1186,6 +1203,67 @@ export \$(grep DBUS_SESSION_BUS_ADDRESS \${sessionfile} | sed '/^#/d')" \
         && gconftool --type string --set "${f[pref]}"Autohide 'UniversalIntellihide' \
         && gconftool --type string --set "${f[theme]}" 'Transparent' \
         && gconftool --type string --set "${f[pref]}"Position 'Bottom'
+
+    # Adding double applets and organizing
+    if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
+        if [[ ! -d "${d[3]}" || ! -d "${d[4]}" ]]; then
+
+            [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+                && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
+
+            [[ ! -e "${f[separator2]}" && ! -d "${d[3]}" ]] \
+                && wget --quiet "${l[6]}" --output-document "${f[separator2]}"
+
+            [[ ! -e "${f[forceqt]}" && ! -d "${d[4]}" ]] \
+                && wget --quiet "${l[7]}" --output-document "${f[forceqt]}"
+
+            unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}"
+
+            sudo rm --force "${f[separator2]}" "${f[forceqt]}"
+
+            dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
+
+            # use custom format
+            sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
+
+            sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
+
+            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B → %H:%M|2' "${f[calendar]}"*.json
+
+        fi
+    fi
+
+    # Order icons at grouped-windows-list
+    if [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BRAVE BROWSER?" \
+            && brave_stuffs
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH SUBLIME TEXT?" \
+            && sublime_stuffs
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[9]}[[:space:]]/ {print }") ]] \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH USEFULL PACKAGES?" \
+            && usefull_pkgs
+
+        sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json
+
+        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json
+
+        sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json
+
+        sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"*.json
+
+        sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"*.json
+
+        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"*.json
+
+        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"*.json  # END
+
+    fi
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2056,15 +2134,15 @@ heroku_stuffs() {
 hide_devices() {
 
     local -a d=(
-        /etc/udev/rules.d  # 0
+        /etc/udev/rules.d/  # 0
         /boot/grub/themes/  # 1
     )
 
     f+=(
-        [config]=/etc/udev/rules.d/99-hide-disks.rules
-        [background_grub_jpg]=/boot/grub/themes/$(basename "${d[1]}"*)background.jpg
-        [background_grub_png]=/boot/grub/themes/$(basename "${d[1]}"*)background.png
-        [old_background_grub]=/boot/grub/themes/$(basename "${d[1]}"*)background_old.png
+        [config]="${d[0]}"99-hide-disks.rules
+        [background_grub_jpg]="${d[1]}"$(basename "${d[1]}"*)background.jpg
+        [background_grub_png]="${d[1]}"$(basename "${d[1]}"*)background.png
+        [old_background_grub]="${d[1]}"$(basename "${d[1]}"*)background_old.png
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [grub-modified]=/etc/default/grub
         [grub]=/boot/grub/grub.cfg
@@ -4491,32 +4569,13 @@ xscreensaver_stuffs() {
 #======================#
 change_panelandgui() {
 
-    local -a d=(
-        ~/.local/share/cinnamon/applets/  # 0
-        ~/.local/share/cinnamon/applets/betterlock  # 1
-        ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
-        ~/.rbenv  # 3
-        ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 4
-        /boot/grub/themes/linuxmint-2k/  # 5
-        /usr/share/icons  # 6
-        ~/.oh-my-bash/  # 7
-        ~/.fonts/  # 8
-        ~/.config/autostart  # 9
-        /boot/grub/themes/  # 10
-    )
-
     f+=(
         [automount]=/org/cinnamon/desktop/media-handling/automount
         [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
-        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/
-        [capslock]=~/.local/share/cinnamon/applets/betterlock.zip
         [computer_icon]=/org/nemo/desktop/computer-icon-visible
-        [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
-        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/
-        [grub-modified]=/etc/default/grub
         [volumes_icon]=/org/nemo/desktop/volumes-visible
         [default_sort_order]=/org/nemo/preferences/default-sort-order
         [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
@@ -4527,7 +4586,6 @@ change_panelandgui() {
         [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
         [numlock]=/etc/lightdm/slick-greeter.conf
         [paste]=/org/gnome/terminal/legacy/keybindings/paste
-        [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
         [show_hidden_gnome]=/org/gnome/nautilus/preferences/show-hidden-files
@@ -4538,121 +4596,23 @@ change_panelandgui() {
         [alfred]=/usr/share/icons/jenkins-128x128.png
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
+        [delay_screensaver]=/org/cinnamon/desktop/session/idle-delay
     )
 
     local -a l=(
-        'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 0
-        'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip'  # 1
-        'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 2
-        'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 3
-        'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 4
-        'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 5
-        'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 6
-        'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 7
-        'https://launchpad.net/~alexanderk23/+archive/ubuntu/ppa/+files/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb'  # 8
+        'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 0
     )
 
     local -a m=(
         'dconf-editor'  # 0
         'numlockx'  # 1
-        'grub2-theme-mint-2k'  # 2
-        'ruby-dev'  # 3
-        'colorls'  # 4
-        'transmission-gtk'  # 5
-        'nemo-mediainfo-tab'  # 6
-        'neofetch'  # 7
-        'ruby-colorize'  # 8
-        'imagemagick'  # 9
-        'gawk'  # 10
-        'grub2-theme-mint'  # 11
-        'brave-browser'  # 12
-        'sublime-text'  # 13
-        'telegram-desktop'  # 14
-        'xscreensaver'  # 15
-        'xscreensaver-gl-extra'  # 16
-        'xscreensaver-data-extra'  # 17
-        'gluqlo'  # 18
     )
 
     # START ADITTION ICON ALFRED
     [[ ! -e "${f[alfred]}" ]] \
-        && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[5]}"  # END ICON
+        && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[0]}"  # END ICON
 
-    install_packages "${m[0]}" "${m[1]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[15]}" "${m[16]}" "${m[17]}"
-
-    # START APPLETS STUFFS
-    if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
-        if [[ ! -d "${d[1]}" || ! -d "${d[2]}"|| ! -d "${d[4]}" ]]; then
-
-            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
-                && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
-
-            [[ ! -e "${f[capslock]}" && ! -d "${d[1]}" ]] \
-                && wget --quiet "${l[0]}" --output-document "${f[capslock]}" \
-                && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-                && sudo rm --force "${f[capslock]}"
-
-            [[ ! -e "${f[separator2]}" && ! -d "${d[2]}" ]] \
-                && wget --quiet "${l[1]}" --output-document "${f[separator2]}" \
-                && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-                && sudo rm --force "${f[separator2]}"
-
-            [[ ! -e "${f[forceqt]}" && ! -d "${d[4]}" ]] \
-                && wget --quiet "${l[3]}" --output-document "${f[forceqt]}" \
-                && unzip "${d[0]}"*.zip -d "${d[0]}" &> "${f[null]}" \
-                && sudo rm --force "${f[forceqt]}"
-
-            dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator@cinnamon.org:16', 'panel1:right:17:separator@cinnamon.org:17', 'panel1:right:18:betterlock:18', 'panel1:right:19:separator2@zyzz:19', 'panel1:right:20:calendar@cinnamon.org:20']"
-
-            # use custom format
-            sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
-
-            sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
-
-            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B → %H:%M|2' "${f[calendar]}"*.json
-
-        fi
-    fi  # END APPLETS
-
-    # START NUMLOCK ALWAYS ACTIVE AT STARTUP
-    [[ ! -e "${f[numlock]}" && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-        && sudo tee "${f[numlock]}" > "${f[null]}" <<< '[Greeter]
-activate-numlock=true'
-
-    [[ $(grep --no-messages false "${f[numlock]}") ]] \
-        && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
-
-    # START NOMENCLATURE ICON ARRANGEMENT
-    if [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
-
-        [[ ! $(dpkg --list | awk "/ii  ${m[12]}[[:space:]]/ {print }") ]] \
-            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BRAVE BROWSER?" \
-            && brave_stuffs
-
-        [[ ! $(dpkg --list | awk "/ii  ${m[13]}[[:space:]]/ {print }") ]] \
-            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH SUBLIME TEXT?" \
-            && sublime_stuffs
-
-        [[ ! $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") ]] \
-            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH USEFULL PACKAGES?" \
-            && usefull_pkgs
-
-        sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json
-
-        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json
-
-        sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json
-
-        sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"*.json
-
-        sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"*.json
-
-        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"*.json
-
-        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"*.json  # END
-
-    fi
+    install_packages "${m[0]}" "${m[1]}"
 
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
@@ -4686,6 +4646,7 @@ activate-numlock=true'
         && dconf write "${f[default_sort_reverse]}" false \
         && dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'" \
         && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
+        && dconf write "${f[delay_screensaver]}" "uint32 180" \
         && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
 
 }
