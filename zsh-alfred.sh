@@ -81,6 +81,7 @@ declare -A e=(
     [flame]=$'\360\237\224\245'
     [silent_monkey]=$'\360\237\231\212'
     [bat]=$'\360\237\246\207'
+    [screensaver]=$'\360\237\222\276'
 )
 
 # usefull files
@@ -488,20 +489,15 @@ brave_stuffs() {
 #======================#
 deemix_stuffs() {
 
-    source "${f[user_dirs]}"
-
     local -a d=(
-        "${XDG_MUSIC_DIR}"/  # 1
-        ~/.pyenv  # 2
-        ~/Musicas\ Deemix/  # 3
-        ~/.cache/thumbnails/fail  # 4
-        ~/.config/deemix  # 5
-        /etc/  # 6
+        /tmp/  # 1
+        ~/Musicas\ Deemix/  # 2
+        ~/.cache/thumbnails/fail  # 3
+        ~/.config/deemix  # 4
     )
 
     f+=(
         [file]="${d[1]}"linux-x86_64-latest.deb
-        [py_versions]=~/.pyenv/versions/
         [decrypt]=/etc/browser_cookie3_n.py
         [cookies]=/tmp/cookies
         [arl_value]=~/.config/deemix/.arl
@@ -511,7 +507,6 @@ deemix_stuffs() {
     local -a l=(
         'https://download.deemix.app/gui/linux-x86_64-latest.deb'  # 1
         'https://raw.githubusercontent.com/rachpt/lanzou-gui/master/lanzou/browser_cookie3_n.py'  # 2
-        'https://www.python.org/doc/versions/'  # 3
     )
 
     local -a m=(
@@ -540,7 +535,13 @@ deemix_stuffs() {
         'lanzou-gui'  # 23
         'google-chrome-stable'  # 24
         'xsel'  # 25
+        'gawk'  # 26
+        'python-is-python3'  # 27
     )
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[26]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[26]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }")
         && $(dpkg --list | awk "/ii  ${m[25]}[[:space:]]/ {print }") ]]; then
@@ -597,9 +598,7 @@ deemix_stuffs() {
 
         sudo rm --force "${f[file]}"
 
-        latest=$(curl --silent "${l[3]}" | grep release/ | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
-
-        [[ ! -d "${d[2]}" && ! -e "${f[py_versions]}${latest}" ]] \
+        [[ ! $(dpkg --list | awk "/ii  ${m[27]}[[:space:]]/ {print }") ]] \
             && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
             && python_stuffs
 
@@ -627,7 +626,7 @@ deemix_stuffs() {
         && show "\nFIRST THINGS FIRST. DO U PASS THROUGH CHROME STUFFS?" \
         && chrome_stuffs
 
-    while [[ ! -e "${d[5]}" ]]; do
+    while [[ ! -e "${d[4]}" ]]; do
 
         show "\nRESTARTING DEEMIX TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
 
@@ -679,11 +678,11 @@ alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
-        [[ ! -d "${d[3]}" || $(stat -c "%U" "${d[3]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[3]}"
+        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
 
-        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music/\",|\"downloadLocation\": \"${d[3]}\",|g" "${f[cfg]}"
+        sudo sed --in-place "s|\"downloadLocation\": \"${XDG_MUSIC_DIR}/deemix Music/\",|\"downloadLocation\": \"${d[2]}\",|g" "${f[cfg]}"
 
     fi
 
@@ -692,7 +691,7 @@ alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc
 
     [[ ! $(grep --no-messages 'alias ct' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias ct='rm --recursive --force ${d[4]}'"
+alias ct='rm --recursive --force ${d[3]}'"
 
     echo; read $'?\033[1;37mSIR, SHOULD I OPEN DEEMIX? (CLIPBOARD CONTAINS ARL) \n[Y/N] R: \033[m' option
 
@@ -1035,11 +1034,13 @@ github_stuffs() {
         'dconf-editor'  # 6
         'gh'  # 7
         'python'  # 8
+        'gawk'  # 9
     )
 
-    [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
+    [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }")
+        && ! $(dpkg --list | awk "/ii  ${m[9]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
-        && install_packages "${m[5]}"
+        && install_packages "${m[5]}" "${m[9]}"
 
     # We put ii  <pkg>[[:space:]] to get only what we need, git shows in more places (in version by the way)
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") && \
@@ -1442,12 +1443,13 @@ flameshot_stuffs() {
     local -a d=(
         ~/.config/Dharkael  # 1
         /tmp/  # 2
+        ~/.config/autostart/  # 3
     )
 
     f+=(
         [config]=~/.config/Dharkael/flameshot.ini
         [config_gnome]=~/.config/flameshot/flameshot.ini
-        [dskt]=~/.config/autostart/Flameshot.desktop
+        [dskt]="${d[3]}"Flameshot.desktop
         [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
         [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
         [cmd]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
@@ -1465,6 +1467,11 @@ flameshot_stuffs() {
         'dconf-editor'  # 2
         'gawk'  # 3
     )
+
+    [[ ! -d "${d[3]}" || $(stat -c "%U" "${d[3]}" 2>&-) != "${USER}" ]] \
+        && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+        && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[3]}"
 
     [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
@@ -1721,14 +1728,29 @@ hide_devices() {
 
     local -a d=(
         /etc/udev/rules.d  # 1
+        /boot/grub/themes/  # 2
     )
 
     f+=(
         [config]=/etc/udev/rules.d/99-hide-disks.rules
+        [background_grub_jpg]=/boot/grub/themes/$(basename "${d[2]}"*)background.jpg
+        [background_grub_png]=/boot/grub/themes/$(basename "${d[2]}"*)background.png
+        [old_background_grub]=/boot/grub/themes/$(basename "${d[2]}"*)background_old.png
+        [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
+        [grub-modified]=/etc/default/grub
+        [grub]=/boot/grub/grub.cfg
+    )
+
+    local -a l=(
+        'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 1
+        'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 2
     )
 
     local -a m=(
         'devices'  # 1
+        'grub2-theme-mint-2k'  # 2
+        'grub2-theme-mint'  # 3
+        'imagemagick'  # 4
     )
 
     check_devices=$(sudo fdisk --list 2>&- | grep 'Microsoft basic data' | awk '{print $1}')
@@ -1800,6 +1822,80 @@ hide_devices() {
             done
 
             unset iterator
+
+            echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL A THEME FOR GRUB? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+                        && show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..." \
+                        && install_packages "${m[4]}"
+
+                    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+                        && install_packages "${m[2]}"
+
+                    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]]; then
+
+                        if [[ $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
+
+                            show "\n${c[GREEN]}${m[3]:u} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]"
+
+                        else
+
+                            show "\n${c[YELLOW]}${m[3]:u} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]"
+
+                            [[ ! -e "${f[grub2_theme]}" ]] \
+                                && wget --quiet "${l[1]}" --output-document "${f[grub2_theme]}" \
+                                && sudo dpkg --install "${f[grub2_theme]}" &> "${f[null]}" \
+                                && sudo rm --force "${f[grub2_theme]}"
+
+                        fi
+
+                    fi
+
+                    [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+                        && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+                        && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
+
+                    if [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]]; then
+
+                        mv "${f[background_grub_png]}" "${f[old_background_grub]}"
+
+                        [[ ! -e "${f[background_grub_jpg]}" ]] \
+                            && wget --quiet "${l[2]}" --output-document "${f[background_grub_jpg]}" \
+                            && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
+                            && rm --force "${f[background_grub_jpg]}"
+
+                    fi
+
+                    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+                        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
+
+                    [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
+                        && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}"
+
+                    [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
+                        && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' "${f[grub-modified]}"
+
+                    sudo update-grub &> "${f[null]}"
+
+                    break
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
 
         fi
 
@@ -2720,17 +2816,23 @@ reduceye_stuffs() {
 
     local -a d=(
         ~/.config/redshift/  # 1
+        ~/.config/autostart/  # 2
     )
 
     f+=(
         [config]=~/.config/redshift/redshift.conf
-        [dskt]=~/.config/autostart/redshift-gtk.desktop
+        [dskt]="${d[2]}"redshift-gtk.desktop
     )
 
     local -a m=(
         'redshift'  # 1
         'redshift-gtk'  # 2
     )
+
+    [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+        && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+        && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
@@ -3522,28 +3624,30 @@ usefull_pkgs() {
 
     local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 1
-        ~/.SpaceVim  # 2
+        ~/.SpaceVim/  # 2
         ~/.config/vlc/  # 3
         /etc/  # 4
-        /etc/series-renamer  # 5
+        /etc/series-renamer/  # 5
+        ~/.config/autostart/  # 6
     )
 
     f+=(
-        [cfg]=~/.SpaceVim/autoload/SpaceVim.vim
+        [cfg]="${d[2]}"autoload/SpaceVim.vim
         [load]=~/.config/nvim/init.vim
-        [autokey]=~/.config/autostart/autokey-gtk.desktop
-        [lock]=/etc/apt/preferences.d/nosnap.pref
+        [autokey]="${d[6]}"autokey-gtk.desktop
+        [lock]="${d[4]}"apt/preferences.d/nosnap.pref
         [out]=/tmp/spacevim.out
-        [vlc]=~/.config/vlc/vlcrc
-        [series]=/etc/series-renamer/RenameMyTVSeries
+        [vlc]="${d[3]}"vlcrc
+        [series]="${d[5]}"RenameMyTVSeries
         [rar-file]=/etc/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz
         [startup]=~/.local/share/applications/rename-series.desktop
-        [icon]=/etc/series-renamer/icons/128x128.png
+        [icon]="${d[5]}"icons/128x128.png
     )
 
     local -a l=(
         'https://spacevim.org/install.sh'  # 1
         'https://www.tweaking4all.com/downloads/video/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz'  # 2
+        'https://github.com/transmission/transmission/releases/'  # 3
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -3569,7 +3673,15 @@ usefull_pkgs() {
         'libsqlite3-dev'  # 19
         'ffmpegthumbnailer'  # 20
         'clipit'  # 21
+        'neofetch'  # 22
+        'nemo-mediainfo-tab'  # 23
+        'transmission-gtk'  # 24
     )
+
+    [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
+        && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+        && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
@@ -3639,7 +3751,10 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep afelinczak) ]] \
             && sudo add-apt-repository --yes ppa:afelinczak/ppa &> "${f[null]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
+            && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}"
+
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
@@ -3723,6 +3838,46 @@ StartupNotify=true"
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
+
+        local=$(apt version "${m[24]}")
+
+        latest=$(curl --silent "${l[3]}" | grep 'class="Link--primary"' | head -1 | awk '{print $5}' | tr --complement --delete 0-9,. | xargs)
+
+        if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+            echo; read $'?\033[1;37mSIR, SHOULD I UPGRADE TRANSMISSION VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) ]] \
+                        && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
+                        && update
+
+                    install_packages "${m[24]}"
+
+                    break
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+        fi
+
+    fi
 
     while [[ ! -e "${d[3]}" ]]; do
 
@@ -3938,6 +4093,84 @@ workspace_stuffs() {
 #======================#
 
 #======================#
+xscreensaver_stuffs() {
+
+    f+=(
+        [screen_saver]=~/.xscreensaver
+        [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
+    )
+
+    local -a l=(
+        'https://launchpad.net/~alexanderk23/+archive/ubuntu/ppa/+files/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb'  # 1
+    )
+
+    local -a m=(
+        'xscreensaver'  # 1
+        'xscreensaver-gl-extra'  # 2
+        'xscreensaver-data-extra'  # 3
+        'gluqlo'  # 4
+    )
+
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
+
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+
+        read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
+
+
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}"
+
+        [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+            && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+            && sudo wget --quiet "${l[1]}" --output-document "${f[gluqlo]}" \
+            && sudo dpkg --install "${f[gluqlo]}" &> "${f[null]}" \
+            && sudo rm --force "${f[gluqlo]}" \
+            || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
+        && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
 zsh_stuffs() {
 
     source "${f[user_dirs]}"
@@ -3953,20 +4186,21 @@ zsh_stuffs() {
         [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
         [original]=/etc/skel/.bashrc
         [bkp_zsh]=~/.zshrc_bkp
+        [meslo]=~/.fonts/Meslo.zip
     )
 
     local -a l=(
         'https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh'  # 1
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 2
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 3
+        'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 4
     )
 
     local -a m=(
         'oh-my-zsh'  # 1
-        'curl'  # 2
-        'git'  # 3
-        'xdotool'  # 4
-        'zsh'  # 5
+        'xdotool'  # 2
+        'ruby-dev'  # 3
+        'colorls'  # 4
     )
 
     if [[ -d "${d[1]}" ]]; then
@@ -4003,7 +4237,7 @@ zsh_stuffs() {
 
                     if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                        # sudo sed --in-place 's|/bin/bash|/bin/zsh|g' /etc/passwd 
+                        # sudo sed --in-place 's|/bin/bash|/bin/zsh|g' /etc/passwd
                         [[ $(echo "${SHELL}") = '/bin/zsh' ]] \
                             && sudo chsh --shell $(which zsh)
 
@@ -4067,7 +4301,7 @@ zsh_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[2]}" "${m[3]}" "${m[4]}" "${m[5]}"
+        install_packages "${m[2]}"
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -4107,18 +4341,87 @@ zsh_stuffs() {
 
     fi
 
-    # Hide username from tty (hide #) and accepts pip freeze > requirements.txt
     [[ ! $(grep --no-messages DEFAULT_USER "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 # Hides user from terminal
 # DEFAULT_USER=${USER}
 
 # Don't overwrite existing files with '>'
-set +o noclobber" # tee is an "sudo echo" that works, -a to append (>>)
+set +o noclobber
 
-    [[ ! $(grep --no-messages 'ZSH_THEME="agnoster"' "${f[zshrc]}") && ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
-        && sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}" \
+# Hides default behavior from zsh in grep: no matches found.
+setopt +o nomatch
+
+alias c='clear'
+
+alias remove_all_pip_packages='pip freeze | xargs pip uninstall -y'
+
+declare -A c=(
+    [WHITE]='\033[1;37m'
+    [END]='\e[0m'
+)
+
+alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
+        && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[zshrc]}" \
+        && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[zshrc]}" \
+        && source "${f[zshrc]}"
+
+    sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}"
+
+    [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
         && sudo sed --in-place --null-data 's|git|git python pip virtualenv copyfile|4' "${f[zshrc]}"
+
+    echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
+                && ruby_stuffs
+
+            # ruby-dev is essential
+            [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
+                && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                && sudo gem install --silent "${m[4]}"
+
+            [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+                && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+                && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
+
+            [[ ! -e "${f[meslo]}" ]] \
+                && wget --quiet "${l[4]}" --output-document "${f[meslo]}" \
+                && unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}" \
+                && rm --force --recursive "${f[meslo]}" "${d[2]}"*Windows*.ttf
+
+            sudo fc-cache --force "${d[2]}"
+
+            [[ ! $(grep --no-messages "${m[4]}" "${f[zshrc]}") ]] \
+                && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
+# Colorls stuffs
+source $(dirname $(gem which ${m[4]}))/tab_complete.sh
+
+alias ls='${m[4]}'" \
+                && source "${f[zshrc]}"
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
 
     echo; read $'?\033[1;37mSIR, SHOULD I SET ZSH DEFAULT SHELL? \n[Y/N] R: \033[m' option
 
@@ -4179,22 +4482,18 @@ change_panelandgui() {
         ~/.local/share/cinnamon/applets/  # 1
         ~/.local/share/cinnamon/applets/betterlock  # 2
         ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
-        ~/.rbenv  # 4
+        # ~/.rbenv  # 4
         ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 5
-        /boot/grub/themes/linuxmint-2k/  # 6
-        /usr/share/icons  # 7
-        ~/.oh-my-zsh/  # 8
-        ~/.fonts/  # 9
-        ~/.config/autostart  # 10
-        /boot/grub/themes/  # 11
+        # /boot/grub/themes/linuxmint-2k/  # 6
+        # /usr/share/icons  # 7
+        # ~/.oh-my-zsh/  # 8
+        # ~/.fonts/  # 9
+        # ~/.config/autostart  # 10
     )
 
     f+=(
         [automount]=/org/cinnamon/desktop/media-handling/automount
         [automount_open]=/org/cinnamon/desktop/media-handling/automount-open
-        [background_grub_jpg]=/boot/grub/themes/$(basename "${d[11]}"*)/background.jpg
-        [background_grub_png]=/boot/grub/themes/$(basename "${d[11]}"*)/background.png
-        [old_background_grub]=/boot/grub/themes/$(basename "${d[11]}"*)/background_old.png
         [open_folder]=/org/cinnamon/desktop/media-handling/autorun-x-content-open-folder
         [start_app]=/org/cinnamon/desktop/media-handling/autorun-x-content-start-app
         [autostart_blacklist]=/org/cinnamon/cinnamon-session/autostart-blacklist
@@ -4208,15 +4507,12 @@ change_panelandgui() {
         [default_sort_order]=/org/nemo/preferences/default-sort-order
         [default_sort_reverse]=/org/nemo/preferences/default-sort-in-reverse-order
         [default_sort_reverse_gnome]=/org/gnome/nautilus/preferences/default-sort-in-reverse-order
-        [grub]=/boot/grub/grub.cfg
         [home_icon]=/org/nemo/desktop/home-icon-visible
         [icon_theme]=/org/cinnamon/desktop/interface/icon-theme
         [icon_theme_gnome]=/org/gnome/desktop/interface/icon-theme
-        [login-file]=/org/cinnamon/sounds/login-file
         [looking_glass]=/org/cinnamon/desktop/keybindings/looking-glass-keybinding
         [numlock]=/etc/lightdm/slick-greeter.conf
         [paste]=/org/gnome/terminal/legacy/keybindings/paste
-        [path-ogg]=/usr/share/mint-artwork/sounds/manias.ogg
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [screensaver]=/org/cinnamon/desktop/keybindings/media-keys/screensaver
         [show_hidden]=/org/nemo/preferences/show-hidden-files
@@ -4226,123 +4522,49 @@ change_panelandgui() {
         [reverse-order]=/org/nemo/preferences/default-sort-in-reverse-order
         [default-order]=/org/nemo/preferences/default-sort-order
         [alfred]=/usr/share/icons/jenkins-128x128.png
-        [meslo]=~/.fonts/Meslo.zip
-        [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
-        [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
-        [screen_saver]=~/.xscreensaver
     )
 
     local -a l=(
         'https://cinnamon-spices.linuxmint.com/files/applets/betterlock.zip'  # 1
         'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip'  # 2
-        'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
+        # 'https://docs.google.com/uc?export=download&id=1gQQ6Xj2egQBZW9xugCK02NSnQEQPjE3V'  # 3
         'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 4
-        'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 5
+        # 'https://vignette4.wikia.nocookie.net/despicableme/images/6/6b/Gru_sunglasses.jpg/revision/latest?cb=20140218054928'  # 5
         'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 6
-        'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 7
-        'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 8
-        'https://launchpad.net/~alexanderk23/+archive/ubuntu/ppa/+files/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb'  # 9
+        # 'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 7
+        # 'https://ftp5.gwdg.de/pub/linux/debian/mint/packages/pool/main/g/grub2-theme-mint/grub2-theme-mint_1.2.2_all.deb'  # 8
+        # 'https://launchpad.net/~alexanderk23/+archive/ubuntu/ppa/+files/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb'  # 9
     )
 
     local -a m=(
         'dconf-editor'  # 1
         'numlockx'  # 2
-        'grub2-theme-mint-2k'  # 3
-        'ruby-dev'  # 4
-        'colorls'  # 5
-        'transmission-gtk'  # 6
-        'nemo-mediainfo-tab'  # 7
-        'neofetch'  # 8
-        'ruby-colorize'  # 9
-        'imagemagick'  # 10
-        'gawk'  # 11
-        'grub2-theme-mint'  # 12
+        # 'grub2-theme-mint-2k'  # 3
+        # 'ruby-dev'  # 4
+        # 'colorls'  # 5
+        # 'transmission-gtk'  # 6
+        # 'nemo-mediainfo-tab'  # 7
+        # 'neofetch'  # 8
+        # 'ruby-colorize'  # 9
+        # 'imagemagick'  # 10
+        # 'gawk'  # 11
+        # 'grub2-theme-mint'  # 12
         'brave-browser'  # 13
         'sublime-text'  # 14
         'telegram-desktop'  # 15
-        'xscreensaver'  # 16
-        'xscreensaver-gl-extra'  # 17
-        'xscreensaver-data-extra'  # 18
-        'gluqlo'  # 19
+        # 'xscreensaver'  # 16
+        # 'xscreensaver-gl-extra'  # 17
+        # 'xscreensaver-data-extra'  # 18
+        # 'gluqlo'  # 19
     )
 
     # START ADITTION ICON ALFRED
-    [[ ! -d "${d[7]}" || $(stat -c "%U" "${d[7]}" 2>&-) != "${USER}" ]] \
-        && sudo mkdir --parents "${d[7]}" > "${f[null]}" \
-        && sudo chown --recursive "${USER}":"${USER}" "${d[7]}"
-
     [[ ! -e "${f[alfred]}" ]] \
         && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[6]}"  # END ICON
 
     install_packages "${m[1]}" "${m[2]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[16]}" "${m[17]}" "${m[18]}"
-
-    # START BIG CLOCK AT SCREEN SAVER
-    [[ $(dpkg --list | awk "/ii  ${m[19]}[[:space:]]/ {print }") ]] \
-        && sudo wget --quiet "${l[9]}" --output-document "${f[gluqlo]}" \
-        && sudo dpkg --install "${f[gluqlo]}" &> "${f[null]}" \
-        && sudo rm --force "${f[gluqlo]}"
-
-    [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
-        && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"  # END
-
-    # START AUTOSTART APPLICATIONS
-    [[ ! -d "${d[10]}" || $(stat -c "%U" "${d[10]}" 2>&-) != "${USER}" ]] \
-        && sudo mkdir --parents "${d[10]}" > "${f[null]}" \
-        && sudo chown --recursive "${USER}":"${USER}" "${d[10]}"  # END AUTOSTART APPLICATIONS
-
-    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
-        && install_packages "${m[11]}"
-
-    # START GRUB WALLPAPER CHANGE
-    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-        && install_packages "${m[3]}"
-
-    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]]; then
-        [[ $(dpkg --list | awk "/ii  ${m[12]}[[:space:]]/ {print }") ]] \
-            && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
-            || show "\n${c[YELLOW]}${m[12]:u} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
-            && [[ ! -e "${f[grub2_theme]}" ]] \
-                && wget --quiet "${l[8]}" --output-document "${f[grub2_theme]}" \
-                && sudo dpkg --install "${f[grub2_theme]}" &> "${f[null]}" \
-                && sudo rm --force "${f[file]}"
-
-    fi
-
-    [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
-        && sudo mkdir --parents "${d[6]}" > "${f[null]}" \
-        && sudo chown --recursive "${USER}":"${USER}" "${d[6]}"
-
-    [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]] \
-        && mv "${f[background_grub_png]}" "${f[old_background_grub]}" \
-        && [[ ! -e "${f[background_grub_jpg]}" ]] \
-            && wget --quiet "${l[5]}" --output-document "${f[background_grub_jpg]}" \
-            && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
-            && rm --force "${f[background_grub_jpg]}"  # END WALLPAPER CHANGE
-
-    # START GRUB RESOLUTION CHANGE
-    # vbeinfo || videoinfo
-    [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
-        && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}" \
-        && sudo update-grub &> "${f[null]}" # END RESOLUTION
-
-    # START FIXING CHROME DETECTING NETWORK CHANGE (CONNECTION WAS INTERRUPTED)
-    [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
-        && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' "${f[grub-modified]}" \
-        && sudo update-grub &> "${f[null]}"  # END
-
-    # START PPA ADDITION
-    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep transmissionbt) && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-        && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
-        && update \
-        && sudo apt install --assume-yes "${m[6]}" &> "${f[null]}"  # END PPA
-
-    # START PPA ADDITION
-    [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
-        && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}" \
-        && update \
-        && sudo apt install --assume-yes "${m[7]}" &> "${f[null]}"  # END PPA
 
     # START APPLETS STUFFS
     if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
@@ -4386,102 +4608,6 @@ activate-numlock=true'
 
     [[ $(grep --no-messages false "${f[numlock]}") ]] \
         && sudo sed --in-place 's|false|true|g' "${f[numlock]}"  # END NUMLOCK
-
-    # START STARTUP SONG CHANGE
-    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
-        source "${f[locale]}"
-
-        if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
-
-            [[ ! -e "${f[ogg_file]}" ]] \
-                && curl --silent --location --output "${f[path-ogg]}" --create-dirs "${l[3]}"
-
-            dconf write "${f[login-file]}" "'${f[path-ogg]}'"
-
-        fi
-    fi  # END
-
-    # START CHANGE DESCRIPTION WINDOWS IN GRUB
-    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"  # END
-
-    # START CHECK UNSTAGED DIRECTORIES
-    [[ ! $(grep --no-messages unstaged "${f[zshrc]}") ]] \
-        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias c='clear'
-
-alias remove_all_pip_packages='pip freeze | xargs pip uninstall -y'
-
-declare -A c=(
-    [WHITE]='\033[1;37m'
-    [END]='\e[0m'
-)
-
-alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
-        && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[zshrc]}" \
-        && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[zshrc]}"  # END
-
-    echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
-
-    for (( ; ; )); do
-
-        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
-
-            [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY STUFFS?" \
-                && ruby_stuffs
-
-            [[ ! -d "${d[8]}" ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH ZSH (OH-MY-ZSH)?" \
-                && zsh_stuffs
-
-            # ruby-dev is essential
-            [[ $(gem list 2>&- | grep --no-messages "${m[5]}") ]] \
-                && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
-                || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-                && sudo gem install --silent "${m[5]}"
-
-            [[ ! -d "${d[9]}" || $(stat -c "%U" "${d[9]}" 2>&-) != ${USER} ]] \
-                && sudo mkdir --parents "${d[9]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[9]}"
-
-            [[ ! -e "${f[meslo]}" ]] \
-                && wget --quiet "${l[7]}" --output-document "${f[meslo]}" \
-                && unzip "${d[9]}"*.zip -d "${d[9]}" &> "${f[null]}" \
-                && rm --force --recursive "${f[meslo]}" "${d[9]}"*Windows*.ttf
-
-            sudo fc-cache --force "${d[9]}"
-
-            [[ ! $(grep --no-messages "${m[5]}" "${f[zshrc]}") ]] \
-                && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-# Colorls stuffs
-source $(dirname $(gem which ${m[5]}))/tab_complete.sh
-
-alias ls='${m[5]}'" \
-                && source "${f[zshrc]}"
-
-            break
-
-        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
-
-            break
-
-        else
-
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-        fi
-
-    done
-
-    # START NOMATCH
-    [[ ! $(grep --no-messages nomatch "${f[zshrc]}") ]] \
-        && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-# Hides default behavior from zsh in grep: no matches found.
-setopt +o nomatch" \
-        && source "${f[zshrc]}"  # END NOMATCH
 
     # START NOMENCLATURE ICON ARRANGEMENT
     if [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
@@ -4577,8 +4703,9 @@ evoke_functions() {
         18) tmate_stuffs && return_menu ;;
         19) usefull_pkgs && return_menu ;;
         20) workspace_stuffs && return_menu ;;
-        21) zsh_stuffs && return_menu ;;
-        22) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        21) xscreensaver_stuffs && return_menu ;;
+        22) zsh_stuffs && return_menu ;;
+        23) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         echo; read $'?\033[1;37mSIR, DO U TRUST ME TO DO MY OWN CHANGES? \n[Y/N] R: \033[m' option
 
@@ -4626,6 +4753,7 @@ evoke_functions() {
         tmate_stuffs
         usefull_pkgs
         workspace_stuffs
+        xscreensaver_stuffs
         zsh_stuffs
 
         [[ -e "${f[mimeapps]}" ]] \
@@ -4711,8 +4839,9 @@ menu() {
         sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
         sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
         sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
-        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 1
-        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}ALL ${e[whale]}" 1
+        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}XSCREENSAVER ${e[screensaver]}" 1
+        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 1
+        sleep 0.1s; show "${c[RED]}[ 23 ] ${c[WHITE]}ALL ${e[whale]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         # zsh convention, anything after a ? is used as the prompt string
