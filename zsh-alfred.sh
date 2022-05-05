@@ -106,6 +106,7 @@ declare -A f=(
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d/
     [ssh]=/tmp/check_connection
+    [apt_history]=/var/log/apt/history.log
 )
 #======================#
 
@@ -189,6 +190,11 @@ check_source() {
         show "\n${c[RED-BLINK]}PLEASE, RUNS: source zsh-alfred.sh\n" 1 && exit
 
     else
+
+        [[ ! -e "${f[apt_history]}" ]] \
+            && clear \
+            && show "\nBEFORE PROCEED, WE MUST UPGRADE FOR THE FIRST TIME..." \
+            && upgrade
 
         clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
 
@@ -543,7 +549,7 @@ deemix_stuffs() {
         && show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[26]}"
 
-    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }")
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[25]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
@@ -602,7 +608,7 @@ deemix_stuffs() {
             && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
             && python_stuffs
 
-        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n        I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         install_pip "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}"
 
@@ -646,6 +652,7 @@ deemix_stuffs() {
 
             [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
                 && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
+                && sleep 5s \
                 && continue \
                 || sudo tee --append "${f[arl_value]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')" \
                 && break
@@ -737,10 +744,20 @@ docky_stuffs() {
         [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
     )
 
-    get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
+    local -a m=(
+        'libgconf2.0-cil'  # 1
+        'multiarch-support'  # 2
+        'libgnome-keyring-common'  # 3
+        'libgnome-keyring0:amd64'  # 4
+        'libgnome-keyring1.0-cil'  # 5
+        'docky'  # 6
+        'gconf-editor'  # 7
+        'brave-browser'  # 8
+        'sublime-text'  # 9
+        'telegram-desktop'  # 10
+    )
 
     f+=(
-        [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
         [icons]=/apps/docky-2/Docky/Items/DockyItem/
         [theme]=/apps/docky-2/Docky/Services/ThemeService/Theme
         [dep1]=/tmp/libgconf2.0-cil_2.24.2-4_all.deb
@@ -753,19 +770,6 @@ docky_stuffs() {
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/
-    )
-
-    local -a m=(
-        'libgconf2.0-cil'  # 1
-        'multiarch-support'  # 2
-        'libgnome-keyring-common'  # 3
-        'libgnome-keyring0:amd64'  # 4
-        'libgnome-keyring1.0-cil'  # 5
-        'docky'  # 6
-        'gconf-editor'  # 7
-        'brave-browser'  # 8
-        'sublime-text'  # 9
-        'telegram-desktop'  # 10
     )
 
     local -a l=(
@@ -827,7 +831,7 @@ docky_stuffs() {
 
             [[ ! $(dpkg --list | awk "/ii  ${m[iterator]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[YELLOW]}${m[iterator]:u} ${c[WHITE]}${linen:${#m[iterator]}} [INSTALLING]" \
-                && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep$iterator]}" \
+                && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep${iterator}]}" \
                 || show "\n${c[GREEN]}${m[iterator]:u} ${c[WHITE]}${linei:${#m[iterator]}} [INSTALLED]"
 
         done
@@ -836,7 +840,7 @@ docky_stuffs() {
 
         sudo dpkg --install "${d[1]}"* &> "${f[null]}"
 
-        sudo rm --force "${d[1]}"*.deb
+        # sudo rm --force "${d[1]}"*.deb
 
         [[ ! -e "${f[docky_run]}" ]] \
             && show "\n${c[YELLOW]}${m[6]:u} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
@@ -847,6 +851,18 @@ docky_stuffs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    ( nohup "${m[6]}" & ) &> "${f[null]}"
+
+    f+=(
+        [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
+    )
+
+    get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
+
+    f+=(
+        [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
+    )
 
     [[ ! $(grep --no-messages sessionfile "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
@@ -970,7 +986,7 @@ dualmonitor_stuffs() {
         'dconf-editor'  # 2
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }")
+    if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
         && -e "${d[1]}" ]]; then
         # 2>&- if dconf not installed
 
@@ -1092,7 +1108,7 @@ github_stuffs() {
         [all_title_gh]=/tmp/all_title
         [cola_rar]="${d[1]}"git-cola-${latest}.tar.gz
         [cola_old]=/usr/local/bin/cola
-        [cola_new]=/usr/bin/cola 
+        [cola_new]=/usr/bin/cola
     )
 
     l+=(
@@ -1111,7 +1127,7 @@ github_stuffs() {
         'gawk'  # 9
     )
 
-    [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }")
+    [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") \
         && ! $(dpkg --list | awk "/ii  ${m[9]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[5]}" "${m[9]}"
@@ -1208,7 +1224,7 @@ github_stuffs() {
     local=$(cola --version | awk '{print $3}')
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
-        
+
         echo; read $'?\033[1;37mSIR, SHOULD I UPGRADE COLA VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
 
         for (( ; ; )); do
@@ -1267,7 +1283,7 @@ github_stuffs() {
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
         && [[ $(dconf dump / | grep 'gtk-theme' | awk --field-separator='=' '{print $2}' | sed "s|'||g") =~ .*dark.* ]] \
             && git config --global cola.icontheme dark \
-            && git config --global cola.theme flat-dark-green 
+            && git config --global cola.theme flat-dark-green
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && [[ $(dconf dump / | grep 'gtk-theme' | awk --field-separator='=' '{print $2}' | sed "s|'||g") =~ .*Dark.* ]] \
@@ -2867,10 +2883,6 @@ eval "$(pyenv virtualenv-init -)"' \
 #======================#
 upgrade() {
 
-    f+=(
-        [apt_history]=/var/log/apt/history.log
-    )
-
     # Get last upgrades
     last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
 
@@ -3291,7 +3303,7 @@ sublime_stuffs() {
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[3]}"
 
-    if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") 
+    if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 1
@@ -4598,7 +4610,7 @@ change_panelandgui() {
 
     # START ADITTION ICON ALFRED
     [[ ! -e "${f[alfred]}" ]] \
-        && curl --silent --location --output "${f[alfred]}" --create-dirs "${l[1]}"  # END ICON
+        && sudo curl --silent --location --output "${f[alfred]}" --create-dirs "${l[1]}"  # END ICON
 
     install_packages "${m[1]}" "${m[2]}"
 
