@@ -832,13 +832,13 @@ docky_stuffs() {
             [[ ! $(dpkg --list | awk "/ii  ${m[iterator]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[YELLOW]}${m[iterator]:u} ${c[WHITE]}${linen:${#m[iterator]}} [INSTALLING]" \
                 && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep${iterator}]}" \
+                && sudo dpkg --install "${f[dep${iterator}]}" &> "${f[null]}" \
+                && sudo rm --force "${f[dep${iterator}]}" \
                 || show "\n${c[GREEN]}${m[iterator]:u} ${c[WHITE]}${linei:${#m[iterator]}} [INSTALLED]"
 
         done
 
         unset iterator
-
-        sudo dpkg --install "${d[1]}"* &> "${f[null]}"
 
         # sudo rm --force "${d[1]}"*.deb
 
@@ -1123,7 +1123,7 @@ github_stuffs() {
         'cryptsetup'  # 5
         'dconf-editor'  # 6
         'gh'  # 7
-        'python'  # 8
+        'python-is-python3'  # 8
         'gawk'  # 9
     )
 
@@ -3642,7 +3642,9 @@ upgrade() {
     [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
         || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
-    sudo apt update &> "${f[null]}"; sudo apt upgrade --yes &> "${f[null]}"
+    sudo apt update &> "${f[null]}"
+
+    sudo apt upgrade --yes &> "${f[null]}"
 
 }
 #======================#
@@ -4109,7 +4111,7 @@ workspace_stuffs() {
                     && show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED" 1 \
                     && break
 
-                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+                ssh -T git@github.com &> "${f[ssh]}"
 
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 

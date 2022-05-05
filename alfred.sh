@@ -190,6 +190,11 @@ check_source() {
 
     else
 
+        [[ ! -e "${f[apt_history]}" ]] \
+            && clear \
+            && show "\nBEFORE PROCEED, WE MUST UPGRADE FOR THE FIRST TIME..." \
+            && upgrade
+
         clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
 
         clear && menu
@@ -1158,15 +1163,15 @@ docky_stuffs() {
             [[ ! $(dpkg --list | awk "/ii  ${m[iterator]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[YELLOW]}${m[iterador]^^} ${c[WHITE]}${linen:${#m[iterador]}} [INSTALLING]" \
                 && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep$iterator]}" \
+                && sudo dpkg --install "${f[dep$iterator]}" &> "${f[null]}" \
+                && sudo rm --force "${f[dep${iterator}]}" \
                 || show "\n${c[GREEN]}${m[iterador]^^} ${c[WHITE]}${linei:${#m[iterador]}} [INSTALLED]"
 
         done
 
         unset iterador
 
-        sudo dpkg --install "${d[0]}"* &> "${f[null]}"
-
-        sudo rm --force "${d[0]}"*.deb
+        # sudo rm --force "${d[0]}"*.deb
 
         [[ ! -e "${f[docky_run]}" ]] \
             && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
@@ -1449,7 +1454,7 @@ github_stuffs() {
         'cryptsetup'  # 4
         'dconf-editor'  # 5
         'gh'  # 6
-        'python'  # 7
+        'python-is-python3'  # 7
         'gawk'  # 8
     )
 
@@ -3211,7 +3216,9 @@ upgrade() {
     [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
         || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
-    sudo apt update &> "${f[null]}"; sudo apt upgrade --yes &> "${f[null]}"
+    sudo apt update &> "${f[null]}"
+
+    sudo apt upgrade --yes &> "${f[null]}"
 
 }
 #======================#
@@ -3948,10 +3955,6 @@ sublime_stuffs() {
 #======================#
 upgrade() {
 
-    f+=(
-        [apt_history]=/var/log/apt/history.log
-    )
-
     # Get last upgrades
     last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
 
@@ -4422,7 +4425,7 @@ workspace_stuffs() {
                     && show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED" 1 \
                     && break
 
-                ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+                ssh -T git@github.com &> "${f[ssh]}"
 
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
