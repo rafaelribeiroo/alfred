@@ -1720,11 +1720,8 @@ github_stuffs() {
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias sent='\$(git remote add origin git@github.com:${user}/\${PWD##*/}.git)'"
 
-
-    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
-
-    [[ ! $(grep successfully "${f[ssh]}") ]] \
-        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
+    ssh -T git@github.com &> "${f[ssh]}"
+    # ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -4420,8 +4417,11 @@ workspace_stuffs() {
                     && show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED" 1 \
                     && break
 
+<<<<<<< Updated upstream
                 ssh -T git@github.com &> "${f[ssh]}"
 
+=======
+>>>>>>> Stashed changes
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
                     git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
