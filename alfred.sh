@@ -1165,6 +1165,7 @@ docky_stuffs() {
                 && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep$iterator]}" \
                 && sudo dpkg --install "${f[dep$iterator]}" &> "${f[null]}" \
                 && sudo rm --force "${f[dep${iterator}]}" \
+                && sudo apt --fix-broken install &> "${f[null]}" \
                 || show "\n${c[GREEN]}${m[iterador]^^} ${c[WHITE]}${linei:${#m[iterador]}} [INSTALLED]"
 
         done
@@ -1193,14 +1194,11 @@ docky_stuffs() {
 
     f+=(
         [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
+        [launch]=~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/%gconf.xml
     )
 
-    [[ ! $(grep --no-messages sessionfile "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-# DOCKY configs
-sessionfile=\$(find \${HOME}${d[1]} -type f)
-export \$(grep DBUS_SESSION_BUS_ADDRESS \${sessionfile} | sed '/^#/d')" \
-        && source "${f[bashrc]}"
+    [[ ! $(grep --no-messages firefox "${f[launch]}") ]] \
+        && sudo sed --in-place '/<entry name="Launchers".*>/{:a;/<\/entry>/!{N;ba;}};/<entry name="Launchers">default<\/entry>/d;' "${f[launch]}"
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && gconftool --type bool --set "${f[icons]}"ShowDockyItem False \
@@ -1211,39 +1209,36 @@ export \$(grep DBUS_SESSION_BUS_ADDRESS \${sessionfile} | sed '/^#/d')" \
         && gconftool --type int --set "${f[pref]}"IconSize 50 \
         && gconftool --type int --set "${f[pref]}"ZoomPercent 2 \
         && gconftool --type list --list-type string --set "${f[pref]}"Plugins '[Clock]' \
-        && gconftool --type string --set "${f[pref]}"Launchers '[]' \
         && gconftool --type string --set "${f[pref]}"Autohide 'UniversalIntellihide' \
         && gconftool --type string --set "${f[theme]}" 'Transparent' \
         && gconftool --type string --set "${f[pref]}"Position 'Bottom'
 
     # Adding double applets and organizing
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
-        if [[ ! -d "${d[3]}" || ! -d "${d[4]}" ]]; then
 
-            [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
-                && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
+        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
 
-            [[ ! -e "${f[separator2]}" && ! -d "${d[3]}" ]] \
-                && wget --quiet "${l[6]}" --output-document "${f[separator2]}"
+        [[ ! -e "${f[separator2]}" && ! -d "${d[3]}" ]] \
+            && wget --quiet "${l[6]}" --output-document "${f[separator2]}" \
+            && unzip "${f[separator2]}" -d "${d[2]}" &> "${f[null]}" \
+            && sudo rm --force "${f[separator2]}"
 
-            [[ ! -e "${f[forceqt]}" && ! -d "${d[4]}" ]] \
-                && wget --quiet "${l[7]}" --output-document "${f[forceqt]}"
+        [[ ! -e "${f[forceqt]}" && ! -d "${d[4]}" ]] \
+            && wget --quiet "${l[7]}" --output-document "${f[forceqt]}" \
+            && unzip "${f[forceqt]}" -d "${d[2]}" &> "${f[null]}" \
+            && sudo rm --force "${f[forceqt]}"
 
-            unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}"
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
 
-            sudo rm --force "${f[separator2]}" "${f[forceqt]}"
+        # use custom format
+        sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
 
-            dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
+        sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
 
-            # use custom format
-            sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B → %H:%M|2' "${f[calendar]}"*.json
 
-            sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
-
-            sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B → %H:%M|2' "${f[calendar]}"*.json
-
-        fi
     fi
 
     # Order icons at grouped-windows-list
@@ -4441,7 +4436,11 @@ workspace_stuffs() {
 
                         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                            clear && continue  # Simillar to pass
+                            repo='$'
+
+                            read -p $'\033[1;37mWHICH IS \n[Y/N] R: \033[m' option
+
+                            continue  # Simillar to pass
 
                         elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
