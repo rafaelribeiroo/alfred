@@ -4083,7 +4083,6 @@ usefull_pkgs() {
     f+=(
         [cfg]="${d[1]}"autoload/SpaceVim.vim
         [load]=~/.config/nvim/init.vim
-        [autokey]="${d[5]}"autokey-gtk.desktop
         [lock]="${d[3]}"apt/preferences.d/nosnap.pref
         [out]=/tmp/spacevim.out
         [vlc]="${d[2]}"vlcrc
@@ -4344,23 +4343,6 @@ StartupNotify=true"
     # https://www.petefreitag.com/cheatsheets/regex/character-classes/
     [[ $(grep --no-messages --extended-regexp '([[:space:]]+ = )1' "${f[cfg]}") ]] \
         && sed --in-place --regexp-extended 's|([[:space:]]+ = )1|\10|g' "${f[cfg]}"
-
-    [[ ! $(grep --no-messages AutoKey "${f[autokey]}") ]] \
-        && sudo tee "${f[autokey]}" > "${f[null]}" <<< '[Desktop Entry]
-Name=AutoKey
-GenericName=Keyboard Automation
-Comment=Program keyboard shortcuts
-Exec=autokey-gtk -c
-Terminal=false
-Type=Application
-Icon=autokey
-Categories=GNOME;GTK;Utility;
-X-GNOME-Autostart-enabled=true
-NoDisplay=false
-Hidden=false
-Name[en_US]=AutoKey
-Comment[en_US]=Program keyboard shortcuts
-X-GNOME-Autostart-Delay=0'
 
     # set wrap breaks line when is too long
     # set mouse allow mouse highligh text

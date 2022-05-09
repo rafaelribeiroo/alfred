@@ -3764,7 +3764,6 @@ usefull_pkgs() {
     f+=(
         [cfg]="${d[2]}"autoload/SpaceVim.vim
         [load]=~/.config/nvim/init.vim
-        [autokey]="${d[6]}"autokey-gtk.desktop
         [lock]="${d[4]}"apt/preferences.d/nosnap.pref
         [out]=/tmp/spacevim.out
         [vlc]="${d[3]}"vlcrc
@@ -4031,23 +4030,6 @@ StartupNotify=true"
     # https://www.petefreitag.com/cheatsheets/regex/character-classes/
     [[ $(grep --no-messages --extended-regexp '([[:space:]]+ = )1' "${f[cfg]}") ]] \
         && sed --in-place --regexp-extended 's|([[:space:]]+ = )1|\10|g' "${f[cfg]}"
-
-    [[ ! $(grep --no-messages AutoKey "${f[autokey]}") ]] \
-        && sudo tee "${f[autokey]}" > "${f[null]}" <<< '[Desktop Entry]
-Name=AutoKey
-GenericName=Keyboard Automation
-Comment=Program keyboard shortcuts
-Exec=autokey-gtk -c
-Terminal=false
-Type=Application
-Icon=autokey
-Categories=GNOME;GTK;Utility;
-X-GNOME-Autostart-enabled=true
-NoDisplay=false
-Hidden=false
-Name[en_US]=AutoKey
-Comment[en_US]=Program keyboard shortcuts
-X-GNOME-Autostart-Delay=0'
 
     # set wrap breaks line when is too long
     # set mouse allow mouse highligh text
@@ -4506,7 +4488,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
     sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}"
 
     [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
-        && sudo sed --in-place --null-data 's|git|git python pip virtualenv copyfile|4' "${f[zshrc]}"
+        && sed --in-place --null-data 's|plugins=(git)|plugins=(git python pip virtualenv copyfile)|g' "${f[zshrc]}"
 
     echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
 
