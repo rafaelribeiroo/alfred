@@ -4451,6 +4451,8 @@ workspace_stuffs() {
 
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
+                    git remote update &> "${f[null]}"
+
                     git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
 
                     if [[ $(grep HEAD "${f[check_repo]}") ]]; then
