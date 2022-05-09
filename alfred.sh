@@ -1741,8 +1741,9 @@ alias sent='\$(git remote add origin git@github.com:${user}/\${PWD##*/}.git)'"
 
     ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
+    # StrictHostKeyChecking=no
     [[ ! $(grep --no-messages successfully "${f[ssh]}") ]] \
-        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
+        && ssh -o BatchMode=yes -T git@github.com &> "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
