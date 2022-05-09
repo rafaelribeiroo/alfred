@@ -1739,7 +1739,7 @@ github_stuffs() {
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias sent='\$(git remote add origin git@github.com:${user}/\${PWD##*/}.git)'"
 
-    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+    ssh -o BatchMode=yes -o StrictHostKeyChecking=no -T git@github.com &> "${f[ssh]}"
 
     # StrictHostKeyChecking=no
     [[ ! $(grep --no-messages successfully "${f[ssh]}") ]] \
@@ -4453,6 +4453,7 @@ workspace_stuffs() {
 
                     git remote update &> "${f[null]}"
 
+                    # git remote set-url origin git@github.com:${user}${repo}.git
                     git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
 
                     if [[ $(grep HEAD "${f[check_repo]}") ]]; then
@@ -4495,9 +4496,9 @@ workspace_stuffs() {
 
                 else
 
-                    show "\nDID YOU MISS SOME CONFIG AT GITHUB?"
+                    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
 
-                    github_stuffs
+                    continue
 
                 fi
 
