@@ -632,7 +632,7 @@ deemix_stuffs() {
         && show "\nFIRST THINGS FIRST. DO U PASS THROUGH CHROME STUFFS?" \
         && chrome_stuffs
 
-    while [[ ! -e "${d[4]}" ]]; do
+    while [[ ! -d "${d[4]}" ]]; do
 
         show "\nRESTARTING DEEMIX TO GENERATE CONFIG FILES.\nWAIT..."
 
@@ -871,7 +871,7 @@ docky_stuffs() {
         [launch]=~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/%gconf.xml
     )
 
-    while [[ ! -e "${d[5]}" ]]; do
+    while [[ ! -d "${d[5]}" ]]; do
 
         show "\nRESTARTING DOCKY TO GENERATE CONFIG FILES.\nWAIT..."
 
@@ -3412,7 +3412,7 @@ sublime_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    while [[ ! -e "${d[1]}" ]]; do
+    while [[ ! -d "${d[1]}" ]]; do
 
         show "\nRESTARTING SUBLIME TO GENERATE CONFIG FILES.\nWAIT..."
 
@@ -3427,7 +3427,7 @@ sublime_stuffs() {
     [[ ! -L "${f[merge_new]}" ]] \
         && sudo ln --symbolic "${f[merge_old]}" "${f[merge_new]}"
 
-    while [[ ! -e "${d[6]}" ]]; do
+    while [[ ! -d "${d[6]}" ]]; do
 
         show "\nRESTARTING MERGE TO GENERATE CONFIG FILES.\nWAIT..."
 
@@ -4140,9 +4140,9 @@ workspace_stuffs() {
 
                     git remote update &> "${f[null]}"
 
-                    git remote set-url origin git@github.com:"${user}/${repo}.git"
+                    git remote set-url origin git@github.com:"${user}${repo}.git"
 
-                    git ls-remote "${l[1]}${repo}.git" &> "${f[check_repo]}"
+                    git ls-remote "${l[1]}${repo}" &> "${f[check_repo]}"
 
                     if [[ $(grep HEAD "${f[check_repo]}") ]]; then
 
@@ -4228,9 +4228,16 @@ xscreensaver_stuffs() {
         'xscreensaver-gl-extra'  # 2
         'xscreensaver-data-extra'  # 3
         'gluqlo'  # 4
+        'build-essential'  # 5
+        'libsdl1.2-dev'  # 6
+        'libsdl-ttf2.0-dev'  # 7
+        'libsdl-gfx1.2-dev'  # 8
+        'libx11-dev'  # 9
+        'xscreensaver-demo'  # 10
     )
 
-    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
+        && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
@@ -4268,18 +4275,31 @@ xscreensaver_stuffs() {
 
         show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}"
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}"
 
         [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
             && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
             && sudo wget --quiet "${l[1]}" --output-document "${f[gluqlo]}" \
             && sudo dpkg --install "${f[gluqlo]}" &> "${f[null]}" \
             && sudo rm --force "${f[gluqlo]}" \
+            && sudo apt --fix-broken install &> "${f[null]}" \
             || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    while [[ ! -e "${f[screen_saver]}" ]]; do
+
+        show "\nRESTARTING XSCREENSAVER TO GENERATE CONFIG FILES.\nWAIT..."
+
+        ( nohup "${m[10]}" & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill "${m[10]}"
+
+    done
 
     [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
         && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"
