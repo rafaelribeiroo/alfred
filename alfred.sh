@@ -156,26 +156,26 @@ check_distro() {
 #======================#
 check_pkg() {
 
-	# installed
-	if dpkg-query --status "${1}" &> "${f[null]}"; then
+    # installed
+    if dpkg-query --status "${1}" &> "${f[null]}"; then
 
-		return 0
+        return 0
 
-	else
+    else
 
-		# installed and available
-		if apt-cache show "${1}" &> "${f[null]}"; then
+        # installed and available
+        if apt-cache show "${1}" &> "${f[null]}"; then
 
-			return 1
+            return 1
 
-		# not installed/available
-		else
+        # not installed/available
+        else
 
-			return 2
+            return 2
 
-		fi
+        fi
 
-	fi
+    fi
 
 }
 #======================#
@@ -241,7 +241,7 @@ install_packages() {
     # $@: Trick to unpack all received values
     for package in "${@}"; do
 
-    	if check_pkg "${package}"; then
+        if check_pkg "${package}"; then
 
             echo && show "${c[GREEN]}${package^^} ${c[WHITE]}${linei:${#package}} [INSTALLED]"
 
@@ -971,7 +971,7 @@ deemix_stuffs() {
 
     while [[ ! -e "${d[3]}" ]]; do
 
-        show "\nRESTARTING DEEMIX TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        show "\nRESTARTING DEEMIX TO GENERATE CONFIG FILES.\nWAIT..."
 
         ( nohup "${m[0]}" & ) &> "${f[null]}"
 
@@ -989,7 +989,7 @@ deemix_stuffs() {
 
             [[ ! $(grep --no-messages 'Cookie arl' "${f[cookies]}") ]] \
                 && show "\nDO U NEED TO LOG IN INTO DEEZER FROM CHROME BEFORE PROCEED" \
-                && sleep 5s \
+                && sleep 10s \
                 && continue \
                 || sudo tee --append "${f[arl_value]}" > "${f[null]}" <<< "$(grep --extended-regexp --only-matching 'Cookie arl=.{,192}' ${f[cookies]} | awk --field-separator== '{print $2}')" \
                 && break
@@ -1071,10 +1071,9 @@ docky_stuffs() {
 
     local -a d=(
         /tmp/  # 0
-        /.dbus/session-bus/  # 1
-        ~/.local/share/cinnamon/applets/  # 2
-        ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
-        ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 4
+        ~/.local/share/cinnamon/applets/  # 1
+        ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
+        ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 3
     )
 
     local -a m=(
@@ -1088,6 +1087,7 @@ docky_stuffs() {
         'brave-browser'  # 7
         'sublime-text'  # 8
         'telegram-desktop'  # 9
+        'dconf-editor'  # 10
     )
 
     f+=(
@@ -1103,6 +1103,8 @@ docky_stuffs() {
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/
+        [panel_pos]=/org/cinnamon/panels-enabled
+        [panel_size]=/org/cinnamon/panels-height
     )
 
     local -a l=(
@@ -1156,7 +1158,7 @@ docky_stuffs() {
 
         # Dependencies
         [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-            && install_packages "${m[6]}"
+            && install_packages "${m[6]}" "${m[10]}"
 
         for (( iterador=0; iterador<=4; iterador++ )); do
 
@@ -1172,12 +1174,11 @@ docky_stuffs() {
 
         unset iterador
 
-        # sudo rm --force "${d[0]}"*.deb
-
-        [[ ! -e "${f[docky_run]}" ]] \
+        [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
             && show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
             && sudo wget --quiet "${l[5]}" --output-document "${f[docky_run]}" \
             && sudo dpkg --install "${f[docky_run]}" &> "${f[null]}" \
+            && sudo apt --fix-broken install &> "${f[null]}" \
             && sudo rm --force "${f[docky_run]}"
 
     fi
@@ -1192,10 +1193,26 @@ docky_stuffs() {
 
     get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
 
+    d+=(
+       ~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"  # 4
+    )
+
     f+=(
         [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
         [launch]=~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/%gconf.xml
     )
+
+    while [[ ! -e "${d[4]}" ]]; do
+
+        show "\nRESTARTING DOCKY TO GENERATE CONFIG FILES.\nWAIT..."
+
+        ( nohup "${m[5]}" & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill "${m[5]}"
+
+    done
 
     [[ ! $(grep --no-messages firefox "${f[launch]}") ]] \
         && sudo sed --in-place '/<entry name="Launchers".*>/{:a;/<\/entry>/!{N;ba;}};/<entry name="Launchers">default<\/entry>/d;' "${f[launch]}"
@@ -1211,23 +1228,25 @@ docky_stuffs() {
         && gconftool --type list --list-type string --set "${f[pref]}"Plugins '[Clock]' \
         && gconftool --type string --set "${f[pref]}"Autohide 'UniversalIntellihide' \
         && gconftool --type string --set "${f[theme]}" 'Transparent' \
-        && gconftool --type string --set "${f[pref]}"Position 'Bottom'
+        && gconftool --type string --set "${f[pref]}"Position 'Bottom' \
+        && dconf write "${f[panel_pos]}" "['1:0:top']" \
+        && dconf write "${f[panel_size]}" "['1:40']"
 
     # Adding double applets and organizing
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
 
-        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
-            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
+        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
-        [[ ! -e "${f[separator2]}" && ! -d "${d[3]}" ]] \
+        [[ ! -e "${f[separator2]}" && ! -d "${d[2]}" ]] \
             && wget --quiet "${l[6]}" --output-document "${f[separator2]}" \
-            && unzip "${f[separator2]}" -d "${d[2]}" &> "${f[null]}" \
+            && unzip "${f[separator2]}" -d "${d[1]}" &> "${f[null]}" \
             && sudo rm --force "${f[separator2]}"
 
-        [[ ! -e "${f[forceqt]}" && ! -d "${d[4]}" ]] \
+        [[ ! -e "${f[forceqt]}" && ! -d "${d[3]}" ]] \
             && wget --quiet "${l[7]}" --output-document "${f[forceqt]}" \
-            && unzip "${f[forceqt]}" -d "${d[2]}" &> "${f[null]}" \
+            && unzip "${f[forceqt]}" -d "${d[1]}" &> "${f[null]}" \
             && sudo rm --force "${f[forceqt]}"
 
         dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
@@ -1237,7 +1256,7 @@ docky_stuffs() {
 
         sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
 
-        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B → %H:%M|2' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B. %H:%M|2' "${f[calendar]}"*.json
 
     fi
 
@@ -1720,8 +1739,10 @@ github_stuffs() {
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias sent='\$(git remote add origin git@github.com:${user}/\${PWD##*/}.git)'"
 
-    ssh -T git@github.com &> "${f[ssh]}"
-    # ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
+    ssh -o BatchMode=yes -T git@github.com &> "${f[ssh]}"
+
+    [[ ! $(grep --no-messages successfully "${f[ssh]}") ]] \
+        && ssh -o BatchMode=yes -o StrictHostKeyChecking=no git@github.com &> "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -1759,7 +1780,7 @@ chrome_stuffs() {
         'https://dl.google.com/linux/direct/google-chrome-stable_current_amd64.deb'  # 0
     )
 
-	if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
 
@@ -2096,13 +2117,13 @@ heroku_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-	echo; read -p $'\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
+    echo; read -p $'\033[1;37mWANT YOU AUTHENTICATE '"${name[random]}"$'? \n[Y/N] R: \033[m' option
 
-	for (( ; ; )); do
+    for (( ; ; )); do
 
-		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-    		echo && heroku login -i
+            echo && heroku login -i
 
             # https://devcenter.heroku.com/articles/heroku-cli#login-issues
             while [[ ! -e "${f[auth]}" ]]; do
@@ -2115,17 +2136,17 @@ heroku_stuffs() {
 
             break
 
-		elif [[ "${option:0:1}" = @(n|N) ]] ; then
+        elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
             break
 
-	    else
+        else
 
             echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT YOU AUTHENTICATE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
-    	fi
+        fi
 
     done
 
@@ -2150,6 +2171,7 @@ hide_devices() {
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [grub-modified]=/etc/default/grub
         [grub]=/boot/grub/grub.cfg
+        [audio]=/usr/share/pulseaudio/alsa-mixer/paths/analog-output.conf.common
     )
 
     local -a l=(
@@ -2298,6 +2320,33 @@ hide_devices() {
                 else
 
                     echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            read -p $'\033[1;37mSIR, ARE YOU HAVING ISSUES WITH USB AUDIO? (EDIFIER SPEAKER PERHAPS) \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    # https://chrisjean.com/fix-for-usb-audio-is-too-loud-and-mutes-at-low-volume-in-ubuntu/
+                    [[ ! $(grep --no-messages '^volume-limit' "${f[audio]}") ]] \
+                        && sudo sed --in-place 's|^volume = merge|volume = ignore\nvolume-limit = 0.01|g' "${f[audio]}" \
+                        && pulseaudio --kill
+
+                    break
+
+                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES WITH SOUND SPEAKERS?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                     read option
 
@@ -2552,23 +2601,23 @@ alias lbm-nouveau off'
 
         echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
-    	for (( ; ; )); do
+        for (( ; ; )); do
 
-    		if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                 reboot
 
-    		elif [[ "${option:0:1}" = @(n|N) ]] ; then
+            elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
                 break
 
-    	    else
+            else
 
                 echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 
-        	fi
+            fi
 
         done
 
@@ -3621,7 +3670,7 @@ sublime_stuffs() {
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[2]}"
 
-	if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
@@ -3666,9 +3715,9 @@ sublime_stuffs() {
 
         show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-		# 2> hides
+        # 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
-		[[ ! $(sudo apt-key list 2> "${f[null]}" | grep Sublime) ]] \
+        [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Sublime) ]] \
             && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
 
         [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
@@ -3689,7 +3738,7 @@ sublime_stuffs() {
 
     while [[ ! -e "${d[0]}" ]]; do
 
-        show "\nRESTARTING SUBLIME TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        show "\nRESTARTING SUBLIME TO GENERATE CONFIG FILES.\nWAIT..."
 
         ( nohup subl & ) &> "${f[null]}"
 
@@ -3704,7 +3753,7 @@ sublime_stuffs() {
 
     while [[ ! -e "${d[5]}" ]]; do
 
-        show "\nRESTARTING MERGE TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        show "\nRESTARTING MERGE TO GENERATE CONFIG FILES.\nWAIT..."
 
         ( nohup merge & ) &> "${f[null]}"
 
@@ -4161,7 +4210,7 @@ usefull_pkgs() {
             && snap install "${m[14]}" &> "${f[null]}"
 
         [[ -d "${d[1]}" ]] \
-            && show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]"
+            && show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[12]^^} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
             && bash -c "$(curl --silent --location ${l[0]})" &> "${f[out]}"
 
@@ -4273,9 +4322,9 @@ StartupNotify=true"
 
     fi
 
-    while [[ ! -e "${d[2]}" ]]; do
+    while [[ ! -e "${f[vlc]}" ]]; do
 
-        show "\nRESTARTING VLC TO GENERATE A LOT OF CONFIG FILES.\nWAIT..."
+        show "\nRESTARTING VLC TO GENERATE CONFIG FILES.\nWAIT..."
 
         ( nohup "${m[1]}" & ) &> "${f[null]}"
 
@@ -4417,11 +4466,6 @@ workspace_stuffs() {
                     && show "\n\t\t${c[RED]}REPO ALREADY DOWNLOADED" 1 \
                     && break
 
-<<<<<<< Updated upstream
-                ssh -T git@github.com &> "${f[ssh]}"
-
-=======
->>>>>>> Stashed changes
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
                     git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
@@ -4787,11 +4831,11 @@ application/x-subrip=sublime_text.desktop;'
 #======================#
 menu() {
 
-	for (( ; ; )); do
+    for (( ; ; )); do
 
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
-		for line in "${!logo[@]}"; do
+        for line in "${!logo[@]}"; do
 
             show "    ${c[RED]}${logo[${line}]}" 1 && sleep 0.1s
 
@@ -4829,14 +4873,14 @@ menu() {
         # The read command above is inline, so we need this echo to breakline
         echo
 
-		[[ "${choice}" =~ ^[[:alpha:]]$ ]] \
-			&& echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
-			&& read trash_typed || evoke_functions "${choice}"
+        [[ "${choice}" =~ ^[[:alpha:]]$ ]] \
+            && echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}${c[WHITE]}\n\t\tPLEASE, ONLY NUMBERS!\n\n${c[WHITE]}WANT YOU RETURN SIR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]} \
+            && read trash_typed || evoke_functions "${choice}"
 
-			[[ "${trash_typed:0:1}" == @(s|S|y|Y) ]] && return_menu \
+            [[ "${trash_typed:0:1}" == @(s|S|y|Y) ]] && return_menu \
             || close_menu && break
 
-	done
+    done
 
 }
 #======================#
