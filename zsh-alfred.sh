@@ -4140,7 +4140,8 @@ workspace_stuffs() {
 
                     git remote update &> "${f[null]}"
 
-                    # git remote set-url origin git@github.com:${user}${repo}.git
+                    git remote set-url origin git@github.com:"${user}/${repo}.git"
+
                     git ls-remote "${l[1]}${repo}.git" &> "${f[check_repo]}"
 
                     if [[ $(grep HEAD "${f[check_repo]}") ]]; then
