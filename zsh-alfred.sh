@@ -2599,8 +2599,8 @@ postman_stuffs() {
     f+=(
         [file]="${XDG_DOWNLOAD_DIR}"/Postman-linux-x64-latest.tar.gz
         [interceptor]="${d[4]}"InterceptorBridge_Linux_1.0.1.zip
-        [exe]="${d[2]}"InterceptorBridge_Linux/install_host.sh
-        [uninstall]="${d[2]}"InterceptorBridge_Linux/uninstall_host.sh
+        [exe]="${d[2]}"install_host.sh
+        [uninstall]="${d[2]}"uninstall_host.sh
         [bin]=/usr/local/bin/postman
         [run]="${d[3]}"Postman
         [postman]=/usr/share/applications/postman.desktop
@@ -2684,9 +2684,9 @@ postman_stuffs() {
         [[ ! -L "${f[bin]}" ]] \
             && sudo ln --symbolic "${f[run]}" "${f[bin]}"
 
-        [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
-            && show "\nI NEED A BROWSER TO INSTALL INTERCEPTOR BRIDGE, TRANSFERRING..." \
-            && chrome_stuffs
+        # [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+        #     && show "\nI NEED A BROWSER TO INSTALL INTERCEPTOR BRIDGE, TRANSFERRING..." \
+        #     && chrome_stuffs
 
         if [[ ! -e "${f[principal]}" ]]; then
 
@@ -3412,6 +3412,8 @@ sublime_stuffs() {
 
         install_packages "${m[1]}" "${m[2]}"
 
+        sudo apt-mark hold "${m[4]}"
+
     fi
 
     echo; show "INITIALIZING CONFIGS..."
@@ -3991,7 +3993,7 @@ StartupNotify=true"
                         && sudo add-apt-repository --yes ppa:transmissionbt/ppa &> "${f[null]}" \
                         && update
 
-                    install_packages "${m[24]}"
+                    sudo apt install --assume-yes --only-upgrade "${m[24]}" &> "${f[null]}"
 
                     break
 
@@ -4044,7 +4046,8 @@ set wrap'
 
     [[ ! $(grep --no-messages 'alias vk' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'"
+alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'" \
+        && source "${f[zshrc]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -4667,6 +4670,10 @@ change_panelandgui() {
     local -a m=(
         'dconf-editor'  # 1
         'numlockx'  # 2
+        'vlc'  # 3
+        'sublime-text'  # 4
+        'brave-browser'  # 5
+        'google-chrome-stable'  # 6
     )
 
     # START ADITTION ICON ALFRED
@@ -4717,6 +4724,108 @@ activate-numlock=true'
         && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
         && dconf write "${f[delay_screensaver]}" "uint32 180" \
         && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
+
+
+    [[ -e "${f[mimeapps]}" ]] \
+            && sudo cp "${f[mimeapps]}" "${f[mimebkp]}"
+
+    echo; read $'?\033[1;37mSIR, CAN I TURN APPLICATIONS DEFAULT? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH USEFULL PACKAGES?" \
+                && usefull_pkgs
+
+            [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH SUBLIME STUFFS?" \
+                && sublime_stuffs
+
+            echo; read $'?\033[1;37mSIR, DO YOU PREFER BRAVE BROWSER OVER CHROME BROWSER? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
+                        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BRAVE?" \
+                        && brave_stuffs
+
+                    prefer='brave-browser'
+
+                    break
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    [[ ! $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
+                        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH CHROME?" \
+                        && chrome_stuffs
+
+                    prefer='google-chrome'
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U PREFER BRAVE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            sudo tee "${f[mimeapps]}" > "${f[null]}" <<< "[Default Applications]
+text/html=${prefer}.desktop
+x-scheme-handler/http=${prefer}.desktop
+x-scheme-handler/https=${prefer}.desktop
+x-scheme-handler/about=${prefer}.desktop
+x-scheme-handler/unknown=${prefer}.desktop
+x-scheme-handler/mailto=${prefer}.desktop
+text/plain=sublime_text.desktop
+video/x-matroska=vlc.desktop
+video/mp4=vlc.desktop
+video/x-msvideo=vlc.desktop
+audio/mpeg=rhythmbox.desktop
+
+[Added Associations]
+audio/mpeg=rhythmbox.desktop
+video/x-matroska=vlc.desktop;
+application/x-partial-download=vlc.desktop;
+video/mp4=vlc.desktop;
+video/x-ogm+ogg=vlc.desktop;
+video/mpeg=vlc.desktop;
+video/x-avi=vlc.desktop;
+video/x-ms-wmv=vlc.desktop;
+text/plain=sublime_text.desktop;
+text/csv=sublime_text.desktop;
+application/xml=sublime_text.desktop;
+text/html=sublime_text.desktop;
+text/css=sublime_text.desktop;
+text/markdown=sublime_text.desktop;
+application/json=sublime_text.desktop;
+application/javascript=sublime_text.desktop;
+text/x-python=sublime_text.desktop;
+application/x-shellscript=sublime_text.desktop;
+application/x-subrip=sublime_text.desktop;"
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U WANT TO APPLY DEFAULT APPLICATIONS?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
 }
 #======================#
@@ -4799,42 +4908,6 @@ evoke_functions() {
         workspace_stuffs
         xscreensaver_stuffs
         zsh_stuffs
-
-        [[ -e "${f[mimeapps]}" ]] \
-            && sudo cp "${f[mimeapps]}" "${f[mimebkp]}"
-
-        sudo tee "${f[mimeapps]}" > "${f[null]}" <<< '[Default Applications]
-text/html=google-chrome.desktop
-x-scheme-handler/http=google-chrome.desktop
-x-scheme-handler/https=google-chrome.desktop
-x-scheme-handler/about=google-chrome.desktop
-x-scheme-handler/unknown=google-chrome.desktop
-x-scheme-handler/mailto=google-chrome.desktop
-text/plain=sublime_text.desktop
-video/x-matroska=vlc.desktop
-video/mp4=vlc.desktop
-video/x-msvideo=vlc.desktop
-audio/mpeg=rhythmbox.desktop
-
-[Added Associations]
-audio/mpeg=rhythmbox.desktop
-video/x-matroska=vlc.desktop;
-video/mp4=vlc.desktop;
-video/x-ogm+ogg=vlc.desktop;
-video/mpeg=vlc.desktop;
-video/x-avi=vlc.desktop;
-video/x-ms-wmv=vlc.desktop;
-text/plain=sublime_text.desktop;
-text/csv=sublime_text.desktop;
-application/xml=sublime_text.desktop;
-text/html=sublime_text.desktop;
-text/css=sublime_text.desktop;
-text/markdown=sublime_text.desktop;
-application/json=sublime_text.desktop;
-application/javascript=sublime_text.desktop;
-text/x-python=sublime_text.desktop;
-application/x-shellscript=sublime_text.desktop;
-application/x-subrip=sublime_text.desktop;'
 
         echo; show "YOU SEE ONLY ONE END TO YOUR JOURNEY..."
 
