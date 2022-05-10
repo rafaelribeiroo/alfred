@@ -1112,16 +1112,16 @@ github_stuffs() {
     local -a d=(
         /tmp/  # 1
         /tmp/git-cola-"${latest}"/  # 2
-        /usr/local  # 3
+        /usr/local/  # 3
     )
 
     f+=(
         [config]=~/.gitconfig
         [config-ssh]=~/.ssh/config
-        [tmp_success]=/tmp/check_success
-        [all_title_gh]=/tmp/all_title
+        [tmp_success]="${d[1]}"check_success
+        [all_title_gh]="${d[1]}"all_title
         [cola_rar]="${d[1]}"git-cola-${latest}.tar.gz
-        [cola_old]=/usr/local/bin/cola
+        [cola_old]="${d[3]}"bin/cola
         [cola_new]=/usr/bin/cola
     )
 
