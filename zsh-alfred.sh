@@ -1628,31 +1628,35 @@ flameshot_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
-        && sudo sed --in-place 's|#WaylandEnable=false|WaylandEnable=false|g' "${f[wayland]}"
+    if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]]; then
 
-    # sudo systemctl restart gdm3
-    echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+        [[ $(grep --no-messages '#WaylandEnable' "${f[wayland]}") ]] \
+            && sudo sed --in-place 's|#WaylandEnable=false|WaylandEnable=false|g' "${f[wayland]}"
 
-    for (( ; ; )); do
+        # sudo systemctl restart gdm3
+        echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
-        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+        for (( ; ; )); do
 
-            sudo reboot
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+                sudo reboot
 
-            break
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
 
-        else
+                break
 
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            else
 
-            read option
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-        fi
+                read option
 
-    done
+            fi
+
+        done
+
+    fi
 
     source "${f[user_dirs]}"
 
@@ -1691,7 +1695,7 @@ flameshot_stuffs() {
 buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
 contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
 disabledTrayIcon=true
-drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
+drawColor=#FF0000
 drawThickness=0
 savePath=${XDG_PICTURES_DIR}"
 
@@ -1701,7 +1705,7 @@ savePath=${XDG_PICTURES_DIR}"
 buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
 contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
 disabledTrayIcon=true
-drawColor=@Variant(\0\0\0\x43\x1\xff\xff\x80\x80\0\0\x80\x80\0\0)
+drawColor=#FF0000
 drawThickness=0
 savePath=${XDG_PICTURES_DIR}"
 
@@ -4234,6 +4238,7 @@ xscreensaver_stuffs() {
         'libsdl-gfx1.2-dev'  # 8
         'libx11-dev'  # 9
         'xscreensaver-demo'  # 10
+        'dconf-editor'  # 11
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -4275,7 +4280,7 @@ xscreensaver_stuffs() {
 
         show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}"
+        install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[11]}"
 
         [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
             && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
@@ -4300,6 +4305,9 @@ xscreensaver_stuffs() {
         sudo pkill "${m[10]}"
 
     done
+
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+        && dconf write "${f[screensaver_cinnamon]}" 'uint32 0'
 
     [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
         && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"
