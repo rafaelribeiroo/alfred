@@ -4323,7 +4323,7 @@ zsh_stuffs() {
 
     local -a d=(
         ~/.oh-my-zsh  # 1
-        ~/.fonts  # 2
+        ~/.fonts/  # 2
         ~/.config/fontconfig/conf.d  # 3
     )
 
@@ -4345,7 +4345,7 @@ zsh_stuffs() {
     local -a m=(
         'oh-my-zsh'  # 1
         'xdotool'  # 2
-        'ruby-dev'  # 3
+        'ruby-dev:amd64'  # 3
         'colorls'  # 4
         'git'  # 5
     )
@@ -4536,7 +4536,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
             [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && sudo gem install --silent "${m[4]}"
+                && gem install --silent "${m[4]}"
 
             [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
                 && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
@@ -4544,7 +4544,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
 
             [[ ! -e "${f[meslo]}" ]] \
                 && wget --quiet "${l[4]}" --output-document "${f[meslo]}" \
-                && unzip "${d[2]}"*.zip -d "${d[2]}" &> "${f[null]}" \
+                && unzip "${f[meslo]}" -d "${d[2]}" &> "${f[null]}" \
                 && rm --force --recursive "${f[meslo]}" "${d[2]}"*Windows*.ttf
 
             sudo fc-cache --force "${d[2]}"

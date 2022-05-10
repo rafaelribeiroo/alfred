@@ -391,7 +391,7 @@ bash_stuffs() {
 
     local -a d=(
         ~/.oh-my-bash  # 0
-        ~/.fonts  # 1
+        ~/.fonts/  # 1
         ~/.config/fontconfig/conf.d  # 2
         "${XDG_DOWNLOAD_DIR}"/ble.sh  # 3
         ~/.local  # 4
@@ -577,7 +577,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
             [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]^^} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && sudo gem install --silent "${m[4]}"
+                && gem install --silent "${m[4]}"
 
 
             [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
@@ -586,7 +586,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
 
             [[ ! -e "${f[meslo]}" ]] \
                 && wget --quiet "${l[4]}" --output-document "${f[meslo]}" \
-                && unzip "${d[1]}"*.zip -d "${d[1]}" &> "${f[null]}" \
+                && unzip "${f[meslo]}" -d "${d[1]}" &> "${f[null]}" \
                 && rm --force --recursive "${f[meslo]}" "${d[1]}"*Windows*.ttf
 
             sudo fc-cache --force "${d[1]}"
