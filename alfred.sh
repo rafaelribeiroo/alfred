@@ -2905,10 +2905,9 @@ postman_stuffs() {
 
     local -a d=(
         /opt/  # 0
-        "${XDG_DOWNLOAD_DIR}"/  # 1
-        "${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1  # 2
-        /opt/Postman  # 3
-        /tmp/  # 4
+        /tmp/InterceptorBridge_Linux_1.0.1/  # 1
+        /opt/Postman/  # 2
+        /tmp/  # 3
     )
 
     local -a m=(
@@ -2924,13 +2923,13 @@ postman_stuffs() {
 
     f+=(
         [file]="${XDG_DOWNLOAD_DIR}"/Postman-linux-x64-latest.tar.gz
-        [interceptor]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1.zip
-        [exe]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1/InterceptorBridge_Linux/install_host.sh
-        [uninstall]="${XDG_DOWNLOAD_DIR}"/InterceptorBridge_Linux_1.0.1/InterceptorBridge_Linux/uninstall_host.sh
+        [interceptor]="${d[3]}"InterceptorBridge_Linux_1.0.1.zip
+        [exe]="${d[1]}"InterceptorBridge_Linux/install_host.sh
+        [uninstall]="${d[1]}"InterceptorBridge_Linux/uninstall_host.sh
         [bin]=/usr/local/bin/postman
-        [run]=/opt/Postman/Postman
+        [run]="${d[2]}"Postman
         [postman]=/usr/share/applications/postman.desktop
-        [out]=/tmp/interceptor.out
+        [out]="${d[3]}"interceptor.out
         [principal]="${HOME}"/.postman/InterceptorBridge
     )
 
@@ -2953,24 +2952,24 @@ postman_stuffs() {
 
                 rm --force "${f[postman]}" "${f[bin]}"
 
-                rm --force --recursive "${d[3]}"
+                rm --force --recursive "${d[2]}"
 
                 [[ ! -e "${f[interceptor]}" ]] \
                     && wget --quiet "${l[1]}" --output-document "${f[interceptor]}"
 
-                unzip "${d[1]}"*.zip -d "${d[4]}" &> "${f[null]}"
+                unzip "${f[interceptor]}" -d "${d[3]}" &> "${f[null]}"
 
                 sudo rm --force "${f[interceptor]}"
 
-                [[ $(stat -c '%a' "${f[exe]}") -ne 776 ]] \
-                    && sudo chmod 776 "${f[exe]}"
+                [[ $(stat -c '%a' "${f[uninstall]}") -ne 776 ]] \
+                    && sudo chmod 776 "${f[uninstall]}"
 
-                ( nohup sudo "${f[exe]}" & ) &> "${f[out]}"
+                ( nohup sudo "${f[uninstall]}" & ) &> "${f[out]}"
 
                 for (( ; ; )); do
 
                     [[ $(grep --no-messages 'has been uninstalled' "${f[out]}") ]] \
-                        && sudo rm --force --recursive "${d[2]}" \
+                        && sudo rm --force --recursive "${d[1]}" \
                         && break \
                         || continue
 
@@ -3021,7 +3020,7 @@ postman_stuffs() {
             [[ ! -e "${f[interceptor]}" ]] \
                 && wget --quiet "${l[1]}" --output-document "${f[interceptor]}"
 
-            unzip "${d[1]}"*.zip -d "${d[4]}" &> "${f[null]}"
+            unzip "${f[interceptor]}" -d "${d[3]}" &> "${f[null]}"
 
             sudo rm --force "${f[interceptor]}"
 
@@ -3030,7 +3029,7 @@ postman_stuffs() {
             for (( ; ; )); do
 
                 [[ $(grep --no-messages 'has been installed' "${f[out]}") ]] \
-                    && sudo rm --force --recursive "${d[2]}" \
+                    && sudo rm --force --recursive "${d[1]}" \
                     && break \
                     || continue
 
