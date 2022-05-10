@@ -61,6 +61,9 @@ declare -A f=(
     [try]=/workspace/alfred/try
     [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
     [meslo]=~/.fonts/Meslo.zip/
+    [int_brave]=./try.json
+    [inter]="${HOME}"/.postman/InterceptorBridge/InterceptorBridge
+    [int_chrome]=~/.config/google-chrome/NativeMessagingHosts/com.postman.postmanapp.json
 )
 
 #vim ~/.bashrc
@@ -113,11 +116,29 @@ boilerplate() {
 # [[ getent group sudo | grep "${USER}" ]] \
 #     && echo estou || echo n estou
 
-f+=(
-    [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
-)
+# f+=(
+#     [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
+# )
 
-get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
+# if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
-a=("${(@s/,/)get_dock}")
-echo $a[2]
+# get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
+
+# a=("${(@s/,/)get_dock}")
+# echo $a[2]
+# for (( iterator=1; iterator<=${#a}; iterator++ )); do
+#     echo $iterator
+#     echo passei
+# done
+
+[[ ! $(grep --no-messages 'chrome-extension' "${f[int_brave]}") ]] \
+    && sudo tee "${f[int_brave]}" > "${f[null]}" <<< '{
+  "name": "com.postman.postmanapp",
+  "description": "Native Messaging Host for Postman Native App <> Interceptor Integration",
+  "path": '"\"${f[inter]}\""',
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://aicmkgpgakddgnaphhhpliifpcfhicfo/"
+  ]
+}
+'

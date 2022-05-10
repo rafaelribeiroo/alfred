@@ -2905,15 +2905,16 @@ postman_stuffs() {
 
     local -a d=(
         /opt/  # 0
-        /tmp/InterceptorBridge_Linux_1.0.1/  # 1
-        /opt/Postman/  # 2
-        /tmp/  # 3
+        /opt/Postman/  # 1
+        "${HOME}"/.postman/InterceptorBridge  # 2
+        ~/.config/BraveSoftware/Brave-Browser/Default/Extensions/aicmkgpgakddgnaphhhpliifpcfhicfo/  # 3
+        ~/.config/google-chrome/Default/Extensions/aicmkgpgakddgnaphhhpliifpcfhicfo/  # 4
     )
 
     local -a m=(
         'postman'  # 0
         'gawk'  # 1
-        'interceptor bridge'  # 2
+        'brave-browser'  # 2
         'google-chrome-stable'  # 3
     )
 
@@ -2923,19 +2924,15 @@ postman_stuffs() {
 
     f+=(
         [file]="${XDG_DOWNLOAD_DIR}"/Postman-linux-x64-latest.tar.gz
-        [interceptor]="${d[3]}"InterceptorBridge_Linux_1.0.1.zip
-        [exe]="${d[1]}"install_host.sh
-        [uninstall]="${d[1]}"uninstall_host.sh
         [bin]=/usr/local/bin/postman
-        [run]="${d[2]}"Postman
+        [run]="${d[1]}"Postman
         [postman]=/usr/share/applications/postman.desktop
-        [out]="${d[3]}"interceptor.out
-        [principal]="${HOME}"/.postman/InterceptorBridge
+        [int_brave]=~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.postman.postmanapp.json
+        [int_chrome]=~/.config/google-chrome/NativeMessagingHosts/com.postman.postmanapp.json
     )
 
     local -a l=(
         'https://dl.pstmn.io/download/latest/linux64'  # 0
-        'https://go.pstmn.io/interceptor-bridge-linux'  # 1
     )
 
     if [[ -f "${f[bin]}" ]]; then
@@ -2952,28 +2949,9 @@ postman_stuffs() {
 
                 rm --force "${f[postman]}" "${f[bin]}"
 
-                rm --force --recursive "${d[2]}"
+                rm --force --recursive "${d[1]}"
 
-                [[ ! -e "${f[interceptor]}" ]] \
-                    && wget --quiet "${l[1]}" --output-document "${f[interceptor]}"
 
-                unzip "${f[interceptor]}" -d "${d[3]}" &> "${f[null]}"
-
-                sudo rm --force "${f[interceptor]}"
-
-                [[ $(stat -c '%a' "${f[uninstall]}") -ne 776 ]] \
-                    && sudo chmod 776 "${f[uninstall]}"
-
-                ( nohup sudo "${f[uninstall]}" & ) &> "${f[out]}"
-
-                for (( ; ; )); do
-
-                    [[ $(grep --no-messages 'has been uninstalled' "${f[out]}") ]] \
-                        && sudo rm --force --recursive "${d[1]}" \
-                        && break \
-                        || continue
-
-                done
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3009,37 +2987,119 @@ postman_stuffs() {
         [[ ! -L "${f[bin]}" ]] \
             && sudo ln --symbolic "${f[run]}" "${f[bin]}"
 
-        [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
-            && show "\nI NEED A BROWSER TO INSTALL INTERCEPTOR BRIDGE, TRANSFERRING..." \
-            && chrome_stuffs
+        read -p $'\033[1;37m\nSIR, WANT TO INSTALL INTERCEPTOR BRIDGE? \n[Y/N] R: \033[m' option
 
-        if [[ ! -e "${f[principal]}" ]]; then
+        for (( ; ; )); do
 
-            show "\n${c[YELLOW]}${m[2]^^} ${c[WHITE]}${linen:${#m[2]}} [INSTALLING]"
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! -e "${f[interceptor]}" ]] \
-                && wget --quiet "${l[1]}" --output-document "${f[interceptor]}"
+                echo; read -p $'\033[1;37mSIR, DO YOU PREFER BRAVE BROWSER OVER CHROME BROWSER? \n[Y/N] R: \033[m' option
 
-            unzip "${f[interceptor]}" -d "${d[3]}" &> "${f[null]}"
+                for (( ; ; )); do
 
-            sudo rm --force "${f[interceptor]}"
+                    if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            ( nohup sudo "${f[exe]}" & ) &> "${f[out]}"
+                        [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
+                            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BRAVE?" \
+                            && brave_stuffs
 
-            for (( ; ; )); do
+                        break
 
-                [[ $(grep --no-messages 'has been installed' "${f[out]}") ]] \
-                    && sudo rm --force --recursive "${d[1]}" \
-                    && break \
-                    || continue
+                    elif [[ "${option:0:1}" = @(N|n) ]] ; then
 
-            done
+                        [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+                            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH CHROME?" \
+                            && chrome_stuffs
 
-        else
+                        break
 
-            show "\n${c[GREEN]}${m[2]^^} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]"
+                    else
 
-        fi
+                        echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U PREFER BRAVE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                        read option
+
+                    fi
+
+                done
+
+                ( nohup "${m[1]}" & ) &> "${f[null]}"
+
+                while [[ ! -d "${d[2]}" ]]; do
+
+                    show "\nPLEASE, ENTER CAPTURE REQUESTS ICON AT POSTMAN AND INSTALL INTERCEPTOR BRIDGE..."
+
+                    sleep 10s
+
+                done
+
+                sudo pkill postman
+
+                ( nohup "${choice}" & ) &> "${f[null]}"
+
+                if [[ "${choice}" = 'brave-browser' ]]; then
+
+                    while [[ ! -d "${d[3]}" ]]; do
+
+                        show "\nPLEASE, INSTALL POSTMAN INTERCEPTOR EXTENSION IN ${choice^^}: https://chrome.google.com/webstore/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo?hl=en"
+
+                        sleep 10s
+
+                    done
+
+                    sudo pkill brave
+
+                    [[ ! $(grep --no-messages 'chrome-extension' "${f[int_brave]}") ]] \
+                        && sudo tee "${f[int_brave]}" > "${f[null]}" <<< '{
+  "name": "com.postman.postmanapp",
+  "description": "Native Messaging Host for Postman Native App <> Interceptor Integration",
+  "path": '"\"${f[inter]}\""',
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://aicmkgpgakddgnaphhhpliifpcfhicfo/"
+  ]
+}'
+
+                else
+
+                    while [[ ! -d "${d[4]}" ]]; do
+
+                        show "\nPLEASE, INSTALL POSTMAN INTERCEPTOR EXTENSION IN ${choice^^}: https://chrome.google.com/webstore/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo?hl=en"
+
+                        sleep 10s
+
+                    done
+
+                    sudo pkill chrome
+
+                    [[ ! $(grep --no-messages 'chrome-extension' "${f[int_chrome]}") ]] \
+                        && sudo tee "${f[int_chrome]}" > "${f[null]}" <<< '{
+  "name": "com.postman.postmanapp",
+  "description": "Native Messaging Host for Postman Native App <> Interceptor Integration",
+  "path": '"\"${f[inter]}\""',
+  "type": "stdio",
+  "allowed_origins": [
+    "chrome-extension://aicmkgpgakddgnaphhhpliifpcfhicfo/"
+  ]
+}'
+
+                fi
+
+                break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL INTERCEPTOR BRIDGE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
 
     fi
 
