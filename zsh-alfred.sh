@@ -4142,11 +4142,10 @@ workspace_stuffs() {
 
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
-                    git remote update &> "${f[null]}"
-
-                    git remote set-url origin git@github.com:"${user}${repo}.git"
-
                     git ls-remote "${l[1]}${repo}" &> "${f[check_repo]}"
+
+                    [[ ! $(grep --no-messages HEAD "${f[check_repo]}") ]] \
+                        && git ls-remote "${l[1]}${repo}" &> "${f[check_repo]}"
 
                     if [[ $(grep HEAD "${f[check_repo]}") ]]; then
 
