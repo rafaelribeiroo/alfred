@@ -130,15 +130,3 @@ boilerplate() {
 #     echo $iterator
 #     echo passei
 # done
-
-[[ ! $(grep --no-messages 'chrome-extension' "${f[int_brave]}") ]] \
-    && sudo tee "${f[int_brave]}" > "${f[null]}" <<< '{
-  "name": "com.postman.postmanapp",
-  "description": "Native Messaging Host for Postman Native App <> Interceptor Integration",
-  "path": '"\"${f[inter]}\""',
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://aicmkgpgakddgnaphhhpliifpcfhicfo/"
-  ]
-}
-'

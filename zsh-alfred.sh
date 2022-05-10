@@ -2604,10 +2604,12 @@ postman_stuffs() {
         [postman]=/usr/share/applications/postman.desktop
         [int_brave]=~/.config/BraveSoftware/Brave-Browser/NativeMessagingHosts/com.postman.postmanapp.json
         [int_chrome]=~/.config/google-chrome/NativeMessagingHosts/com.postman.postmanapp.json
+        [inter]="${HOME}"/.postman/InterceptorBridge/InterceptorBridge
     )
 
     local -a l=(
         'https://dl.pstmn.io/download/latest/linux64'  # 1
+        'https://chrome.google.com/webstore/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo?hl=en'  # 2
     )
 
     if [[ -f "${f[bin]}" ]]; then
@@ -2721,7 +2723,7 @@ postman_stuffs() {
 
                     while [[ ! -d "${d[4]}" ]]; do
 
-                        show "\nPLEASE, INSTALL POSTMAN INTERCEPTOR EXTENSION IN ${choice:u}: https://chrome.google.com/webstore/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo?hl=en"
+                        show "\nPLEASE, INSTALL POSTMAN INTERCEPTOR EXTENSION IN ${choice:u}\n${l[2]}"
 
                         sleep 10s
 
@@ -2744,7 +2746,7 @@ postman_stuffs() {
 
                     while [[ ! -d "${d[5]}" ]]; do
 
-                        show "\nPLEASE, INSTALL POSTMAN INTERCEPTOR EXTENSION IN ${choice:u}: https://chrome.google.com/webstore/detail/postman-interceptor/aicmkgpgakddgnaphhhpliifpcfhicfo?hl=en"
+                        show "\nPLEASE, INSTALL POSTMAN INTERCEPTOR EXTENSION IN ${choice:u}\n${l[2]}"
 
                         sleep 10s
 
