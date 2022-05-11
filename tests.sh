@@ -130,3 +130,15 @@ boilerplate() {
 #     echo $iterator
 #     echo passei
 # done
+name=(
+    'MASTER WAYNE'
+    'MASTER BRUCE'
+    'MR. WAYNE'
+    'MR. BRUCE'
+)
+
+# in zsh, arrays start in 1
+random=$(shuf --input-range 1-${#name[@]} --head-count 1)
+
+show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1
+echo; show "\t      REPO ALREADY ${c[RED]}PRE-INSTALLED${c[WHITE]}" 1

@@ -2332,7 +2332,7 @@ hide_devices() {
 
             done
 
-            read -p $'\033[1;37mSIR, ARE YOU HAVING ISSUES WITH USB AUDIO? (EDIFIER SPEAKER PERHAPS) \n[Y/N] R: \033[m' option
+            echo; read -p $'\033[1;37mSIR, ARE YOU HAVING ISSUES WITH USB AUDIO? (EDIFIER SPEAKER PERHAPS) \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -2726,7 +2726,7 @@ postgres_stuffs() {
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # lsb_release get os version name
-        check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
+        # check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
 
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -2737,13 +2737,13 @@ postgres_stuffs() {
             && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
 
         # If returns warning about architeture, please write deb [ arch=amd64 ]
-        [[ ! $(grep --no-messages "${check_codename}" "${f[ppa]}") ]] \
-            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ ${check_codename}-pgdg main" \
-            && update
+        [[ ! $(grep --no-messages $(lsb_release --codename --short) "${f[ppa]}") ]] \
+            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release --codename --short)-pgdg main"
 
-        [[ ! $(grep --no-messages "${check_codename}" "${f[ppa-pgadm]}") ]] \
-            && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/${check_codename} pgadmin4 main" \
-            && update
+        [[ ! $(grep --no-messages $(lsb_release --codename --short) "${f[ppa-pgadm]}") ]] \
+            && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release --codename --short) pgadmin4 main"
+
+        update
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[4]}"  # "${m[3]}"
 
@@ -3684,29 +3684,29 @@ eval "$(rbenv init -)"' \
 sublime_stuffs() {
 
     declare -a d=(
-        ~/.config/sublime-text  # 0
-        ~/.config/sublime-text/Installed\ Packages  # 1
+        ~/.config/sublime-text/  # 0
+        ~/.config/sublime-text/Installed\ Packages/  # 1
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
-        ~/.pyenv  # 3
+        ~/.pyenv/  # 3
         /.Trash-1000/  # 4
         ~/.config/sublime-merge/  # 5
     )
 
     f+=(
-        [file]=~/.pyenv/shims/python
-        [config]=~/.config/sublime-text/Packages/User/Preferences.sublime-settings
-        [config_merge]=~/.config/sublime-merge/Packages/User/Preferences.sublime-settings
+        [file]="${d[3]}"shims/python
+        [config]="${d[0]}"Packages/User/Preferences.sublime-settings
+        [config_merge]="${d[5]}"Packages/User/Preferences.sublime-settings
         [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
-        [license]=~/.config/sublime-text/Local/License.sublime_license
-        [pkg_ctrl]=~/.config/sublime-text/Installed\ Packages/Package\ Control.sublime-package
-        [pkgs]=~/.config/sublime-text/Packages/User/Package\ Control.sublime-settings
-        [anaconda]=~/.config/sublime-text/Packages/Anaconda/Anaconda.sublime-settings
-        [keymap]=~/.config/sublime-text/Packages/User/Default\ \(Linux\).sublime-keymap
-        [REPL]=~/.config/sublime-text/Packages/SublimeREPL/SublimeREPL.sublime-settings
-        [REPLPY]=~/.config/sublime-text/Packages/SublimeREPL/config/Python/Main.sublime-menu
-        [REPLPYT]=~/.config/sublime-text/Packages/SublimeREPL/sublimerepl.py
+        [license]="${d[0]}"Local/License.sublime_license
+        [pkg_ctrl]="${d[1]}"Package\ Control.sublime-package
+        [pkgs]="${d[0]}"Packages/User/Package\ Control.sublime-settings
+        [anaconda]="${d[0]}"Packages/Anaconda/Anaconda.sublime-settings
+        [keymap]="${d[0]}"Packages/User/Default\ \(Linux\).sublime-keymap
+        [REPL]="${d[0]}"Packages/SublimeREPL/SublimeREPL.sublime-settings
+        [REPLPY]="${d[0]}"Packages/SublimeREPL/config/Python/Main.sublime-menu
+        [REPLPYT]="${d[0]}"Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
         [free_st]=/tmp/st_sm_cracker.c
         [out]=/tmp/crack.out
@@ -3798,7 +3798,8 @@ sublime_stuffs() {
 
         install_packages "${m[0]}" "${m[1]}"
 
-        sudo apt-mark hold "${m[3]}"
+        # This hides from dpkg --list
+        # sudo apt-mark hold "${m[3]}" &> "${f[null]}"
 
     fi
 
@@ -3909,7 +3910,7 @@ sublime_stuffs() {
 
             else
 
-                echo; show "\t\t  REPO ALREADY ${c[RED]}PRE-INSTALLED${c[WHITE]}"
+                echo; show "\t      REPO ALREADY ${c[RED]}PRE-INSTALLED${c[WHITE]}" 1
 
             fi
 
@@ -4155,9 +4156,10 @@ usefull_pkgs() {
         [out]=/tmp/spacevim.out
         [vlc]="${d[2]}"vlcrc
         [series]="${d[4]}"RenameMyTVSeries
-        [rar-file]=/etc/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz
+        [rar-file]="${d[3]}"RenameMyTVSeries-2.0.10-Linux64bit.tar.gz
         [startup]=~/.local/share/applications/rename-series.desktop
         [icon]="${d[4]}"icons/128x128.png
+        [config]=~/.config/transmission/settings.json
     )
 
     local -a l=(
@@ -4368,6 +4370,22 @@ StartupNotify=true"
                         && update
 
                     sudo apt install --assume-yes --only-upgrade "${m[23]}" &> "${f[null]}"
+
+                    while [[ ! -e "${f[config]}" ]]; do
+
+                        show "\nRESTARTING TRANSMISSION TO GENERATE CONFIG FILES.\nWAIT..."
+
+                        ( nohup "${m[23]}" & ) &> "${f[null]}"
+
+                        take_a_break
+
+                        sudo pkill "${m[23]}"
+
+                    done
+
+                    sudo sed --in-place 's|"download-queue-size".*|"download-queue-size": 50,|g' "${f[config]}"
+
+                    sudo sed --in-place 's|"trash-original-torrent-files": false,|"trash-original-torrent-files": true,|g' "${f[config]}"
 
                     break
 

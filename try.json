@@ -1,10 +1,1 @@
-{
-  "name": "com.postman.postmanapp",
-  "description": "Native Messaging Host for Postman Native App <> Interceptor Integration",
-  "path": "/home/ribeiroorafael/.postman/InterceptorBridge/InterceptorBridge",
-  "type": "stdio",
-  "allowed_origins": [
-    "chrome-extension://aicmkgpgakddgnaphhhpliifpcfhicfo/"
-  ]
-}
-
+"trash-original-torrent-files": false,
