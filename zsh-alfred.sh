@@ -1842,9 +1842,9 @@ hide_devices() {
 
     f+=(
         [config]="${d[1]}"99-hide-disks.rules
-        [background_grub_jpg]="${d[2]}"$(basename "${d[2]}"*)background.jpg
-        [background_grub_png]="${d[2]}"$(basename "${d[2]}"*)background.png
-        [old_background_grub]="${d[2]}"$(basename "${d[2]}"*)background_old.png
+        [bkg_grub_jpg]="${d[2]}"$(basename "${d[2]}"*)/background.jpg
+        [bkg_grub_png]="${d[2]}"$(basename "${d[2]}"*)/background.png
+        [old_bkg_grub]="${d[2]}"$(basename "${d[2]}"*)/background_old.png
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [grub-modified]=/etc/default/grub
         [grub]=/boot/grub/grub.cfg
@@ -1969,19 +1969,16 @@ hide_devices() {
                         && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
                         && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
 
-                    if [[ ! -e "${f[old_background_grub]}" && -e "${f[background_grub_png]}" ]]; then
+                    if [[ ! -e "${f[old_bkg_grub]}" ]]; then
 
-                        mv "${f[background_grub_png]}" "${f[old_background_grub]}"
+                        mv "${f[bkg_grub_png]}" "${f[old_bkg_grub]}"
 
-                        [[ ! -e "${f[background_grub_jpg]}" ]] \
-                            && wget --quiet "${l[2]}" --output-document "${f[background_grub_jpg]}" \
-                            && convert "${f[background_grub_jpg]}" "${f[background_grub_png]}" \
-                            && rm --force "${f[background_grub_jpg]}"
+                        [[ ! -e "${f[bkg_grub_jpg]}" ]] \
+                            && wget --quiet "${l[2]}" --output-document "${f[bkg_grub_jpg]}" \
+                            && convert "${f[bkg_grub_jpg]}" "${f[bkg_grub_png]}" \
+                            && rm --force "${f[bkg_grub_jpg]}"
 
                     fi
-
-                    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-                        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
 
                     [[ ! $(grep --no-messages '1920x1080' "${f[grub-modified]}") ]] \
                         && sudo sed --in-place 's|#GRUB_GFXMODE=640x480|GRUB_GFXMODE=1920x1080|g' "${f[grub-modified]}"
@@ -1990,6 +1987,9 @@ hide_devices() {
                         && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' "${f[grub-modified]}"
 
                     sudo update-grub &> "${f[null]}"
+
+                    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+                        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
 
                     break
 
@@ -2338,8 +2338,7 @@ postgres_stuffs() {
     local -a l=(
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 1
         'https://www.postgresql.org/download/windows/'  # 2
-        'https://www.linuxmint.com/download_all.php'  # 3
-        'https://www.pgadmin.org/static/packages_pgadmin_org.pub'  # 4
+        'https://www.pgadmin.org/static/packages_pgadmin_org.pub'  # 3
     )
 
     local -a m=(
@@ -2351,12 +2350,13 @@ postgres_stuffs() {
         'pspg'  # 6
         'gawk'  # 7
         'cryptsetup'  # 8
+        'lsb-release'  # 9
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") \
         && ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
-        && install_packages "${m[7]}" "${m[8]}"
+        && install_packages "${m[7]}" "${m[8]}" "${m[9]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
@@ -2409,11 +2409,11 @@ postgres_stuffs() {
             && sudo wget --quiet --output-document - "${l[1]}" | sudo apt-key add - &> "${f[null]}"
 
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep pgadmin) ]] \
-            && sudo wget --quiet --output-document - "${l[4]}" | sudo apt-key add - &> "${f[null]}"
+            && sudo wget --quiet --output-document - "${l[3]}" | sudo apt-key add - &> "${f[null]}"
 
         # If returns warning about architeture, please write deb [ arch=amd64 ]
         [[ ! $(grep --no-messages "${check_codename}" "${f[ppa]}") ]] \
-            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb http://apt.postgresql.org/pub/repos/apt/ $(lsb_release --codename --short)-pgdg main"
+            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb [ arch=amd64 ] http://apt.postgresql.org/pub/repos/apt $(lsb_release --codename --short)-pgdg main"
 
         [[ ! $(grep --no-messages "${check_codename}" "${f[ppa-pgadm]}") ]] \
             && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release --codename --short) pgadmin4 main"
