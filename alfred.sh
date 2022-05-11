@@ -2780,7 +2780,7 @@ postgres_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[1]}" | grep scope | head -1 | tr --complement --delete 0-9,.)
+    latest=$(curl --silent "${l[1]}" | grep scope | head -1 | tr --complement --delete 0-9,. | xargs)
 
     # Match perhaps with -10 or -11 etc (fixed installation)
     local=$(apt show "${m[0]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
@@ -2816,8 +2816,8 @@ postgres_stuffs() {
     check_version=$(apt show "${m[0]}" 2>&- | grep Version | awk '{print $2}')
 
     f+=(
-        [cfg]=/etc/postgresql/"${check_version:0:2}"/main/postgresql.conf
-        [hba]=/etc/postgresql/"${check_version:0:2}"/main/pg_hba.conf
+        [cfg]="${d[0]}""${check_version:0:2}"/main/postgresql.conf
+        [hba]="${d[0]}""${check_version:0:2}"/main/pg_hba.conf
     )
 
     sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[cfg]}"
@@ -3729,6 +3729,7 @@ sublime_stuffs() {
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
         [license]="${d[0]}"Local/License.sublime_license
+        [license_merge]="${d[5]}"Local/License.sublime_license
         [pkg_ctrl]="${d[1]}"Package\ Control.sublime-package
         [pkgs]="${d[0]}"Packages/User/Package\ Control.sublime-settings
         [anaconda]="${d[0]}"Packages/Anaconda/Anaconda.sublime-settings
@@ -3766,7 +3767,7 @@ sublime_stuffs() {
         && install_packages "${m[2]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
+        && -e "${f[merge_old]}" ]]; then
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
@@ -3828,7 +3829,7 @@ sublime_stuffs() {
         install_packages "${m[0]}" "${m[1]}"
 
         # This hides from dpkg --list
-        # sudo apt-mark hold "${m[3]}" &> "${f[null]}"
+        sudo apt-mark hold "${m[3]}" &> "${f[null]}"
 
     fi
 
@@ -3881,7 +3882,11 @@ sublime_stuffs() {
 
     # Adding license key
     [[ ! $(grep --no-messages Paying "${f[license]}") ]] \
-        && sudo tee "${f[license]}" > "${f[null]}" <<< 'Paying $99 USD For A License Is Stupid.'
+        && sudo tee "${f[license]}" > "${f[null]}" <<< 'Paying $99 USD'
+
+    # Adding license key
+    [[ ! $(grep --no-messages Paying "${f[license_merge]}") ]] \
+        && sudo tee "${f[license_merge]}" > "${f[null]}" <<< 'Paying $99 USD'
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
