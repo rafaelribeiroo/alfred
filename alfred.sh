@@ -2664,6 +2664,7 @@ postgres_stuffs() {
         'https://www.postgresql.org/media/keys/ACCC4CF8.asc'  # 0
         'https://www.postgresql.org/download/windows/'  # 1
         'https://www.pgadmin.org/static/packages_pgadmin_org.pub'  # 2
+        'https://www.linuxmint.com/download_all.php'  # 3
     )
 
     local -a m=(
@@ -2726,7 +2727,11 @@ postgres_stuffs() {
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # lsb_release get os version name
-        # check_codename=$(curl --silent "${l[2]}" | grep --ignore-case -1 $(lsb_release --codename --short) | tail -1 | awk '{print $2}' | sed 's|</TD>||' | tr '[:upper:]' '[:lower:]')
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+            && check_codename=$(curl --silent "${l[3]}" | grep --ignore-case -2 $(lsb_release --codename --short) | tail -1 | awk '{print $3}' | sed 's|</td>||' | tr '[:upper:]' '[:lower:]')
+
+        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+            && check_codename=$(lsb_release --codename --short)
 
         # 2> hides warning
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -2737,11 +2742,11 @@ postgres_stuffs() {
             && sudo wget --quiet --output-document - "${l[2]}" | sudo apt-key add - &> "${f[null]}"
 
         # If returns warning about architeture, please write deb [ arch=amd64 ]
-        [[ ! $(grep --no-messages $(lsb_release --codename --short) "${f[ppa]}") ]] \
-            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb [ arch=amd64 ] http://apt.postgresql.org/pub/repos/apt $(lsb_release --codename --short)-pgdg main"
+        [[ ! $(grep --no-messages "${check_codename}" "${f[ppa]}") ]] \
+            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb [ arch=amd64 ] http://apt.postgresql.org/pub/repos/apt ${check_codename}-pgdg main"
 
-        [[ ! $(grep --no-messages $(lsb_release --codename --short) "${f[ppa-pgadm]}") ]] \
-            && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/$(lsb_release --codename --short) pgadmin4 main"
+        [[ ! $(grep --no-messages "${check_codename}" "${f[ppa-pgadm]}") ]] \
+            && sudo tee "${f[ppa-pgadm]}" > "${f[null]}" <<< "deb https://ftp.postgresql.org/pub/pgadmin/pgadmin4/apt/${check_codename} pgadmin4 main"
 
         update
 
@@ -2780,9 +2785,33 @@ postgres_stuffs() {
     # Match perhaps with -10 or -11 etc (fixed installation)
     local=$(apt show "${m[0]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
 
-    ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && show "\nPOSTGRES IS IN VERSION ${c[GREEN]}${latest}${c[WHITE]}, NOT IN ${c[RED]}${local:0:2} ${c[WHITE]}ANYMORE.\n" \
-        && upgrade
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        echo; read -p $'\033[1;37mSIR, SHOULD I UPGRADE POSTGRES VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                sudo apt install --assume-yes --only-upgrade "${m[0]}"* &> "${f[null]}"
+
+                break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    fi
 
     check_version=$(apt show "${m[0]}" 2>&- | grep Version | awk '{print $2}')
 
