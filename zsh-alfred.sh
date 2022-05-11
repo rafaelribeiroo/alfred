@@ -1546,13 +1546,13 @@ chrome_stuffs() {
 flameshot_stuffs() {
 
     local -a d=(
-        ~/.config/Dharkael  # 1
+        ~/.config/Dharkael/  # 1
         /tmp/  # 2
         ~/.config/autostart/  # 3
     )
 
     f+=(
-        [config]=~/.config/Dharkael/flameshot.ini
+        [config]="${d[1]}"flameshot.ini
         [config_gnome]=~/.config/flameshot/flameshot.ini
         [dskt]="${d[3]}"Flameshot.desktop
         [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
@@ -3017,7 +3017,7 @@ reduceye_stuffs() {
     )
 
     f+=(
-        [config]=~/.config/redshift/redshift.conf
+        [config]="${d[1]}"redshift.conf
         [dskt]="${d[2]}"redshift-gtk.desktop
     )
 
@@ -4284,9 +4284,14 @@ workspace_stuffs() {
 #======================#
 xscreensaver_stuffs() {
 
+    local -a d=(
+        ~/.config/autostart/  # 1
+    )
+
     f+=(
         [screen_saver]=~/.xscreensaver
         [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
+        [dskt]="${d[1]}"xscreensaver.desktop
     )
 
     local -a l=(
@@ -4306,6 +4311,11 @@ xscreensaver_stuffs() {
         'xscreensaver-demo'  # 10
         'dconf-editor'  # 11
     )
+
+    [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+        && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+        && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+        && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
@@ -4372,11 +4382,52 @@ xscreensaver_stuffs() {
 
     done
 
+    [[ ! $(grep --no-messages XscreenSaver "${f[dskt]}") ]] \
+        && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
+Name=XscreenSaver
+Name[pt_BR]=XscreenSaver
+Exec=xscreensaver -no-splash
+Icon=redshift
+Terminal=false
+Type=Application
+Categories=Utility;
+StartupNotify=true
+Hidden=false
+X-GNOME-Autostart-enabled=true'
+
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && dconf write "${f[screensaver_cinnamon]}" 'uint32 0'
 
     [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
         && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"
+
+    sudo sed --in-place 's|lock:.*|lock:  True|g' "${f[screen_saver]}"
+
+    sudo sed --in-place 's|lockTimeout:.*|LockTimeout: 0:03:00|g' "${f[screen_saver]}"
+
+    echo; read $'?\033[1;37mSIR, SHOULD I OPEN XSCREENSAVER? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            ( nohup "${m[10]}" & ) &> "${f[null]}"
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
