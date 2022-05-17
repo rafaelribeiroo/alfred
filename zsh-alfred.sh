@@ -191,7 +191,7 @@ check_source() {
 
     else
 
-        echo; show "CHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
+        clear && echo; show "CHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
 
         [[ $(apt update 2>&- | tail -1 | awk {'print $1'}) -ge 50 ]] \
             && echo; show "HOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
@@ -3151,7 +3151,8 @@ upgrade() {
     # Best data format, dd/mm/yyyy
     # date=$(date -d "${last}" +"%d/%m/%Y")
 
-    # [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
+    # [[ -e "${f[apt_history]}" ]] \
+    #     && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
     #     || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
     sudo apt upgrade --yes &> "${f[null]}"
@@ -3892,29 +3893,6 @@ sublime_stuffs() {
     done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
-
-}
-#======================#
-
-#======================#
-upgrade() {
-
-    f+=(
-        [apt_history]=/var/log/apt/history.log
-    )
-
-    # Get last upgrades
-    last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
-
-    # Best data format, dd/mm/yyyy
-    date=$(date -d "${last}" +"%d/%m/%Y")
-
-    [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
-        || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
-
-    sudo apt update &> "${f[null]}"
-
-    sudo apt upgrade --yes &> "${f[null]}"
 
 }
 #======================#
@@ -5077,10 +5055,9 @@ text/plain=sublime_text.desktop
 video/x-matroska=vlc.desktop
 video/mp4=vlc.desktop
 video/x-msvideo=vlc.desktop
-audio/mpeg=rhythmbox.desktop
+audio/mpeg=io.github.celluloid_player.Celluloid.desktop
 
 [Added Associations]
-audio/mpeg=rhythmbox.desktop
 video/x-matroska=vlc.desktop;
 application/x-partial-download=vlc.desktop;
 video/mp4=vlc.desktop;
