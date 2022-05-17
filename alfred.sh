@@ -193,7 +193,7 @@ check_source() {
         echo; show "CHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
 
         [[ $(apt update 2>&- | tail -1 | awk {'print $1'}) -ge 50 ]] \
-            && echo; show "HOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
+            && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
             && upgrade
 
         clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
