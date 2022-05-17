@@ -191,10 +191,10 @@ check_source() {
 
     else
 
-        clear && echo; show "CHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
+        clear && show "\nCHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
 
         [[ $(apt update 2>&- | tail -1 | awk {'print $1'}) -ge 50 ]] \
-            && echo; show "HOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
+            && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
             && upgrade
 
         clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
@@ -3150,10 +3150,6 @@ upgrade() {
 
     # Best data format, dd/mm/yyyy
     # date=$(date -d "${last}" +"%d/%m/%Y")
-
-    # [[ -e "${f[apt_history]}" ]] \
-    #     && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
-    #     || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
     sudo apt upgrade --yes &> "${f[null]}"
 
