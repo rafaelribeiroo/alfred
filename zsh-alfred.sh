@@ -191,9 +191,10 @@ check_source() {
 
     else
 
-        [[ ! -e "${f[apt_history]}" ]] \
-            && clear \
-            && show "\nBEFORE PROCEED, WE MUST UPGRADE FOR THE FIRST TIME..." \
+        echo; show "CHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
+
+        [[ $(apt update 2>&- | tail -1 | awk {'print $1'}) -ge 50 ]] \
+            && echo; show "HOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
             && upgrade
 
         clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
@@ -3145,15 +3146,15 @@ eval "$(pyenv virtualenv-init -)"' \
 upgrade() {
 
     # Get last upgrades
-    last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
+    # last=$(grep --no-messages Start-Date "${f[apt_history]}" | tail -1 | awk '{print $2}')
 
     # Best data format, dd/mm/yyyy
-    date=$(date -d "${last}" +"%d/%m/%Y")
+    # date=$(date -d "${last}" +"%d/%m/%Y")
 
-    [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
-        || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
+    # [[ -e "${f[apt_history]}" ]] && show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}${date}${c[WHITE]})" \
+    #     || show "UPGRADING PACKAGES... (LAST TIME: ${c[CYAN]}NEVER${c[WHITE]})"
 
-    sudo apt update &> "${f[null]}"; sudo apt upgrade --yes &> "${f[null]}"
+    sudo apt upgrade --yes &> "${f[null]}"
 
 }
 #======================#
