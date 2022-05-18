@@ -106,6 +106,7 @@ declare -A f=(
     [srcs_list]=/etc/apt/sources.list.d/
     [ssh]=/tmp/check_connection
     [apt_history]=/var/log/apt/history.log
+    [update]=/tmp/check_update
 )
 #======================#
 
@@ -190,11 +191,15 @@ check_source() {
 
     else
 
-        clear && show "\nCHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
+        if [[ ! -e "${f[update]}" ]]; then
 
-        [[ $(apt update 2>&- | tail -1 | awk {'print $1'}) -ge 50 ]] \
-            && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
-            && upgrade
+            clear && show "\nCHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
+
+            [[ $(apt update 2>&- | tail -1 | awk {'print $1'} &> "${f[update]}") -ge 50 ]] \
+                && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
+                && upgrade
+
+        fi
 
         clear && show "\n${c[RED]}===[${c[WHITE]} STARTING ${c[RED]}]===\n"
 
@@ -1304,15 +1309,11 @@ docky_stuffs() {
 dualmonitor_stuffs() {
 
     local -a d=(
-        /usr/share/backgrounds/customized  # 0
+        /usr/share/backgrounds/customized/  # 0
     )
 
     f+=(
-        [starwars]=/usr/share/backgrounds/customized/sw.jpg
-        [stormtrooper]=/usr/share/backgrounds/customized/st.jpg
-        [fightclub]=/usr/share/backgrounds/customized/cl.png
-        [kyloren]=/usr/share/backgrounds/customized/kr.jpg
-        [default]=/usr/share/backgrounds/customized/default_background.jpg
+        [default]=/usr/share/backgrounds/linuxmint/default_background.jpg
         [picture]=/org/cinnamon/desktop/background/picture-uri
         [picture_gnome]=/org/gnome/desktop/background/picture-uri
         [option]=/org/cinnamon/desktop/background/picture-options
@@ -1395,17 +1396,16 @@ dualmonitor_stuffs() {
             && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
-        [[ ! -e "${f[left]}" ]] \
-            && curl --silent --output "${f[starwars]}" --create-dirs "${l[0]}"
+        for (( iterator=0; iterator<${#l[@]}; iterator++ )); do
 
-        [[ ! -e "${f[fightclub]}" ]] \
-            && curl --silent --output "${f[fightclub]}" --create-dirs "${l[1]}"
+            f+=(
+                [bkg_"${iterator}"]="${d[0]}"bkg"${iterator}".jpg
+            )
 
-        [[ ! -e "${f[stormtrooper]}" ]] \
-            && curl --silent --output "${f[stormtrooper]}" --create-dirs "${l[2]}"
+            [[ ! -e "${f[bkg_${iterator}]}" ]] \
+                && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
 
-        [[ ! -e "${f[kyloren]}" ]] \
-            && curl --silent --output "${f[kyloren]}" --create-dirs "${l[3]}"
+        done
 
         [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
             && dconf write "${f[picture_gnome]}" "'file://${f[starwars]}'" \
