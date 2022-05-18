@@ -500,15 +500,15 @@ deemix_stuffs() {
         /tmp/  # 1
         ~/Musicas\ Deemix/  # 2
         ~/.cache/thumbnails/fail  # 3
-        ~/.config/deemix  # 4
+        ~/.config/deemix/  # 4
     )
 
     f+=(
         [file]="${d[1]}"linux-x86_64-latest.deb
         [decrypt]=/etc/browser_cookie3_n.py
-        [cookies]=/tmp/cookies
-        [arl_value]=~/.config/deemix/.arl
-        [cfg]=~/.config/deemix/config.json
+        [cookies]="${d[1]}"cookies
+        [arl_value]="${d[4]}".arl
+        [cfg]="${d[4]}"config.json
     )
 
     local -a l=(
@@ -674,6 +674,9 @@ deemix_stuffs() {
     [[ ! $(grep --no-messages 'alias cm' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${fXDG_MUSIC_DIR}/*\""
+
+    [[ ! $(grep --no-messages 'autoCheckForUpdates' "${f[cfg]}") ]] \
+        && sudo sed --in-place --null-data 's|}|},\n  "autoCheckForUpdates": true|1' "${f[cfg]}"
 
     sudo sed --in-place 's|"saveArtwork": true,|"saveArtwork": false,|g' "${f[cfg]}"
 
@@ -991,7 +994,7 @@ dualmonitor_stuffs() {
     # 3840x1080 wallpaper
     local -a l=(
         'https://images3.alphacoders.com/673/673177.jpg'  # 1
-        'https://images4.alphacoders.com/885/885300.png'  # 2
+        'https://images4.alphacoders.com/204/204586.png'  # 2
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-8.jpg'  # 3
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-20.jpg'  # 4
     )

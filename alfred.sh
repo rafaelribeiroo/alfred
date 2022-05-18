@@ -837,15 +837,15 @@ deemix_stuffs() {
         /tmp/  # 0
         ~/Musicas\ Deemix/  # 1
         ~/.cache/thumbnails/fail  # 2
-        ~/.config/deemix  # 3
+        ~/.config/deemix/  # 3
     )
 
     f+=(
         [file]="${d[0]}"linux-x86_64-latest.deb
         [decrypt]=/etc/browser_cookie3_n.py
-        [cookies]=/tmp/cookies
-        [arl_value]=~/.config/deemix/.arl
-        [cfg]=~/.config/deemix/config.json
+        [cookies]="${d[0]}"cookies
+        [arl_value]="${d[3]}".arl
+        [cfg]="${d[3]}"config.json
     )
 
     local -a l=(
@@ -1011,6 +1011,9 @@ deemix_stuffs() {
     [[ ! $(grep --no-messages 'alias cm' "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${fXDG_MUSIC_DIR}/*\""
+
+    [[ ! $(grep --no-messages 'autoCheckForUpdates' "${f[cfg]}") ]] \
+        && sudo sed --in-place --null-data 's|}|},\n  "autoCheckForUpdates": true|1' "${f[cfg]}"
 
     sudo sed --in-place 's|"saveArtwork": true,|"saveArtwork": false,|g' "${f[cfg]}"
 
