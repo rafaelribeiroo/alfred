@@ -2757,27 +2757,35 @@ postgres_stuffs() {
 
         echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
-        # Or pg_createcluster 9.3 (version_number) main --start
+        # Or pg_createcluster $(apt version postgresql | cut -c1-2) main --start
         # /etc/init.d/postgresql start
-        for (( ; ; )); do
+        d+=(
+            /etc/postgresql/"$(apt version postgresql | cut -c1-2)"/main/conf.d/  # 3
+        )
 
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+        if [[ ! -d "${d[3]}" ]]; then
 
-                sudo reboot
+            for (( ; ; )); do
 
-            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                return_menu && break
+                    sudo reboot
 
-            else
+                elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
-                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+                    return_menu && break
 
-                read option
+                else
 
-            fi
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-        done
+                    read option
+
+                fi
+
+            done
+
+        fi
 
     fi
 
