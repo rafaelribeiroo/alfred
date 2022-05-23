@@ -4949,6 +4949,10 @@ change_panelandgui() {
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
         [delay_screensaver]=/org/cinnamon/desktop/session/idle-delay
+        [cron]=/var/spool/cron/"${USER}"
+        [cron_bin]=/usr/bin/crontab
+        [mint_update]=/usr/bin/mintupdate-cli
+        [update_log]=/var/log/mintupdate.log
     )
 
     local -a l=(
@@ -4969,6 +4973,14 @@ change_panelandgui() {
         && sudo curl --silent --location --output "${f[alfred]}" --create-dirs "${l[0]}"  # END ICON
 
     install_packages "${m[0]}" "${m[1]}"
+
+    # STARTS UPGRADE AUTOMATICALLY
+    # crontab -u ${USER} -l
+    [[ ! $(grep --no-messages upgrade "${f[cron]}") && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+        && sudo tee "${f[cron]}" > "${f[null]}" <<< "# MINUTE HOUR MONTH_DAY MONTH  WEEKDAY COMMAND
+# 0-59    0-23 1-31       1-12 0-7           bash MY_SCRIPT.sh
+0 14 * * * ${f[mint_update]} upgrade --refresh-cache --yes > ${f[update_log]} 2>&1" \
+        && "${f[cron_bin]}" "${f[cron]}"  # ENDS UPGRADE AUTOMATIC
 
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
