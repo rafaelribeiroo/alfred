@@ -4762,13 +4762,12 @@ zsh_stuffs() {
                 "${ZSH_CUSTOM}"/themes/spaceship-prompt  # 4
                 "${ZSH_CUSTOM}"/plugins/zsh-syntax-highlighting  # 5
                 "${ZSH_CUSTOM}"/plugins/zsh-autosuggestions  # 6
-
             )
 
             [[ ! -d "${d[4]}" || ! -d "${d[5]}" || ! -d "${d[6]}" ]] \
                 && git clone --quiet --depth=1 "${l[5]}" "${d[4]}" \
                 && git clone --quiet --depth=1 "${l[6]}" "${d[5]}" \
-                && git clone --quiet --depth=1 "${l[7]}" "${d[6W]}"
+                && git clone --quiet --depth=1 "${l[7]}" "${d[6]}"
 
             [[ ! -L "${f[new_spaceship]}" ]] \
                 && sudo ln --symbolic "${f[old_spaceship]}" "${f[new_spaceship]}"
