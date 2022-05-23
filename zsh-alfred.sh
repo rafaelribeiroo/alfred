@@ -2995,6 +2995,14 @@ Categories=Development;Code;'
 #======================#
 python_stuffs() {
 
+    local -a d=(
+        ~/.pyenv/shims/  # 1
+    )
+
+    f+=(
+        [python_new]=/usr/bin/python
+    )
+
     local -a l=(
         'https://pypi.org/project/pip/'  # 1
         'https://raw.githubusercontent.com/yyuu/pyenv-installer/master/bin/pyenv-installer'  # 2
@@ -3134,6 +3142,11 @@ eval "$(pyenv virtualenv-init -)"' \
 
                 # check with pyenv versions
                 pyenv global "${latest}" > "${f[null]}"
+
+                sudo rm --force "${f[python_new]}"
+
+                # try python -m venv .venv after alfred pass here
+                sudo ln --symbolic "${d[1]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
 
                 break
 
