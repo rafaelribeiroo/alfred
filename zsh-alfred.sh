@@ -4606,15 +4606,15 @@ zsh_stuffs() {
     local -a d=(
         ~/.oh-my-zsh  # 1
         ~/.fonts/  # 2
-        ~/.config/fontconfig/conf.d  # 3
+        ~/.config/fontconfig/conf.d/  # 3
     )
 
     f+=(
-        [powerline_otf]=~/.fonts/PowerlineSymbols.otf
-        [powerline_conf]=~/.config/fontconfig/conf.d/10-powerline-symbols.conf
+        [powerline_otf]="${d[2]}"PowerlineSymbols.otf
+        [powerline_conf]="${d[3]}"10-powerline-symbols.conf
         [original]=/etc/skel/.bashrc
         [bkp_zsh]=~/.zshrc_bkp
-        [meslo]=~/.fonts/Meslo.zip
+        [meslo]="${d[2]}"Meslo.zip
     )
 
     local -a l=(
@@ -4622,6 +4622,7 @@ zsh_stuffs() {
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 2
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 3
         'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 4
+        'https://github.com/spaceship-prompt/spaceship-prompt.git'  # 5
     )
 
     local -a m=(
@@ -4744,35 +4745,80 @@ zsh_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    if [[ ! -e "${f[powerline_otf]}" ]]; then
+    echo; read $'?\033[1;37mSIR, DO YOU PREFER SPACESHIP THEME OVER AGNOSTER? \n[Y/N] R: \033[m' option
 
-        # Hidden directories are owned by root, we must change owner to bash "read"
-        # 2>&- hides: "can't stat: no such file..."
-        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[2]}" # Close error output
+    for (( ; ; )); do
 
-        # --location follows to last URL (github provides a few redirects)
-        # --output write content to file
-        curl --silent --location --output "${f[powerline_otf]}" --create-dirs "${l[2]}"
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-        # Update font cache
-        sudo fc-cache --force "${d[2]}"
+            f+=(
+                [old_spaceship]="${ZSH_CUSTOM}"/themes/spaceship-prompt/spaceship.zsh-theme
+                [new_spaceship]="${ZSH_CUSTOM}"/themes/spaceship.zsh-theme
+            )
 
-    fi
+            d+=(
+                "${ZSH_CUSTOM}"/themes/spaceship-prompt  # 4
+            )
 
-    if [[ ! -e "${f[powerline_conf]}" ]]; then
+            [[ ! -d "${d[4]}" ]] \
+                && git clone --quiet --depth=1 "${l[5]}" "${d[4]}"
 
-        [[ ! -d "${d[3]}" || $(stat -c "%U" "${d[3]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[3]%conf.d}"
+            [[ ! -L "${f[new_spaceship]}" ]] \
+                && sudo ln --symbolic "${f[old_spaceship]}" "${f[new_spaceship]}"
 
-        curl --silent --location --output "${f[powerline_conf]}" --create-dirs "${l[3]}"
+            sudo sed --in-place 's|ZSH_THEME=.*|ZSH_THEME="spaceship"|g' "${f[zshrc]}"
 
-        # Workaround to prevent terminal restart
-        xdotool key Ctrl+plus && xdotool key Ctrl+minus
+            break
 
-    fi
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            if [[ ! -e "${f[powerline_otf]}" ]]; then
+
+                # Hidden directories are owned by root, we must change owner to bash "read"
+                # 2>&- hides: "can't stat: no such file..."
+                [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+                    && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+                    && sudo chown --recursive "${USER}":"${USER}" "${d[2]}" # Close error output
+
+                # --location follows to last URL (github provides a few redirects)
+                # --output write content to file
+                curl --silent --location --output "${f[powerline_otf]}" --create-dirs "${l[2]}"
+
+                # Update font cache
+                sudo fc-cache --force "${d[2]}"
+
+            fi
+
+            if [[ ! -e "${f[powerline_conf]}" ]]; then
+
+                [[ ! -d "${d[3]}" || $(stat -c "%U" "${d[3]}" 2>&-) != ${USER} ]] \
+                    && sudo mkdir --parents "${d[3]}" > "${f[null]}" \
+                    && sudo chown --recursive "${USER}":"${USER}" "${d[3]%conf.d}"
+
+                curl --silent --location --output "${f[powerline_conf]}" --create-dirs "${l[3]}"
+
+                # Workaround to prevent terminal restart
+                xdotool key Ctrl+plus && xdotool key Ctrl+minus
+
+            fi
+
+            sudo sed --in-place 's|ZSH_THEME=.*|ZSH_THEME="agnoster"|g' "${f[zshrc]}"
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U PREFER SPACESHIP?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
+        && sed --in-place --null-data 's|plugins=(git)|plugins=(git python pip virtualenv copyfile)|g' "${f[zshrc]}" \
+        && source "${f[zshrc]}"
 
     [[ ! $(grep --no-messages DEFAULT_USER "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
@@ -4798,11 +4844,6 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
         && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[zshrc]}" \
         && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[zshrc]}" \
         && source "${f[zshrc]}"
-
-    sudo sed --in-place 's|robbyrussell|agnoster|g' "${f[zshrc]}"
-
-    [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
-        && sed --in-place --null-data 's|plugins=(git)|plugins=(git python pip virtualenv copyfile)|g' "${f[zshrc]}"
 
     echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL A COLORFUL LS? \n[Y/N] R: \033[m' option
 
