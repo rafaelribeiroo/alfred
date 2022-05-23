@@ -4623,6 +4623,8 @@ zsh_stuffs() {
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 3
         'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 4
         'https://github.com/spaceship-prompt/spaceship-prompt.git'  # 5
+        'https://github.com/zsh-users/zsh-syntax-highlighting'  # 6
+        'https://github.com/zsh-users/zsh-autosuggestions'  # 7
     )
 
     local -a m=(
@@ -4758,15 +4760,24 @@ zsh_stuffs() {
 
             d+=(
                 "${ZSH_CUSTOM}"/themes/spaceship-prompt  # 4
+                "${ZSH_CUSTOM}"/plugins/zsh-syntax-highlighting  # 5
+                "${ZSH_CUSTOM}"/plugins/zsh-autosuggestions  # 6
+
             )
 
-            [[ ! -d "${d[4]}" ]] \
-                && git clone --quiet --depth=1 "${l[5]}" "${d[4]}"
+            [[ ! -d "${d[4]}" || ! -d "${d[5]}" || ! -d "${d[6]}" ]] \
+                && git clone --quiet --depth=1 "${l[5]}" "${d[4]}" \
+                && git clone --quiet --depth=1 "${l[6]}" "${d[5]}" \
+                && git clone --quiet --depth=1 "${l[7]}" "${d[6W]}"
 
             [[ ! -L "${f[new_spaceship]}" ]] \
                 && sudo ln --symbolic "${f[old_spaceship]}" "${f[new_spaceship]}"
 
             sudo sed --in-place 's|ZSH_THEME=.*|ZSH_THEME="spaceship"|g' "${f[zshrc]}"
+
+            [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
+                && sed --in-place --null-data 's|plugins=(git)|plugins=(git python pip virtualenv copyfile zsh-syntax-highlighting zsh-autosuggestions)|g' "${f[zshrc]}" \
+                && source "${f[zshrc]}"
 
             break
 
@@ -4804,6 +4815,10 @@ zsh_stuffs() {
 
             sudo sed --in-place 's|ZSH_THEME=.*|ZSH_THEME="agnoster"|g' "${f[zshrc]}"
 
+            [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
+                && sed --in-place --null-data 's|plugins=(git)|plugins=(git python pip virtualenv copyfile)|g' "${f[zshrc]}" \
+                && source "${f[zshrc]}"
+
             break
 
         else
@@ -4815,10 +4830,6 @@ zsh_stuffs() {
         fi
 
     done
-
-    [[ ! $(grep --no-messages 'plugins=(git ' "${f[zshrc]}") ]] \
-        && sed --in-place --null-data 's|plugins=(git)|plugins=(git python pip virtualenv copyfile)|g' "${f[zshrc]}" \
-        && source "${f[zshrc]}"
 
     [[ ! $(grep --no-messages DEFAULT_USER "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
