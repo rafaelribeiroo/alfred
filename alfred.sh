@@ -3149,7 +3149,7 @@ postman_stuffs() {
         sudo rm --force "${f[file]}"
 
         [[ ! -L "${f[bin]}" ]] \
-            && sudo ln --symbolic "${f[run]}" "${f[bin]}"
+            && sudo ln --force --symbolic "${f[run]}" "${f[bin]}"
 
         read -p $'\033[1;37m\nSIR, WANT TO INSTALL INTERCEPTOR BRIDGE? \n[Y/N] R: \033[m' option
 
@@ -3459,9 +3459,7 @@ eval "$(pyenv virtualenv-init -)"' \
                 # check with pyenv versions
                 pyenv global "${latest}" > "${f[null]}"
 
-                sudo rm --force "${f[python_new]}"
-
-                sudo ln --symbolic "${d[0]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
+                sudo ln --force --symbolic "${d[0]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
 
                 break
 
@@ -3988,8 +3986,7 @@ sublime_stuffs() {
 
     done
 
-    [[ ! -L "${f[merge_new]}" ]] \
-        && sudo ln --symbolic "${f[merge_old]}" "${f[merge_new]}"
+    sudo ln --force --symbolic "${f[merge_old]}" "${f[merge_new]}"
 
     while [[ ! -d "${d[5]}" ]]; do
 
