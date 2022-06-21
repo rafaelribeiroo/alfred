@@ -396,11 +396,16 @@ brave_stuffs() {
 
     local -a d=(
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org/  # 1
+        /opt/brave.com/  # 2
+        ~/.config/BraveSoftware/  # 3
+        ~/.cache/BraveSoftware/  # 4
     )
 
     f+=(
         [gpg]=/etc/apt/trusted.gpg.d/brave-browser-release.gpg
         [ppa]=/etc/apt/sources.list.d/brave-browser-release.list
+        [exe_1]=/usr/bin/brave-browser
+        [exe_2]=/usr/bin/brave-browser-stable
     )
 
     local -a l=(
@@ -429,9 +434,15 @@ brave_stuffs() {
 
                 sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
 
+                remove_useless
+
                 sudo sed --in-place '/brave/d' "${d[1]}"*.json
 
-                remove_useless
+                sudo sed --in-place '/brave/d' "${f[mimeapps]}"
+
+                sudo rm --force --recursive "${d[2]}" "${d[3]}" "${d[4]}"
+
+                sudo rm --force "${f[exe_1]}" "${f[exe_2]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -506,6 +517,7 @@ deemix_stuffs() {
         ~/Musicas\ Deemix/  # 2
         ~/.cache/thumbnails/fail  # 3
         ~/.config/deemix/  # 4
+        ~/.config/deemix-gui/  # 5
     )
 
     f+=(
@@ -568,13 +580,15 @@ deemix_stuffs() {
 
                 show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[1]:u}${c[WHITE]}!\n"
 
-                sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
-
-
-
-
+                sudo apt remove --purge --yes "${m[1]}" "${m[2]}" "${m[25]}" &> "${f[null]}"
 
                 remove_useless
+
+                pip uninstall --quiet "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}"
+
+                sudo rm --force --recursive "${d[4]}" "${d[5]}"
+
+                sudo rm --force "${f[decrypt]}"
 
                 show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -678,7 +692,7 @@ deemix_stuffs() {
 
     [[ ! $(grep --no-messages 'alias cm' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${fXDG_MUSIC_DIR}/*\""
+alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|AC_DC|ACDC|g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${fXDG_MUSIC_DIR}/*\""
 
     [[ ! $(grep --no-messages 'autoCheckForUpdates' "${f[cfg]}") ]] \
         && sudo sed --in-place --null-data 's|}|},\n  "autoCheckForUpdates": true|1' "${f[cfg]}"
@@ -4033,6 +4047,7 @@ usefull_pkgs() {
         'neofetch'  # 22
         'nemo-mediainfo-tab'  # 23
         'transmission-gtk'  # 24
+        'doublecmd-gtk'  # 25
     )
 
     [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
@@ -4111,7 +4126,7 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
             && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[25]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
