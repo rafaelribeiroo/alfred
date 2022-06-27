@@ -196,7 +196,9 @@ check_source() {
 
             clear && show "\nCHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
 
-            [[ $(apt update 2>&- | tail -1 | awk {'print $1'} &> "${f[update]}") -ge 50 ]] \
+            apt update 2>&- | tail -1 | awk {'print $1'} &> "${f[update]}"
+
+            [[ $(cat "${f[update]}") -ge 50 ]] \
                 && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
                 && upgrade
 
@@ -4892,7 +4894,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
             [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && gem install --silent "${m[4]}"
+                && sudo gem install --silent "${m[4]}"
 
             [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
                 && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
