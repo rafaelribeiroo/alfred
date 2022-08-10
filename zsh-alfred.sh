@@ -791,10 +791,10 @@ docky_stuffs() {
         [dep4]=/tmp/libgnome-keyring0_3.12.0-1build1_amd64.deb
         [dep5]=/tmp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb
         [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
-        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/
+        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/18.json
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
-        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/
+        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
         [panel_pos]=/org/cinnamon/panels-enabled
         [panel_size]=/org/cinnamon/panels-height
     )
@@ -902,7 +902,7 @@ docky_stuffs() {
 
         ( nohup "${m[6]}" & ) &> "${f[null]}"
 
-        take_a_break
+        sleep 10s
 
         sudo pkill "${m[6]}"
 
@@ -943,19 +943,19 @@ docky_stuffs() {
             && unzip "${f[forceqt]}" -d "${d[2]}" &> "${f[null]}" \
             && sudo rm --force "${f[forceqt]}"
 
-        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:separator@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:force-quit@cinnamon.org:9', 'panel1:right:10:separator@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:xapp-status@cinnamon.org:12', 'panel1:right:13:separator@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:network@cinnamon.org:15', 'panel1:right:16:separator2@zyzz:16', 'panel1:right:17:calendar@cinnamon.org:17']"
+        dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:keyboard@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:separator@cinnamon.org:9', 'panel1:right:10:force-quit@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:separator@cinnamon.org:12', 'panel1:right:13:xapp-status@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:separator@cinnamon.org:15', 'panel1:right:16:network@cinnamon.org:16', 'panel1:right:17:separator2@zyzz:17', 'panel1:right:18:calendar@cinnamon.org:18']"
 
         # use custom format
-        sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
 
-        sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"
 
-        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B. %H:%M|2' "${f[calendar]}"*.json
+        sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"
 
     fi
 
     # Order icons at grouped-windows-list
-    if [[ ! $(grep --no-messages sublime_text "${f[grouped]}"*.json) && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
+    if [[ ! $(sed --quiet '/"pinned-apps":/,/]/p' "${f[grouped]}" | grep sublime_text) && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
 
         [[ ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
             && show "\nFIRST THINGS FIRST. DO U PASS THROUGH BRAVE BROWSER?" \
@@ -969,19 +969,19 @@ docky_stuffs() {
             && show "\nFIRST THINGS FIRST. DO U PASS THROUGH USEFULL PACKAGES?" \
             && usefull_pkgs
 
-        sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"*.json
+        sudo sed --in-place --null-data 's|"firefox.desktop",|"brave-browser.desktop",|2' "${f[grouped]}"
 
-        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"*.json
+        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"firefox.desktop",' "${f[grouped]}"
 
-        sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"*.json
+        sudo sed --in-place '167 a\'"$(printf '%.s ' {0..11})"'"transmission-gtk.desktop",' "${f[grouped]}"
 
-        sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"*.json
+        sudo sed --in-place --null-data 's|"org.gnome.Terminal.desktop",|"nemo.desktop",|2' "${f[grouped]}"
 
-        sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"*.json
+        sudo sed --in-place --null-data 's|"nemo.desktop"|"org.gnome.Terminal.desktop"|3' "${f[grouped]}"
 
-        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"*.json
+        sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"
 
-        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"*.json  # END
+        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"  # END
 
     fi
 
@@ -1862,14 +1862,14 @@ hide_devices() {
 
     local -a d=(
         /etc/udev/rules.d/  # 1
-        /boot/grub/themes/  # 2
+        /boot/grub/themes/*/  # 2
     )
 
     f+=(
         [config]="${d[1]}"99-hide-disks.rules
-        [bkg_grub_jpg]="${d[2]}"$(basename "${d[2]}"*)/background.jpg
-        [bkg_grub_png]="${d[2]}"$(basename "${d[2]}"*)/background.png
-        [old_bkg_grub]="${d[2]}"$(basename "${d[2]}"*)/background_old.png
+        [bkg_grub_jpg]="${d[2]}"background.jpg
+        [bkg_grub_png]="${d[2]}"background.png
+        [old_bkg_grub]="${d[2]}"background_old.png
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [grub-modified]=/etc/default/grub
         [grub]=/boot/grub/grub.cfg
@@ -3590,7 +3590,7 @@ sublime_stuffs() {
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 3
         'https://www.python.org/doc/versions/'  # 4
         'https://packagecontrol.io/packages/'  # 5
-        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/e62dbc5ad59096762ca4b9b3296705c818d506a0/st_sm_cracker.c'  # 6
+        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 6
         'https://download.sublimetext.com/sublime-merge_build-2068_amd64.deb'  # 7
     )
 
@@ -3668,7 +3668,7 @@ sublime_stuffs() {
         install_packages "${m[1]}" "${m[2]}"
 
         # This hides from dpkg --list
-        sudo apt-mark hold "${m[4]}" &> "${f[null]}"
+        # sudo apt-mark hold "${m[4]}" &> "${f[null]}"
 
     fi
 
@@ -4050,6 +4050,7 @@ usefull_pkgs() {
         'nemo-mediainfo-tab'  # 23
         'transmission-gtk'  # 24
         'doublecmd-gtk'  # 25
+        'libssl-dev'  # 26
     )
 
     [[ ! -d "${d[6]}" || $(stat -c "%U" "${d[6]}" 2>&-) != "${USER}" ]] \
@@ -4128,7 +4129,7 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
             && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[25]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[25]}" "${m[26]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
@@ -4695,7 +4696,7 @@ zsh_stuffs() {
 
                     if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                        # sudo sed --in-place "s|${USER}:/bin/bash|${USER}:bin/zsh|g" /etc/passwd
+                        # sudo sed --in-place "s|${USER}:/bin/bash|${USER}:/bin/zsh|g" /etc/passwd
                         [[ $(echo "${SHELL}") = '/bin/zsh' ]] \
                             && sudo chsh --shell $(which bash)
 

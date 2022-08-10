@@ -115,6 +115,12 @@ boilerplate() {
 
 }
 
+local -a d=(
+    /boot/grub/themes/*
+)
+
+basename "${d[1]}"
+
 # show "${c[RED]}=======================================================" 1
 # https://stackoverflow.com/a/41212803/5465165
 
