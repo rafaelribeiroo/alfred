@@ -861,8 +861,8 @@ docky_stuffs() {
                 && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep${iterator}]}" \
                 && sudo dpkg --install "${f[dep${iterator}]}" &> "${f[null]}" \
                 && sudo rm --force "${f[dep${iterator}]}" \
-                && sudo apt --fix-broken install &> "${f[null]}" \
                 || show "\n${c[GREEN]}${m[iterator]:u} ${c[WHITE]}${linei:${#m[iterator]}} [INSTALLED]"
+                # && sudo apt --fix-broken install &> "${f[null]}" \
 
         done
 
@@ -872,8 +872,8 @@ docky_stuffs() {
             && show "\n${c[YELLOW]}${m[6]:u} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
             && sudo wget --quiet "${l[6]}" --output-document "${f[docky_run]}" \
             && sudo dpkg --install "${f[docky_run]}" &> "${f[null]}" \
-            && sudo apt --fix-broken install &> "${f[null]}" \
             && sudo rm --force "${f[docky_run]}"
+            # && sudo apt --fix-broken install &> "${f[null]}" \
 
     fi
 
