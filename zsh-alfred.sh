@@ -1329,18 +1329,18 @@ github_stuffs() {
             && git config --global cola.icontheme dark \
             && git config --global cola.theme flat-dark-green
 
-    local=$(git --version | awk '{print $3}')
+    # local=$(git --version | awk '{print $3}')
 
-    latest=$(curl --silent "${l[2]}" | grep --after-context=1 '"version"' | tail -1 | xargs)
+    # latest=$(curl --silent "${l[2]}" | grep --after-context=1 '"version"' | tail -1 | xargs)
 
-    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+    # if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep git-core) ]] \
-            && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
+    #     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep git-core) ]] \
+    #         && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
 
-        update && sudo apt install --assume-yes "${m[1]}" &> "${f[null]}"
+    #     update && sudo apt install --assume-yes "${m[1]}" &> "${f[null]}"
 
-    fi
+    # fi
 
     check_ssh
 
@@ -1862,7 +1862,7 @@ hide_devices() {
 
     local -a d=(
         /etc/udev/rules.d/  # 1
-        /boot/grub/themes/*/  # 2
+        /boot/grub/themes/$(ls /boot/grub/themes)/  # 2
     )
 
     f+=(
@@ -3467,9 +3467,9 @@ ruby_stuffs() {
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Yarn) ]] \
             && sudo wget --quiet --output-document - "${l[4]}" | sudo apt-key add - &> "${f[null]}"
 
-        [[ ! $(grep --no-messages yarnpkg "${f[ppa]}") ]] \
-            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
-            && update
+        # [[ ! $(grep --no-messages yarnpkg "${f[ppa]}") ]] \
+        #     && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb https://dl.yarnpkg.com/debian/ stable main" \
+        #     && update
 
         install_packages "${m[1]}" "${m[2]}" "${m[19]}"
 
@@ -3655,9 +3655,9 @@ sublime_stuffs() {
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Sublime) ]] \
             && sudo wget --quiet --output-document - "${l[1]}" | sudo apt-key add - &> "${f[null]}"
 
-        [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
-            && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[2]}" \
-            && update
+        # [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
+        #     && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[2]}" \
+        #     && update
 
         [[ ! -e "${f[smerge]}" ]] \
             && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
