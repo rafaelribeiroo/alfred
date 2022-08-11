@@ -4482,6 +4482,7 @@ xscreensaver_stuffs() {
     f+=(
         [screen_saver]=~/.xscreensaver
         [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
+        [screensaver_cinnamon]=/org/cinnamon/desktop/session/idle-delay
         [dskt]="${d[1]}"xscreensaver.desktop
     )
 
@@ -4586,7 +4587,7 @@ StartupNotify=true
 Hidden=false
 X-GNOME-Autostart-enabled=true'
 
-    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
         && dconf write "${f[screensaver_cinnamon]}" 'uint32 0'
 
     [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
