@@ -87,10 +87,8 @@ declare -A e=(
 # usefull files
 declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
-    [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings
-    [custom_first]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom0/
-    [custom_second]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/
-    [custom_print]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/custom1/
+    [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/
+    [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list/
     [zshrc]=~/.zshrc
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
@@ -531,7 +529,7 @@ deemix_stuffs() {
     )
 
     local -a l=(
-        'https://download.deemix.app/gui/linux-x86_64-latest.deb'  # 1
+        'https://download.deemix.workers.dev/gui/linux-x64-latest.deb'  # 1
         'https://raw.githubusercontent.com/rachpt/lanzou-gui/master/lanzou/browser_cookie3_n.py'  # 2
     )
 
@@ -615,7 +613,7 @@ deemix_stuffs() {
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
-        install_packages "${m[1]}" "${m[2]}" "${m[25]}"
+        install_packages "${m[2]}" "${m[25]}"
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -780,6 +778,7 @@ docky_stuffs() {
         'sublime-text'  # 9
         'telegram-desktop'  # 10
         'dconf-editor'  # 11
+        'gconf-defaults-service'  # 12
     )
 
     f+=(
@@ -797,6 +796,8 @@ docky_stuffs() {
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
         [panel_pos]=/org/cinnamon/panels-enabled
         [panel_size]=/org/cinnamon/panels-height
+        [fix-broken]=/tmp/check_upgrade
+        [gconf_d]=/tmp/gconf-editor_3.0.1-6_amd64.deb
     )
 
     local -a l=(
@@ -808,7 +809,7 @@ docky_stuffs() {
         'http://archive.ubuntu.com/ubuntu/pool/universe/d/docky/docky_2.2.1.1-1_all.deb'  # 6
         'https://cinnamon-spices.linuxmint.com/files/applets/separator2@zyzz.zip'  # 7
         'https://cinnamon-spices.linuxmint.com/files/applets/force-quit@cinnamon.org.zip'  # 8
-
+        'http://ftp.de.debian.org/debian/pool/main/g/gconf-editor/gconf-editor_3.0.1-6_amd64.deb'  # 9
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]]; then
@@ -851,8 +852,17 @@ docky_stuffs() {
         show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[6]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
         # Dependencies
-        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-            && install_packages "${m[7]}" "${m[11]}"
+        if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
+
+            install_packages "${m[11]}" "${m[12]}"
+
+            [[ ! $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[YELLOW]}${m[7]:u} ${c[WHITE]}${linen:${#m[7]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[9]}" --output-document "${f[gconf_d]}" \
+                && sudo dpkg --install "${f[gconf_d]}" &> "${f[null]}" \
+                || show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]"
+
+        fi
 
         for (( iterator=1; iterator<=5; iterator++ )); do
 
@@ -860,9 +870,7 @@ docky_stuffs() {
                 && show "\n${c[YELLOW]}${m[iterator]:u} ${c[WHITE]}${linen:${#m[iterator]}} [INSTALLING]" \
                 && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep${iterator}]}" \
                 && sudo dpkg --install "${f[dep${iterator}]}" &> "${f[null]}" \
-                && sudo rm --force "${f[dep${iterator}]}" \
                 || show "\n${c[GREEN]}${m[iterator]:u} ${c[WHITE]}${linei:${#m[iterator]}} [INSTALLED]"
-                # && sudo apt --fix-broken install &> "${f[null]}" \
 
         done
 
@@ -871,9 +879,14 @@ docky_stuffs() {
         [[ ! $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
             && show "\n${c[YELLOW]}${m[6]:u} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
             && sudo wget --quiet "${l[6]}" --output-document "${f[docky_run]}" \
-            && sudo dpkg --install "${f[docky_run]}" &> "${f[null]}" \
-            && sudo rm --force "${f[docky_run]}"
-            # && sudo apt --fix-broken install &> "${f[null]}" \
+            && sudo dpkg --install "${f[docky_run]}" &> "${f[null]}"
+
+        sudo apt update &> "${f[null]}"
+
+        sudo apt upgrade --yes &> "${f[fix-broken]}"
+
+        [[ ! $(grep --no-messages 'unmet dependencies' "${f[fix-broken]}") ]] \
+            && sudo apt --fix-broken --yes install &> "${f[null]}"
 
     fi
 
@@ -1571,24 +1584,17 @@ chrome_stuffs() {
 flameshot_stuffs() {
 
     local -a d=(
-        ~/.config/Dharkael/  # 1
+        ~/.config/flameshot/  # 1
         /tmp/  # 2
         ~/.config/autostart/  # 3
     )
 
     f+=(
         [config]="${d[1]}"flameshot.ini
-        [config_gnome]=~/.config/flameshot/flameshot.ini
         [dskt]="${d[3]}"Flameshot.desktop
-        [screenshot]=/org/cinnamon/desktop/keybindings/media-keys/screenshot
-        [area_screenshot]=/org/cinnamon/desktop/keybindings/media-keys/area-screenshot
-        [cmd]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/command
-        [bdg]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/binding
-        [name]=/org/cinnamon/desktop/keybindings/custom-keybindings/screenshot/name
-        [custom]=/org/cinnamon/desktop/keybindings/custom-list
-        [prtscr1_gnome]=/org/gnome/shell/keybindings/show-screenshot-ui
-        [prtscr2_gnome]=/org/gnome/shell/keybindings/screenshot
-        [prtscr3_gnome]=/org/gnome/shell/keybindings/screenshot-window
+        [shortcut_gnome]=/org/gnome/shell/keybindings/
+        [shortcut_cinnamon]=/org/cinnamon/desktop/keybindings/media-keys/
+        [key_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/printscreen/
         [wayland]=/etc/gdm3/custom.conf
     )
 
@@ -1686,25 +1692,25 @@ flameshot_stuffs() {
     source "${f[user_dirs]}"
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
-        && dconf write "${f[prtscr1_gnome]}" "['']" \
-        && dconf write "${f[prtscr2_gnome]}" "['']" \
-        && dconf write "${f[prtscr3_gnome]}" "['']" \
-        && dconf write "${f[custom_gnome]}" "['${f[custom_first]}', '${f[custom_second]}']" \
-        && dconf write "${f[custom_print]}binding" "'Print'" \
-        && dconf write "${f[custom_print]}command" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
-        && dconf write "${f[custom_print]}name" "'Take a PrintScreen'"
+        && dconf write "${f[shortcut_gnome]}show-screenshot-ui" "['']" \
+        && dconf write "${f[shortcut_gnome]}screenshot" "['']" \
+        && dconf write "${f[shortcut_gnome]}screenshot-window" "['']" \
+        && dconf write "${f[custom_gnome]}" "['${f[custom_gnome]}custom0', '${f[custom_gnome]}custom1', '${f[custom_gnome]}custom2']" \
+        && dconf write "${f[custom_gnome]}custom1/binding" "'Print'" \
+        && dconf write "${f[custom_gnome]}custom1/command" "'flameshot gui'" \
+        && dconf write "${f[custom_gnome]}custom1/name" "'Take a PrintScreen'"
 
     [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-        && dconf write "${f[screenshot]}" "['']" \
-        && dconf write "${f[area_screenshot]}" "['']" \
-        && dconf write "${f[cmd]}" "'flameshot gui --path ${XDG_PICTURES_DIR}'" \
-        && dconf write "${f[bdg]}" "['Print', '<Shift>Print']" \
-        && dconf write "${f[name]}" "'Flameshot'" \
-        && dconf write "${f[custom]}" "['screenshot']"
+        && dconf write "${f[shortcut_cinnamon]}screenshot" "['']" \
+        && dconf write "${f[shortcut_cinnamon]}area-screenshot" "['']" \
+        && dconf write "${f[custom_cinnamon]}" "['printscreen', 'clipboard']" \
+        && dconf write "${f[key_cinnamon]}command" "'flameshot gui'" \
+        && dconf write "${f[key_cinnamon]}binding" "['Print', '<Shift>Print']" \
+        && dconf write "${f[key_cinnamon]}name" "'Take a PrintScreen'"
 
     for (( ; ; )); do
 
-        [[ -e "${f[config]}" || -e "${f[config_gnome]}" ]] \
+        [[ -e "${f[config]}" ]] \
             && break \
             || flameshot full -p "${d[2]}"  &> "${f[null]}" \
             && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..."
@@ -1714,25 +1720,16 @@ flameshot_stuffs() {
     # If these instructions below stay in for, don't works
     sudo pkill "${m[1]}" && take_a_break
 
-    [[ ! $(grep --no-messages '@Variant' "${f[config]}") && "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+    [[ ! $(grep --no-messages 'savePathFixed' "${f[config]}") ]] \
         && source "${f[user_dirs]}" \
         && sudo tee "${f[config]}" > "${f[null]}" <<< "[General]
-buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
-contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
+buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x4\0\0\0\x3\0\0\0\n\0\0\0\v\0\0\0\f)
+checkForUpdates=true
 disabledTrayIcon=true
 drawColor=#FF0000
 drawThickness=0
-savePath=${XDG_PICTURES_DIR}"
-
-    [[ ! $(grep --no-messages '@Variant' "${f[config_gnome]}") && "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
-        && source "${f[user_dirs]}" \
-        && sudo tee "${f[config_gnome]}" > "${f[null]}" <<< "[General]
-buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x3\0\0\0\x3\0\0\0\n\0\0\0\v)
-contastUiColor=@Variant(\0\0\0\x43\x2\xff\xff\x8aT\xff\xff\xff\xff\0\0)
-disabledTrayIcon=true
-drawColor=#FF0000
-drawThickness=0
-savePath=${XDG_PICTURES_DIR}"
+savePath=${XDG_PICTURES_DIR}
+savePathFixed=true"
 
     [[ ! $(grep --no-messages flameshot "${f[dskt]}") && "${XDG_CURRENT_DESKTOP:u}" ]] \
         && sudo tee "${f[dskt]}" > "${f[null]}" <<< '[Desktop Entry]
@@ -4015,12 +4012,15 @@ usefull_pkgs() {
         [startup]=~/.local/share/applications/rename-series.desktop
         [icon]="${d[5]}"icons/128x128.png
         [config]=~/.config/transmission/settings.json
+        [key2_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/clipboard/
+        [media_info]=/tmp/nemo-mediainfo-tab_1.0.4_all.deb
     )
 
     local -a l=(
         'https://spacevim.org/install.sh'  # 1
         'https://www.tweaking4all.com/downloads/video/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz'  # 2
         'https://github.com/transmission/transmission/releases/'  # 3
+        'https://github.com/linux-man/nemo-mediainfo-tab/releases/download/v1.0.4/nemo-mediainfo-tab_1.0.4_all.deb'  # 4
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -4045,7 +4045,7 @@ usefull_pkgs() {
         'sqlite3'  # 18
         'libsqlite3-dev'  # 19
         'ffmpegthumbnailer'  # 20
-        'clipit'  # 21
+        'diodon'  # 21
         'neofetch'  # 22
         'nemo-mediainfo-tab'  # 23
         'transmission-gtk'  # 24
@@ -4126,8 +4126,11 @@ usefull_pkgs() {
         [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep afelinczak) ]] \
             && sudo add-apt-repository --yes ppa:afelinczak/ppa &> "${f[null]}"
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep caldas-lopes) ]] \
-            && sudo add-apt-repository --yes ppa:caldas-lopes/ppa &> "${f[null]}"
+        [[ ! $(dpkg --list | awk "/ii  ${m[23]}[[:space:]]/ {print }") ]] \
+            && show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]" \
+            && sudo wget --quiet "${l[4]}" --output-document "${f[media_info]}" \
+            && sudo dpkg --install "${f[media_info]}" &> "${f[null]}" \
+            || show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]"
 
         update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[25]}" "${m[26]}"
 
@@ -4213,6 +4216,18 @@ StartupNotify=true"
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+        && dconf write "${f[custom_gnome]}" "['${f[custom_gnome]}custom0', '${f[custom_gnome]}custom1', '${f[custom_gnome]}custom2']" \
+        && dconf write "${f[custom_gnome]}custom2/binding" "['<Super>v']" \
+        && dconf write "${f[custom_gnome]}custom2/command" "'/usr/bin/diodon'" \
+        && dconf write "${f[custom_gnome]}custom2/name" "'Clipboard Manager'"
+
+    [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+        && dconf write "${f[custom_cinnamon]}" "['printscreen', 'clipboard']" \
+        && dconf write "${f[key2_cinnamon]}command" "'/usr/bin/diodon'" \
+        && dconf write "${f[key2_cinnamon]}binding" "['<Super>v']" \
+        && dconf write "${f[key2_cinnamon]}name" "'Clipboard Manager'"
 
     if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
 
@@ -4484,6 +4499,9 @@ xscreensaver_stuffs() {
         [gluqlo]=/tmp/gluqlo_1.1-1ubuntu2~xenial1_amd64.deb
         [screensaver_cinnamon]=/org/cinnamon/desktop/session/idle-delay
         [dskt]="${d[1]}"xscreensaver.desktop
+        [new_gluqlo]=/usr/libexec/xscreensaver/gluqlo
+        [old_gluqlo]=/usr/lib/xscreensaver/gluqlo
+        [fix-broken]=/tmp/check_upgrade
     )
 
     local -a l=(
@@ -4554,9 +4572,18 @@ xscreensaver_stuffs() {
             && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
             && sudo wget --quiet "${l[1]}" --output-document "${f[gluqlo]}" \
             && sudo dpkg --install "${f[gluqlo]}" &> "${f[null]}" \
-            && sudo rm --force "${f[gluqlo]}" \
-            && sudo apt --fix-broken install &> "${f[null]}" \
             || show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]"
+
+        sudo apt update &> "${f[null]}"
+
+        sudo apt upgrade --yes &> "${f[fix-broken]}"
+
+        [[ ! $(grep --no-messages 'unmet dependencies' "${f[fix-broken]}") ]] \
+            && sudo apt --fix-broken --yes install &> "${f[null]}"
+
+        # or /lib/xscreensaver/gluqlo
+        [[ ! -e "${f[new_gluqlo]}" ]] \
+            && sudo mv "${f[old_gluqlo]}" "${f[new_gluqlo]}"
 
     fi
 
@@ -4591,9 +4618,11 @@ X-GNOME-Autostart-enabled=true'
         && dconf write "${f[screensaver_cinnamon]}" 'uint32 0'
 
     [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
-        && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\' "${f[screen_saver]}"
+        && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\\' "${f[screen_saver]}"
 
     sudo sed --in-place 's|lock:.*|lock:  True|g' "${f[screen_saver]}"
+
+    sudo sed --in-place 's|mode:.*|mode:  one|g' "${f[screen_saver]}"
 
     sudo sed --in-place 's|lockTimeout:.*|LockTimeout: 0:03:00|g' "${f[screen_saver]}"
 
@@ -5069,10 +5098,10 @@ activate-numlock=true'
         && dconf write "${f[default_sort_reverse]}" false \
         && dconf write "${f[gtk_theme_gnome]}" "'Yaru-viridian-dark'" \
         && dconf write "${f[icon_theme]}" "'Yaru-viridian'" \
-        && dconf write "${f[custom_gnome]}" "['${f[custom_first]}']" \
-        && dconf write "${f[custom_first]}binding" "'<Super>e'" \
-        && dconf write "${f[custom_first]}command" "'nautilus'" \
-        && dconf write "${f[custom_first]}name" "'Raise Nautilus'" \
+        && dconf write "${f[custom_gnome]}" "['${f[custom_gnome]}custom0']" \
+        && dconf write "${f[custom_gnome]}custom0/binding" "'<Super>e'" \
+        && dconf write "${f[custom_gnome]}custom0/command" "'nautilus'" \
+        && dconf write "${f[custom_gnome]}custom0/name" "'Raise Nautilus'" \
         && dconf write "${f[trash_gnome]}" false \
         && dconf write "${f[mount_gnome]}" false
 
