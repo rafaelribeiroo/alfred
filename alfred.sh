@@ -55,6 +55,7 @@ logo=(
 # Graphemica.com / onlineutf8tools.com/convert-utf8-to-octal
 declare -A e=(
     [door]=$'\360\237\232\252'
+    [alexa]=$'\360\237\227\243'
     [leo]=$'\360\237\246\201'
     [headphone]=$'\360\237\216\247'
     [control]=$'\360\237\216\233'
@@ -391,6 +392,142 @@ uninstall_or_configure() {
 #======================#
 
 #======================#
+alexa_stuffs() {
+
+    local -a d=(
+        ~/.TRIGGERcmdData/  # 0
+    )
+
+    local -a m=(
+        'triggercmdagent'  # 0
+        'gawk'  # 1
+        'nodejs'  # 2
+        'minidlna'  # 3
+    )
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]] \
+        && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
+        && install_packages "${m[1]}"
+
+    source "${f[user_dirs]}"
+
+    f+=(
+        [file]=/tmp/triggercmdagent_1.0.1_amd64.deb
+        [agent]=/usr/lib/triggercmdagent/resources/app/src/agent.js
+        [check_token]=/tmp/check_tk
+        [cmds]=~/.TRIGGERcmdData/commands.json
+        [pc_id]=~/.TRIGGERcmdData/computerid.cfg
+        [daemon]=/usr/lib/triggercmdagent/resources/app/src/daemon.js
+    )
+
+    local -a l=(
+        'https://s3.amazonaws.com/triggercmdagents/triggercmdagent_1.0.1_amd64.deb'  # 0
+    )
+
+    if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
+
+        show "\n${c[GREEN]}${m[0]^^} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+
+        read -p $'\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                show "\n${c[RED]}U${c[WHITE]}NINSTALLING ${c[RED]}${m[0]^^}${c[WHITE]}!\n"
+
+
+
+                remove_useless
+
+                show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+                return_menu && break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UNINSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    else
+
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+
+        install_packages "${m[2]}"
+
+        show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
+
+        [[ ! -e "${f[file]}" ]] \
+            && curl --silent --location --output "${f[file]}" --create-dirs "${l[0]}"
+
+        sudo dpkg --install "${f[file]}" &> "${f[null]}"
+
+        sudo rm --force "${f[file]}"
+
+    fi
+
+    echo; show "INITIALIZING CONFIGS..."
+
+    while [[ ! -d "${d[0]}" ]]; do
+
+        show "\nRESTARTING TRIGGERCMD TO GENERATE CONFIG FILES.\nWAIT..."
+
+        ( nohup node "${f[agent]}" --console & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill "${m[0]}"
+
+    done
+
+    if [[ ! -e "${f[pc_id]}" ]]; then
+
+        echo; read -p $'\033[1;37mENTER YOUR TOKEN FROM TRIGGERCMD \033[m' user
+
+        # GITHUB STUFF
+        for (( ; ; )); do
+
+            echo; show "${c[RED]}${name[random]}${c[WHITE]}, PLEASE CREATE AN ACCOUNT IN https://www.triggercmd.com/user/auth/login\nAFTER THAT, COPY TOKEN FROM ${c[RED]}INSTRUCTIONS ${c[WHITE]} PANEL AND PASTE IN GUI SCREEN" 1
+
+            ( nohup "${m[0]}" & ) &> "${f[check_token]}"
+
+            sleep 15s
+
+            [[ -e "${f[check_token]}" && ! $(grep --no-messages 'Token login failed' "${f[check_token]}") ]] \
+                && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 && sudo pkill "${m[0]}"
+
+        done
+
+    fi
+
+    [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+        && show "\nFIRST THINGS FIRST. DO U PASS THROUGH MINIDLNA?" \
+        && minidlna_stuffs
+
+    [[ ! $(grep --no-messages 'icarus' "${f[cmds]}") ]] \
+        && sudo tee --append "${f[cmds]}" > "${f[null]}" <<< '[
+  {"trigger":"Reboot","command":"shutdown -r","ground":"background","voice":"init seis","allowParams": "false"},
+  {"trigger":"Shut down","command":"shutdown -n now","ground":"background","voice":"protocolo icarus","allowParams": "false"},
+  {"trigger":"MiniDLNA Restart","command":"sudo service minidlna restart && sudo service minidlna force-reload","ground":"background","voice":"init tres","allowParams": "false"}
+]'
+
+    ( nohup node "${f[daemon]}" --run "${d[0]}" & ) &> "${f[null]}"
+
+    echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
+
+}
+#======================#
+
+#======================#
 bash_stuffs() {
 
     source "${f[user_dirs]}"
@@ -509,7 +646,7 @@ bash_stuffs() {
 
         # Hidden directories are owned by root, we must change owner to bash "read"
         # 2>&- hides: "can't stat: no such file..."
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[1]}" # Close error output
 
@@ -524,7 +661,7 @@ bash_stuffs() {
 
     if [[ ! -e "${f[powerline_conf]}" ]]; then
 
-        [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[2]%conf.d}"
 
@@ -586,7 +723,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
                 && sudo gem install --silent "${m[4]}"
 
 
-            [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+            [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
                 && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
                 && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
@@ -1029,23 +1166,31 @@ deemix_stuffs() {
 
     [[ ! $(grep --no-messages 'alias cm' "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/' ${XDG_MUSIC_DIR}/* && rename 's|AC_DC|ACDC|g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${fXDG_MUSIC_DIR}/*\""
+alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc)/\U\1/' ${XDG_MUSIC_DIR}/* && rename 's|AC_DC|ACDC|g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*\""
 
     [[ ! $(grep --no-messages 'autoCheckForUpdates' "${f[cfg]}") ]] \
         && sudo sed --in-place --null-data 's|}|},\n  "autoCheckForUpdates": true|1' "${f[cfg]}"
 
-    sudo sed --in-place 's|"saveArtwork": true,|"saveArtwork": false,|g' "${f[cfg]}"
+    sudo sed --in-place 's|"saveArtwork":.*|"saveArtwork": false,|g' "${f[cfg]}"
 
-    sudo sed --in-place 's|"explicit": false,|"explicit": true,|g' "${f[cfg]}"
+    sudo sed --in-place 's|"explicit":.*|"explicit": true,|g' "${f[cfg]}"
 
-    sudo sed --in-place 's|"syncedLyrics": false,|"syncedLyrics": true,|g' "${f[cfg]}"
+    sudo sed --in-place 's|"syncedLyrics":.*|"syncedLyrics": true,|g' "${f[cfg]}"
 
-    sudo sed --in-place 's|"queueConcurrency": 3,|"queueConcurrency": 50,|g' "${f[cfg]}"
+    sudo sed --in-place 's|"queueConcurrency":.*|"queueConcurrency": 50,|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"titleCasing":.*|"titleCasing": "start",|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"artistCasing":.*|"artistCasing": "start",|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"featuredToTitle":.*|"featuredToTitle": "1",|g' "${f[cfg]}"
+
+    sudo sed --in-place 's|"removeAlbumVersion":.*|"removeAlbumVersion": true,|g' "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
@@ -1059,6 +1204,45 @@ alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc
     [[ ! $(grep --no-messages 'alias ct' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 alias ct='rm --recursive --force ${d[2]}'"
+
+    [[ -e "${f[file]}" ]] \
+        && sudo rm --force "${f[file]}"
+
+    curl --silent --location --output "${f[file]}" --create-dirs "${l[0]}"
+
+    latest=$(dpkg-deb --info "${f[file]}" | grep 'Version' | awk '{print $2}')
+
+    local=$(apt version "${m[0]}")
+
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        echo; read -p $'\033[1;37mSIR, SHOULD I UPGRADE DEEMIX-GUI VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                sudo dpkg --install "${f[file]}" &> "${f[null]}"
+
+                sudo rm --force "${f[file]}"
+
+                break
+
+            elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    fi
 
     echo; read -p $'\033[1;37mSIR, SHOULD I OPEN DEEMIX? (CLIPBOARD CONTAINS ARL) \n[Y/N] R: \033[m' option
 
@@ -1274,7 +1458,7 @@ docky_stuffs() {
     # Adding double applets and organizing
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
 
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+        [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
             && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
@@ -1422,7 +1606,7 @@ dualmonitor_stuffs() {
     # dual monitor wallpaper
     if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
@@ -1931,7 +2115,7 @@ flameshot_stuffs() {
         'gawk'  # 2
     )
 
-    [[ ! -d "${d[2]}" || $(stat -c "%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+    [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != "${USER}" ]] \
         && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
         && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
         && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
@@ -2198,6 +2382,7 @@ hide_devices() {
         [grub-modified]=/etc/default/grub
         [grub]=/boot/grub/grub.cfg
         [audio]=/usr/share/pulseaudio/alsa-mixer/paths/analog-output.conf.common
+        [keyboard]=/etc/modprobe.d/hid_apple.conf
     )
 
     local -a l=(
@@ -2267,7 +2452,7 @@ hide_devices() {
 
             done
 
-            [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+            [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != ${USER} ]] \
                 && mkdir --parents "${d[0]}" > "${f[null]}" \
                 && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
@@ -2311,7 +2496,7 @@ hide_devices() {
 
                     fi
 
-                    [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+                    [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
                         && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
                         && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
@@ -2380,6 +2565,33 @@ hide_devices() {
 
             done
 
+            # https://wiki.archlinux.org/title/Apple_Keyboard
+            echo; read -p $'\033[1;37mSIR, ARE YOU HAVING ISSUES WITH KEYBOARD? (APPLE FN) \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    [[ ! $(grep --no-messages '2' "${f[keyboard]}") ]] \
+                        && sudo tee "${f[keyboard]}" > "${f[null]}" <<< 'options hid_apple fnmode=2' \
+                        && sudo update-initramfs -u > "${f[null]}"
+
+                    break
+
+                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES WITH APPLE KEYBOARD?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
         fi
 
     fi
@@ -2409,6 +2621,7 @@ minidlna_stuffs() {
 
     local -a d=(
         "${XDG_VIDEOS_DIR}"  # 0
+        /...  # 1
     )
 
     f+=(
@@ -2489,6 +2702,39 @@ minidlna_stuffs() {
             || sudo service minidlna start
 
     fi
+
+    echo; read -p $'\033[1;37mSIR, ARE YOU HAVING ISSUES WITH MINIDLNA? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
+
+            [[ $(systemctl is-active minidlna.service) = 'active' ]] \
+                && sudo service minidlna stop
+
+            [[ ! -d "${d[1]}" || $(stat --format="%a" "${d[1]}" 2>&-) != 777 ]] \
+                && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+                && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+                && sudo chmod --recursive 777 "${d[1]}"
+
+            [[ $(systemctl is-active minidlna.service) != 'active' ]] \
+                && sudo service minidlna start
+
+            break
+
+        elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -3533,7 +3779,7 @@ reduceye_stuffs() {
         'redshift-gtk'  # 1
     )
 
-    [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+    [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
         && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
         && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
         && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
@@ -3588,7 +3834,7 @@ reduceye_stuffs() {
 
     if [[ ! -e "${f[config]}" ]]; then
 
-        [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
 
@@ -4022,7 +4268,7 @@ sublime_stuffs() {
 
     gcc "${f[free_st]}" --output="${f[free_st]//.c/}"
 
-    [[ $(stat -c '%a' "${f[free_st]}") -ne 776 ]] \
+    [[ $(stat --format='%a' "${f[free_st]}") -ne 776 ]] \
         && sudo chmod 776 "${f[free_st]}"
 
     ( nohup sudo "${f[free_st]//.c/}" & ) &> "${f[out]}"
@@ -4048,7 +4294,7 @@ sublime_stuffs() {
 
     if [[ ! -e "${f[pkg_ctrl]}" ]]; then
 
-        [[ ! -d "${d[1]}" || $(stat -c "%U" "${d[1]}" 2>&-) != ${USER} ]] \
+        [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
             && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
             && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
 
@@ -4319,6 +4565,7 @@ usefull_pkgs() {
         /etc/  # 3
         /etc/series-renamer/  # 4
         ~/.config/autostart/  # 5
+        ~/.config/Rename\ My\ TV\ Series/  # 6
     )
 
     f+=(
@@ -4334,6 +4581,9 @@ usefull_pkgs() {
         [config]=~/.config/transmission/settings.json
         [key2_cinnamon]=/org/cinnamon/desktop/keybindings/custom-keybindings/clipboard/
         [media_info]=/tmp/nemo-mediainfo-tab_1.0.4_all.deb
+        [sticky_cfg]=/org/x/sticky/
+        [rename_db]="${d[6]}"LocalData.sqlite3
+        [daemon_rnm]=/usr/bin/rename-tv-series
     )
 
     local -a l=(
@@ -4371,9 +4621,10 @@ usefull_pkgs() {
         'transmission-gtk'  # 23
         'doublecmd-gtk'  # 24
         'libssl-dev'  # 25
+        'dconf-editor'  # 26
     )
 
-    [[ ! -d "${d[5]}" || $(stat -c "%U" "${d[5]}" 2>&-) != "${USER}" ]] \
+    [[ ! -d "${d[5]}" || $(stat --format="%U" "${d[5]}" 2>&-) != "${USER}" ]] \
         && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
         && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
         && sudo chown --recursive "${USER}":"${USER}" "${d[5]}"
@@ -4446,7 +4697,7 @@ usefull_pkgs() {
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}" \
             || show "\n${c[GREEN]}${m[22]^^} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[24]}" "${m[25]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[24]}" "${m[25]}" "${m[26]}"
 
         [[ $(snap list 2>&- | grep "${m[11]}") ]] \
             && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \
@@ -4531,7 +4782,10 @@ StartupNotify=true"
 
     echo; show "INITIALIZING CONFIGS..."
 
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+    [[ ! -L "${f[daemon_rnm]}" ]] \
+        && sudo ln --force --symbolic "${f[series]}" "${f[daemon_rnm]}"
+
+    [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
         && dconf write "${f[custom_gnome]}" "['${f[custom_gnome]}custom0', '${f[custom_gnome]}custom1', '${f[custom_gnome]}custom2']" \
         && dconf write "${f[custom_gnome]}custom2/binding" "['<Super>v']" \
         && dconf write "${f[custom_gnome]}custom2/command" "'/usr/bin/diodon'" \
@@ -4541,7 +4795,10 @@ StartupNotify=true"
         && dconf write "${f[custom_cinnamon]}" "['printscreen', 'clipboard']" \
         && dconf write "${f[key2_cinnamon]}command" "'/usr/bin/diodon'" \
         && dconf write "${f[key2_cinnamon]}binding" "['<Super>v']" \
-        && dconf write "${f[key2_cinnamon]}name" "'Clipboard Manager'"
+        && dconf write "${f[key2_cinnamon]}name" "'Clipboard Manager'" \
+        && dconf write "${f[sticky_cfg]}autostart" true \
+        && dconf write "${f[sticky_cfg]}autostart-notes-visible" true \
+        && dconf write "${f[sticky_cfg]}font" "'Monospace 14'"
 
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
 
@@ -4617,6 +4874,26 @@ StartupNotify=true"
 
     sudo sed --in-place 's|#freetype-color=16777215|freetype-color=16776960|g' "${f[vlc]}"
 
+    while [[ ! -d "${d[6]}" ]]; do
+
+        show "\nRESTARTING RENAME-SERIES TO GENERATE CONFIG FILES.\nWAIT..."
+
+        ( nohup "${m[16]}" & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill "${m[16]}"
+
+    done
+
+    sqlite3 "${f[rename_db]}" "UPDATE preferences SET CheckForUpdates = 0;" "" > "${f[null]}"
+
+    sqlite3 "${f[rename_db]}" "UPDATE preferences SET FileNameFormatString = '%E. %T';" "" > "${f[null]}"
+
+    sqlite3 "${f[rename_db]}" "UPDATE preferences SET SeasonNrAtLeast2Chars = 0;" "" > "${f[null]}"
+
+    sqlite3 "${f[rename_db]}" 'DELETE FROM replacechars WHERE replacement = "`";' "" > "${f[null]}"
+
     # These character class match once only, so we need +
     # https://www.petefreitag.com/cheatsheets/regex/character-classes/
     [[ $(grep --no-messages --extended-regexp '([[:space:]]+ = )1' "${f[cfg]}") ]] \
@@ -4655,7 +4932,7 @@ workspace_stuffs() {
         git@github.com:"${user}"/  # 0
     )
 
-    if [[ -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) = ${USER} ]]; then
+    if [[ -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) = ${USER} ]]; then
 
         show "\n${c[GREEN]}${d[0]^^} ${c[WHITE]}${linec:${#d[0]}} [CREATED]\n" 1
 
@@ -4836,7 +5113,7 @@ xscreensaver_stuffs() {
         'dconf-editor'  # 10
     )
 
-    [[ ! -d "${d[0]}" || $(stat -c "%U" "${d[0]}" 2>&-) != "${USER}" ]] \
+    [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != "${USER}" ]] \
         && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
         && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
         && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
@@ -4934,9 +5211,13 @@ X-GNOME-Autostart-enabled=true'
     [[ ! $(grep --no-messages 'gluqlo' "${f[screen_saver]}") ]] \
         && sudo sed --in-place '47 a\'"$(printf '%.s ' {0..7})"'gluqlo -root \n\\' "${f[screen_saver]}"
 
+    # Changes not being applied?
+    # xrdb -load ~/.xscreensaver && killall xscreensaver && xscreensaver -no-splash &
     sudo sed --in-place 's|lock:.*|lock:  True|g' "${f[screen_saver]}"
 
     sudo sed --in-place 's|mode:.*|mode:  one|g' "${f[screen_saver]}"
+
+    sudo sed --in-place 's|selected:.*|selected:  1|g' "${f[screen_saver]}"
 
     sudo sed --in-place 's|lockTimeout:.*|LockTimeout: 0:03:00|g' "${f[screen_saver]}"
 
@@ -5210,29 +5491,30 @@ evoke_functions() {
     case "${choice}" in
 
         0|00) close_menu &> "${f[null]}" ;;
-        1|01) bash_stuffs && return_menu ;;
-        2|02) brave_stuffs && return_menu ;;
-        3|03) deemix_stuffs && return_menu ;;
-        4|04) docky_stuffs && return_menu ;;
-        5|05) dualmonitor_stuffs && return_menu ;;
-        6|06) github_stuffs && return_menu ;;
-        7|07) chrome_stuffs && return_menu ;;
-        8|08) flameshot_stuffs && return_menu ;;
-        9|09) heroku_stuffs && return_menu ;;
-        10) hide_devices && return_menu ;;
-        11) minidlna_stuffs && return_menu ;;
-        12) nvidia_stuffs && return_menu ;;
-        13) postgres_stuffs && return_menu ;;
-        14) postman_stuffs && return_menu ;;
-        15) python_stuffs && return_menu ;;
-        16) reduceye_stuffs && return_menu ;;
-        17) ruby_stuffs && return_menu ;;
-        18) sublime_stuffs && return_menu ;;
-        19) tmate_stuffs && return_menu ;;
-        20) usefull_pkgs && return_menu ;;
-        21) workspace_stuffs && return_menu ;;
-        21) xscreensaver_stuffs && return_menu ;;
-        22) echo; show "KNOW YOUR LIMITS ${name[random]}..."
+        1|01) alexa_stuffs && return_menu ;;
+        2|02) bash_stuffs && return_menu ;;
+        3|03) brave_stuffs && return_menu ;;
+        4|04) deemix_stuffs && return_menu ;;
+        5|05) docky_stuffs && return_menu ;;
+        6|06) dualmonitor_stuffs && return_menu ;;
+        7|07) github_stuffs && return_menu ;;
+        8|08) chrome_stuffs && return_menu ;;
+        9|09) flameshot_stuffs && return_menu ;;
+        10) heroku_stuffs && return_menu ;;
+        11) hide_devices && return_menu ;;
+        12) minidlna_stuffs && return_menu ;;
+        13) nvidia_stuffs && return_menu ;;
+        14) postgres_stuffs && return_menu ;;
+        15) postman_stuffs && return_menu ;;
+        16) python_stuffs && return_menu ;;
+        17) reduceye_stuffs && return_menu ;;
+        18) ruby_stuffs && return_menu ;;
+        19) sublime_stuffs && return_menu ;;
+        20) tmate_stuffs && return_menu ;;
+        21) usefull_pkgs && return_menu ;;
+        22) workspace_stuffs && return_menu ;;
+        23) xscreensaver_stuffs && return_menu ;;
+        24) echo; show "KNOW YOUR LIMITS ${name[random]}..."
 
         echo; read -p $'\033[1;37mSIR, DO U TRUST ME TO DO MY OWN CHANGES? \n[Y/N] R: \033[m' option
 
@@ -5260,6 +5542,7 @@ evoke_functions() {
 
         done
 
+        alexa_stuffs
         bash_stuffs
         brave_stuffs
         deemix_stuffs
@@ -5310,29 +5593,30 @@ menu() {
 
         sleep 0.1s; show "${c[RED]}=======================================================" 1
         sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[door]}" 1
-        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}BASH COLORFUL (OH-MY-BASH) ${e[paint]}" 1
-        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 1
-        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 1
-        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DOCKY ${e[control]}" 1
-        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
-        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
-        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
-        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
-        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 1
-        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
-        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
-        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}XSCREENSAVER ${e[screensaver]}" 1
-        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}ALL ${e[whale]}" 1
+        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}ALEXA SKILLS ${e[alexa]}" 1
+        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}BASH COLORFUL (OH-MY-BASH) ${e[paint]}" 1
+        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 1
+        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 1
+        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}DOCKY ${e[control]}" 1
+        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
+        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
+        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
+        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
+        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 1
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 1
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
+        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
+        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
+        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
+        sleep 0.1s; show "${c[RED]}[ 23 ] ${c[WHITE]}XSCREENSAVER ${e[screensaver]}" 1
+        sleep 0.1s; show "${c[RED]}[ 24 ] ${c[WHITE]}ALL ${e[whale]}" 1
         sleep 0.1s; show "${c[RED]}=======================================================" 1
 
         read -n 2 -p $'\033[1;31m[    ]\033[m\033[4D' choice
