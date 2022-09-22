@@ -64,6 +64,7 @@ declare -A f=(
     [int_brave]=./try.json
     [inter]="${HOME}"/.postman/InterceptorBridge/InterceptorBridge
     [int_chrome]=~/.config/google-chrome/NativeMessagingHosts/com.postman.postmanapp.json
+    [rename_db]=~/.config/Rename\ My\ TV\ Series/LocalData.sqlite3
 )
 
 name=(
@@ -115,31 +116,10 @@ boilerplate() {
 
 }
 
-local -a d=(
-    /boot/grub/themes/*
-)
-
-basename "${d[1]}"
-
 # show "${c[RED]}=======================================================" 1
+
 # https://stackoverflow.com/a/41212803/5465165
 
-# [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] .*GNOME
 
-# [[ getent group sudo | grep "${USER}" ]] \
-#     && echo estou || echo n estou
+# # sql = 'CREATE TABLE torrent (id SERIAL PRIMARY KEY, title VARCHAR(150), url VARCHAR(50), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())'
 
-# f+=(
-#     [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
-# )
-
-# if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
-
-# get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
-
-# a=("${(@s/,/)get_dock}")
-# echo $a[2]
-# for (( iterator=1; iterator<=${#a}; iterator++ )); do
-#     echo $iterator
-#     echo passei
-# done
