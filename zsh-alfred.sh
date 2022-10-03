@@ -29,7 +29,8 @@ name=(
     'MR. BRUCE'
 )
 
-# in zsh, arrays start in 1
+# em computacao nao existe aleatoriedade verdadeira, apenas aproximacao. Para
+# se ter a aleatoriedade, teria que ser explorado a fundo a entropia
 random=$(shuf --input-range 1-${#name[@]} --head-count 1)
 
 # Associative array
@@ -1480,17 +1481,13 @@ github_stuffs() {
                     && sudo tar --extract --gzip --file="${f[cola_rar]}" --directory="${d[1]}" > "${f[null]}" \
                     && sudo rm --force "${f[cola_rar]}"
 
-                cd "${d[2]}"
-
                 [[ ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
                     && python_stuffs
 
-                sudo make prefix="${d[3]}" install &> "${f[null]}"
+                sudo make --quiet --directory="${d[2]}" --prefix="${d[3]}" install
 
                 sudo ln --force --symbolic "${f[cola_old]}" "${f[cola_new]}"
-
-                cd - &> "${f[null]}"
 
                 break
 
@@ -4270,6 +4267,7 @@ usefull_pkgs() {
         [sticky_cfg]=/org/x/sticky/
         [rename_db]="${d[7]}"LocalData.sqlite3
         [daemon_rnm]=/usr/bin/rename-tv-series
+        [recent_items]=/net/launchpad/diodon/clipboard/recent-items-size
     )
 
     local -a l=(
@@ -4490,7 +4488,8 @@ StartupNotify=true"
         && dconf write "${f[key2_cinnamon]}name" "'Clipboard Manager'" \
         && dconf write "${f[sticky_cfg]}autostart" true \
         && dconf write "${f[sticky_cfg]}autostart-notes-visible" true \
-        && dconf write "${f[sticky_cfg]}font" "'Monospace 14'"
+        && dconf write "${f[sticky_cfg]}font" "'Monospace 14'" \
+        && dconf write "${f[recent_items]}" 'uint32 10'
 
     if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
 
@@ -4597,9 +4596,10 @@ StartupNotify=true"
         && sudo tee --append "${f[load]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
+    # alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'
     [[ ! $(grep --no-messages 'alias vk' "${f[zshrc]}") ]] \
         && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'" \
+alias vk='pkill --full vlc'" \
         && source "${f[zshrc]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"

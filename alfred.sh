@@ -770,7 +770,7 @@ alias ls='${m[4]}'" \
                     && show "\n${c[YELLOW]}${d[2]^^} ${c[WHITE]}${linen:${#d[2]}} [INSTALLING]" \
                     && git clone --quiet "${l[3]}" "${d[3]}"
 
-                make --quiet --directory="${d[3]}" install PREFIX="${d[4]}"
+                sudo make --quiet --directory="${d[3]}" --prefix="${d[4]}" install
 
                 sudo rm --force --recursive "${d[3]}"
 
@@ -1801,17 +1801,13 @@ github_stuffs() {
                     && sudo tar --extract --gzip --file="${f[cola_rar]}" --directory="${d[0]}" > "${f[null]}" \
                     && sudo rm --force "${f[cola_rar]}"
 
-                cd "${d[1]}"
-
                 [[ ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
                     && python_stuffs
 
-                sudo make prefix="${d[2]}" install &> "${f[null]}"
+                sudo make --quiet --directory="${d[1]}" --prefix="${d[2]}" install
 
                 sudo ln --force --symbolic "${f[cola_old]}" "${f[cola_new]}"
-
-                cd - &> "${f[null]}"
 
                 break
 
@@ -4798,7 +4794,8 @@ StartupNotify=true"
         && dconf write "${f[key2_cinnamon]}name" "'Clipboard Manager'" \
         && dconf write "${f[sticky_cfg]}autostart" true \
         && dconf write "${f[sticky_cfg]}autostart-notes-visible" true \
-        && dconf write "${f[sticky_cfg]}font" "'Monospace 14'"
+        && dconf write "${f[sticky_cfg]}font" "'Monospace 14'" \
+        && dconf write "${f[recent_items]}" 'uint32 10'
 
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
 
@@ -4905,9 +4902,10 @@ StartupNotify=true"
         && sudo tee --append "${f[load]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
+    # alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'
     [[ ! $(grep --no-messages 'alias vk' "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'" \
+alias vk='pkill --full vlc'" \
         && source "${f[bashrc]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"

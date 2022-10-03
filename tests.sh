@@ -123,3 +123,8 @@ boilerplate() {
 
 # # sql = 'CREATE TABLE torrent (id SERIAL PRIMARY KEY, title VARCHAR(150), url VARCHAR(50), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())'
 
+# curl --silent --location --output /tmp/fix-cedilla --create-dirs https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla
+# chmod 755 fix-cedilla
+# ./fix-cedilla
+
+# restart
