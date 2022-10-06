@@ -89,7 +89,7 @@ declare -A f=(
     [askpass]=/lib/cryptsetup/askpass
     [bashrc]=~/.bashrc
     [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/
-    [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list/
+    [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list
     [enabled_applets]=/org/cinnamon/enabled-applets
     [gtk_theme]=/org/cinnamon/desktop/interface/gtk-theme
     [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
@@ -1318,7 +1318,7 @@ docky_stuffs() {
         [dep4]=/tmp/libgnome-keyring0_3.12.0-1build1_amd64.deb
         [dep5]=/tmp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb
         [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
-        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/18.json
+        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/$(find ~/.cinnamon/configs/calendar@cinnamon.org -maxdepth 1 -type f | awk --field-separator=/ '{print $7}')
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
@@ -1383,43 +1383,49 @@ docky_stuffs() {
 
             install_packages "${m[10]}" "${m[11]}"
 
-            [[ ! $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
-                && show "\n${c[YELLOW]}${m[6]^^} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
+            [[ $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[6]^^} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
                 && sudo wget --quiet "${l[8]}" --output-document "${f[gconf_d]}" \
-                && sudo dpkg --install "${f[gconf_d]}" &> "${f[null]}" \
-                || show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]"
+                && sudo dpkg --install "${f[gconf_d]}" &> "${f[null]}"
 
         fi
 
         for (( iterador=0; iterador<=4; iterador++ )); do
 
-            [[ ! $(dpkg --list | awk "/ii  ${m[iterator]}[[:space:]]/ {print }") ]] \
-                && show "\n${c[YELLOW]}${m[iterador]^^} ${c[WHITE]}${linen:${#m[iterador]}} [INSTALLING]" \
+            [[ $(dpkg --list | awk "/ii  ${m[iterator]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[iterador]^^} ${c[WHITE]}${linei:${#m[iterador]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[iterador]^^} ${c[WHITE]}${linen:${#m[iterador]}} [INSTALLING]" \
                 && sudo wget --quiet "${l[iterator]}" --output-document "${f[dep$iterator]}" \
-                && sudo dpkg --install "${f[dep$iterator]}" &> "${f[null]}" \
-                || show "\n${c[GREEN]}${m[iterador]^^} ${c[WHITE]}${linei:${#m[iterador]}} [INSTALLED]"
+                && sudo dpkg --install "${f[dep$iterator]}" &> "${f[null]}"
 
         done
 
         unset iterador
 
-        [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
+        [[ ! -e "${f[docky_run]}" ]] \
             && show "\n${c[YELLOW]}${m[5]^^} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-            && sudo wget --quiet "${l[5]}" --output-document "${f[docky_run]}" \
-            && sudo dpkg --install "${f[docky_run]}" &> "${f[null]}"
+            && sudo wget --quiet "${l[5]}" --output-document "${f[docky_run]}"
 
-        sudo apt update &> "${f[null]}"
+        sudo dpkg --install "${f[docky_run]}" &> "${f[null]}"
 
-        sudo apt upgrade --yes &> "${f[fix-broken]}"
-
-        [[ ! $(grep --no-messages 'unmet dependencies' "${f[fix-broken]}") ]] \
-            && sudo apt --fix-broken --yes install &> "${f[null]}"
+        sudo apt --fix-broken --yes install &> "${f[null]}"
 
     fi
 
     echo; show "INITIALIZING CONFIGS..."
 
-    ( nohup "${m[5]}" & ) &> "${f[null]}"
+    while [[ ! -d "${d[4]}" ]]; do
+
+        show "\nRESTARTING DOCKY TO GENERATE CONFIG FILES.\nWAIT..."
+
+        ( nohup "${m[5]}" & ) &> "${f[null]}"
+
+        take_a_break
+
+        sudo pkill "${m[5]}"
+
+    done
 
     f+=(
         [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
@@ -1435,18 +1441,6 @@ docky_stuffs() {
         [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
         [launch]=~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/%gconf.xml
     )
-
-    while [[ ! -d "${d[4]}" ]]; do
-
-        show "\nRESTARTING DOCKY TO GENERATE CONFIG FILES.\nWAIT..."
-
-        ( nohup "${m[5]}" & ) &> "${f[null]}"
-
-        take_a_break
-
-        sudo pkill "${m[5]}"
-
-    done
 
     [[ ! $(grep --no-messages firefox "${f[launch]}") ]] \
         && sudo sed --in-place '/<entry name="Launchers".*>/{:a;/<\/entry>/!{N;ba;}};/<entry name="Launchers">default<\/entry>/d;' "${f[launch]}"
@@ -1521,7 +1515,7 @@ docky_stuffs() {
 
         sudo sed --in-place '166 a\'"$(printf '%.s ' {0..11})"'"telegramdesktop.desktop",' "${f[grouped]}"
 
-        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"  # END
+        sudo sed --in-place '170 a\'"$(printf '%.s ' {0..11})"'"sublime_text.desktop",' "${f[grouped]}"
 
     fi
 
@@ -4489,7 +4483,7 @@ sublime_stuffs() {
 
             # PY don't run if mix tabs with space
             [[ ! $(grep --no-messages 'focus_view(found)' "${f[REPLPYT]}") ]] \
-                && sudo sed --in-place "s|found = view|found = view\n                    window.focus_view(found)|g" "${f[REPLPYT]}"
+                && sudo sed --in-place "s|found = view|found = view\n$(printf '%.s ' {1..20})window.focus_view(found)|g" "${f[REPLPYT]}"
 
             break
 
@@ -4629,6 +4623,7 @@ usefull_pkgs() {
         'doublecmd-gtk'  # 24
         'libssl-dev'  # 25
         'dconf-editor'  # 26
+        'python3-mediainfodll'  # 27
     )
 
     [[ ! -d "${d[5]}" || $(stat --format="%U" "${d[5]}" 2>&-) != "${USER}" ]] \
@@ -4695,13 +4690,15 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && sudo rm --force "${f[lock]}"
 
+        install_packages "${m[27]}"
+
         [[ ! $(dpkg --list | awk "/ii  ${m[22]}[[:space:]]/ {print }") ]] \
             && show "\n${c[GREEN]}${m[22]^^} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[22]^^} ${c[WHITE]}${linen:${#m[22]}} [INSTALLING]" \
             && sudo wget --quiet "${l[3]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[24]}" "${m[25]}" "${m[26]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}"
 
         [[ $(snap list 2>&- | grep "${m[11]}") ]] \
             && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \
@@ -4743,30 +4740,6 @@ Comment=Renamemytvseries
 Exec=${f[series]}
 Terminal=false
 StartupNotify=true"
-
-            echo; read -p $'\033[1;37mSIR, SHOULD I OPEN RENAME TV SERIES? \n[Y/N] R: \033[m' option
-
-            for (( ; ; )); do
-
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                    ( nohup "${f[series]}" & ) &> "${f[null]}"
-
-                    break
-
-                elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                    break
-
-                else
-
-                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                    read option
-
-                fi
-
-            done
 
         else
 
@@ -4861,7 +4834,7 @@ StartupNotify=true"
 
     fi
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I NOTIFY YOU WHEN TORRENTS DOWNLOADED BY TRANSMISSION-GTK ARE DONE? \n[Y/N] R: \033[m' option
+    echo; read -p $'\033[1;37mSIR, SHOULD I NOTIFY YOU WHEN TORRENTS BY TRANSMISSION-GTK ARE DONE? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -4951,7 +4924,7 @@ curl --silent --form-string "token=${values[0]}" \
 
         take_a_break
 
-        sudo kill -9 $(ps aux | grep rename) &> "${f[null]}"
+        kill -9 $(ps aux | egrep 'rename-tv-series|RenameMyTVSeries') &> "${f[null]}"
 
     done
 

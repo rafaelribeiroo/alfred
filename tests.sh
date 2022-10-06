@@ -115,7 +115,4 @@ boilerplate() {
 
 # show "${c[RED]}=======================================================" 1
 
-# https://stackoverflow.com/a/41212803/5465165
-
-
-# # sql = 'CREATE TABLE torrent (id SERIAL PRIMARY KEY, title VARCHAR(150), url VARCHAR(50), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())'
+# sql = 'CREATE TABLE torrent (id SERIAL PRIMARY KEY, title VARCHAR(150), url VARCHAR(50), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())'
