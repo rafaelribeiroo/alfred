@@ -55,6 +55,7 @@ declare -A f=(
     [srcs]=/etc/apt/sources.list
     [srcs_list]=/etc/apt/sources.list.d/
     [bashrc]=~/.bashrc
+    [zshrc]=~/.zshrc
     [null]=/dev/null
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
@@ -122,9 +123,3 @@ boilerplate() {
 
 
 # # sql = 'CREATE TABLE torrent (id SERIAL PRIMARY KEY, title VARCHAR(150), url VARCHAR(50), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())'
-
-# curl --silent --location --output /tmp/fix-cedilla --create-dirs https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla
-# chmod 755 fix-cedilla
-# ./fix-cedilla
-
-# restart

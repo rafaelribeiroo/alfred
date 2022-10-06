@@ -185,6 +185,14 @@ check_pkg() {
 #======================#
 check_source() {
 
+    f+=(
+        [alfred]=/usr/share/icons/jenkins-128x128.png
+    )
+
+    local -a l=(
+        'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 1
+    )
+
     # If script is not being sourced
     if [[ "${BASH_SOURCE[0]}" -ef "${0}" ]]; then
 
@@ -195,6 +203,9 @@ check_source() {
         if [[ ! -e "${f[update]}" ]]; then
 
             clear && show "\nCHECKING TOTAL OF PACKAGES TO BE UPGRADED..."
+
+            [[ ! -e "${f[alfred]}" ]] \
+                && sudo curl --silent --location --output "${f[alfred]}" --create-dirs "${l[1]}"
 
             apt update 2>&- | tail -1 | awk {'print $1'} &> "${f[update]}"
 
@@ -1336,12 +1347,8 @@ github_stuffs() {
         'https://git-cola.github.io/downloads.html'  # 7
     )
 
-    latest=$(curl --silent "${l[7]}"| grep --max-count=1 'v[0-9]' | sed --expression 's|<[^>]*>||g' | sed 's|v||' | xargs)
-
     local -a d=(
         /tmp/  # 1
-        /tmp/git-cola-"${latest}"/  # 2
-        /usr/local/  # 3
     )
 
     f+=(
@@ -1349,13 +1356,7 @@ github_stuffs() {
         [config-ssh]=~/.ssh/config
         [tmp_success]="${d[1]}"check_success
         [all_title_gh]="${d[1]}"all_title
-        [cola_rar]="${d[1]}"git-cola-${latest}.tar.gz
-        [cola_old]="${d[3]}"bin/cola
         [cola_new]=/usr/bin/cola
-    )
-
-    l+=(
-        "https://github.com/git-cola/git-cola/archive/v${latest}.tar.gz"  # 8
     )
 
     local -a m=(
@@ -1464,6 +1465,8 @@ github_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
+    latest=$(curl --silent "${l[7]}"| grep --max-count=1 'v[0-9]' | sed --expression 's|<[^>]*>||g' | sed 's|v||' | xargs)
+
     local=$(cola --version | awk '{print $3}')
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
@@ -1474,20 +1477,13 @@ github_stuffs() {
 
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                [[ ! -e "${f[cola_rar]}" ]] \
-                    && sudo wget --quiet "${l[8]}" --output-document "${f[cola_rar]}"
-
-                [[ ! -d "${d[2]}" ]] \
-                    && sudo tar --extract --gzip --file="${f[cola_rar]}" --directory="${d[1]}" > "${f[null]}" \
-                    && sudo rm --force "${f[cola_rar]}"
-
                 [[ ! $(dpkg --list | awk "/ii  ${m[8]}[[:space:]]/ {print }") ]] \
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
                     && python_stuffs
 
-                sudo make --quiet --directory="${d[2]}" --prefix="${d[3]}" install
+                install_pip "${m[3]}"
 
-                sudo ln --force --symbolic "${f[cola_old]}" "${f[cola_new]}"
+                sudo ln --force --symbolic "$(which ${m[3]})" "${f[cola_new]}"
 
                 break
 
@@ -1529,18 +1525,18 @@ github_stuffs() {
             && git config --global cola.icontheme dark \
             && git config --global cola.theme flat-dark-green
 
-    # local=$(git --version | awk '{print $3}')
+    local=$(git --version | awk '{print $3}')
 
-    # latest=$(curl --silent "${l[2]}" | grep --after-context=1 '"version"' | tail -1 | xargs)
+    latest=$(curl --silent "${l[2]}" | grep --after-context=1 '"version"' | tail -1 | xargs)
 
-    # if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
-    #     [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep git-core) ]] \
-    #         && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
+        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep git-core) ]] \
+            && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
 
-    #     update && sudo apt install --assume-yes "${m[1]}" &> "${f[null]}"
+        update && sudo apt install --assume-yes "${m[1]}" &> "${f[null]}"
 
-    # fi
+    fi
 
     check_ssh
 
@@ -1899,8 +1895,8 @@ flameshot_stuffs() {
 
         [[ -e "${f[config]}" ]] \
             && break \
-            || flameshot full -p "${d[2]}"  &> "${f[null]}" \
-            && show "\nSAVING A SCREENSHOT TO CREATE DEFAULT FILES..."
+            || ( nohup "${m[1]}" config & ) &> "${f[null]}" \
+            && sleep 5s
 
     done
 
@@ -1914,7 +1910,7 @@ buttons=@Variant(\0\0\0\x7f\0\0\0\vQList<int>\0\0\0\0\x4\0\0\0\x3\0\0\0\n\0\0\0\
 checkForUpdates=true
 disabledTrayIcon=true
 drawColor=#FF0000
-drawThickness=0
+drawThickness=3
 savePath=${XDG_PICTURES_DIR}
 savePathFixed=true"
 
@@ -2046,14 +2042,10 @@ hide_devices() {
 
     local -a d=(
         /etc/udev/rules.d/  # 1
-        /boot/grub/themes/$(ls /boot/grub/themes)/  # 2
     )
 
     f+=(
         [config]="${d[1]}"99-hide-disks.rules
-        [bkg_grub_jpg]="${d[2]}"background.jpg
-        [bkg_grub_png]="${d[2]}"background.png
-        [old_bkg_grub]="${d[2]}"background_old.png
         [grub2_theme]=/tmp/grub2-theme-mint_1.2.2_all.deb
         [grub-modified]=/etc/default/grub
         [grub]=/boot/grub/grub.cfg
@@ -2174,6 +2166,16 @@ hide_devices() {
                         fi
 
                     fi
+
+                    d+=(
+                        /boot/grub/themes/$(find /boot/grub/themes -maxdepth 1 -type d | tail -1 | awk --field-separator=/ '{print $5}')/  # 2
+                    )
+
+                    f+=(
+                        [bkg_grub_jpg]="${d[2]}"background.jpg
+                        [bkg_grub_png]="${d[2]}"background.png
+                        [old_bkg_grub]="${d[2]}"background_old.png
+                    )
 
                     [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != "${USER}" ]] \
                         && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
@@ -2394,7 +2396,7 @@ minidlna_stuffs() {
             [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != "${USER}" ]] \
                 && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
                 && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-                && sudo chmod --recursive "${d[2]}"
+                && sudo chmod --recursive 777 "${d[2]}"
 
             [[ $(systemctl is-active minidlna.service) != 'active' ]] \
                 && sudo service minidlna start
@@ -3287,6 +3289,8 @@ python_stuffs() {
         'gawk'  # 16
         'dependencies'  # 17
         'git'  # 18
+        'liblzma-dev'  # 19
+        'tk-dev'  # 20
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[16]}[[:space:]]/ {print }") ]] \
@@ -3365,7 +3369,7 @@ python_stuffs() {
     # apt and pyenv download/install packages from curl
     local=$(python -c 'from platform import python_version as v; print(v())')
 
-    latest=$(curl --silent "${l[3]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
+    latest=$(curl --silent "${l[3]}" | grep --no-messages external | head -4 | tail -1 | awk --field-separator=/ '{print $5}')
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -3378,7 +3382,7 @@ python_stuffs() {
                 show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
                 # Dependencies
-                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[18]}"
+                install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[18]}" "${m[19]}" "${m[20]}"
 
                 [[ -d "${d[1]}" ]] \
                     && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
@@ -3821,6 +3825,7 @@ sublime_stuffs() {
         [keymap]="${d[1]}"Packages/User/Default\ \(Linux\).sublime-keymap
         [REPL]="${d[1]}"Packages/SublimeREPL/SublimeREPL.sublime-settings
         [REPLPY]="${d[1]}"Packages/SublimeREPL/config/Python/Main.sublime-menu
+        [reduce]=config/Python/Main.sublime-menu
         [REPLPYT]="${d[1]}"Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
         [free_st]=/tmp/st_sm_cracker.c
@@ -4113,14 +4118,14 @@ sublime_stuffs() {
             latest=$(curl --silent "${l[4]}" | grep release | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
 
             [[ ! -d "${d[4]}" && ! -e "${f[file]}${latest}" ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PYTHON?" \
                 && python_stuffs
 
             sudo sed --in-place 's|"swallow_startup_errors": false|"swallow_startup_errors": true|g' "${f[anaconda]}"
 
             sudo tee "${f[keymap]}" > "${f[null]}" <<< '[
     { "keys": ["ctrl+p"], "command": "run_existing_window_command", "args": {
-        "id": "repl_python_run", "file": "config/Python/Main.sublime-menu" }
+        "id": "repl_python_run", "file": '\""config/Python/Main.sublime-menu"\"' }
     },
     { "keys": ["("], "command": "insert_snippet", "args": {"contents": "($0)"}, "context":
         [
@@ -4268,6 +4273,7 @@ usefull_pkgs() {
         [rename_db]="${d[7]}"LocalData.sqlite3
         [daemon_rnm]=/usr/bin/rename-tv-series
         [recent_items]=/net/launchpad/diodon/clipboard/recent-items-size
+        [after_torrent]=/usr/bin/torrent_completed.sh
     )
 
     local -a l=(
@@ -4275,6 +4281,7 @@ usefull_pkgs() {
         'https://www.tweaking4all.com/downloads/video/RenameMyTVSeries-2.0.10-Linux64bit.tar.gz'  # 2
         'https://github.com/transmission/transmission/releases/'  # 3
         'https://github.com/linux-man/nemo-mediainfo-tab/releases/download/v1.0.4/nemo-mediainfo-tab_1.0.4_all.deb'  # 4
+        'https://api.pushover.net/1/messages.json'  # 5
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -4378,14 +4385,11 @@ usefull_pkgs() {
 
         [[ -e "${f[lock]}" ]] && sudo rm --force "${f[lock]}"
 
-        [[ ! $(grep ^ "${f[srcs]}" "${f[srcs_list]}"* | grep afelinczak) ]] \
-            && sudo add-apt-repository --yes ppa:afelinczak/ppa &> "${f[null]}"
-
         [[ ! $(dpkg --list | awk "/ii  ${m[23]}[[:space:]]/ {print }") ]] \
-            && show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]" \
+            && show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]" \
+            || show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]" \
             && sudo wget --quiet "${l[4]}" --output-document "${f[media_info]}" \
-            && sudo dpkg --install "${f[media_info]}" &> "${f[null]}" \
-            || show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]"
+            && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
         update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[23]}" "${m[25]}" "${m[26]}" "${m[27]}"
 
@@ -4547,6 +4551,73 @@ StartupNotify=true"
 
     fi
 
+    echo; read $'?\033[1;37mSIR, SHOULD I NOTIFY YOU WHEN TORRENTS DOWNLOADED BY TRANSMISSION-GTK ARE DONE? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            echo; show "SIR, PLEASE CREATE AN ACCOUNT IN https://pushover.net/signup\nAFTER THAT, CREATE AN APPLICATION AND PASTE TOKEN BELOW."
+
+            for (( ; ; )); do
+
+                echo; read $'?\033[1;37mAPI TOKEN: \033[m' app
+
+                read $'?\033[1;37mTOKEN USER '"${e[silent_monkey]}"$': \033[m' user
+
+                [[ $(curl --silent --form-string "token=${app}" --form-string "user=${user}" \
+                    --form-string "message=ALFRED DOING SOME TESTS" "${l[5]}" | jq --raw-output .user) = 'invalid' ]] \
+                    && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" \
+                    || break
+
+            done
+
+            [[ ! $(grep --no-messages 'curl' "${f[after_torrent]}") ]] \
+                && sudo tee "${f[after_torrent]}" > "${f[null]}" <<< '#!/usr/bin/env zsh
+
+declare -a values=(
+    '\"${app}\"'  # 1
+    '\"${user}\"'  # 2
+    "0"  # 3
+    "siren"  # 4
+    "Torrent Complete!"  # 5
+    "<b><i>${TR_TORRENT_NAME:u}</i></b> finished downloading at ${TR_TIME_LOCALTIME}. Check it in ${TR_TORRENT_DIR}"  # 6
+    "1"  # 7
+    "https://api.pushover.net/1/messages.json"  # 8
+)
+
+curl --silent --form-string "token=${values[1]}" \
+     --form-string "user=${values[2]}"  --form-string "timestamp=$(date +%s)" \
+     --form-string "priority=${values[3]}" --form-string "sound=${values[4]}" \
+     --form-string "title=${values[5]}" --form-string "message=${values[6]}" \
+     --form-string "html=${values[7]}" "${values[8]}"'
+     
+            [[ $(stat --format='%a' "${f[after_torrent]}") -ne 755 ]] \
+                && sudo chmod 755 "${f[after_torrent]}"
+
+            sudo sed --in-place 's|"script-torrent-done-enabled".*|"script-torrent-done-enabled": true,|g' "${f[config]}"
+            
+            sudo sed --in-place 's|"script-torrent-done-filename".*|"script-torrent-done-filename": '\""${f[after_torrent]}"\"',|g' "${f[config]}"
+                     
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I NOTIFY YOU?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+
+
+
     while [[ ! -e "${f[vlc]}" ]]; do
 
         show "\nRESTARTING VLC TO GENERATE CONFIG FILES.\nWAIT..."
@@ -4573,7 +4644,7 @@ StartupNotify=true"
 
         take_a_break
 
-        sudo pkill "${m[17]}"
+        sudo kill -9 $(ps aux | grep rename) &> "${f[null]}"
 
     done
 
@@ -4877,11 +4948,11 @@ xscreensaver_stuffs() {
 
         show "\nRESTARTING XSCREENSAVER TO GENERATE CONFIG FILES.\nWAIT..."
 
-        ( nohup "${m[10]}" & ) &> "${f[null]}"
+        ( nohup "${m[1]}" & ) &> "${f[null]}"
 
         take_a_break
 
-        sudo pkill "${m[10]}"
+        sudo pkill "${m[1]}"
 
     done
 
@@ -5210,7 +5281,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
                 && ruby_stuffs
 
             # ruby-dev is essential
-            [[ $(gem list 2>&- | grep --no-messages "${m[4]}") ]] \
+            [[ $(sudo gem list 2>&- | grep --no-messages "${m[4]}") ]] \
                 && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
                 && sudo gem install --silent "${m[4]}"
@@ -5231,8 +5302,30 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
 # Colorls stuffs
 source $(dirname $(gem which ${m[4]}))/tab_complete.sh
 
-alias ls='${m[4]}'" \
+alias ll='${m[4]}'" \
                 && source "${f[zshrc]}"
+
+            echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    sudo reboot
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
 
             break
 
@@ -5331,7 +5424,6 @@ change_panelandgui() {
         [thumbnail-limit-gnome]=/org/gnome/nautilus/preferences/thumbnail-limit
         [reverse-order]=/org/nemo/preferences/default-sort-in-reverse-order
         [default-order]=/org/nemo/preferences/default-sort-order
-        [alfred]=/usr/share/icons/jenkins-128x128.png
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
         [delay_screensaver]=/org/cinnamon/desktop/session/idle-delay
@@ -5339,11 +5431,12 @@ change_panelandgui() {
         [cron_bin]=/usr/bin/crontab
         [mint_update]=/usr/bin/mintupdate-cli
         [update_log]=/var/log/mintupdate.log
-
+        [cedilha]=/usr/bin/cedilha
+        [out]=/tmp/cedilha.out
     )
 
     local -a l=(
-        'https://icon-icons.com/downloadimage.php?id=170552&root=2699/PNG/128/&file=jenkins_logo_icon_170552.png'  # 1
+        'https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla'  # 1
     )
 
     local -a m=(
@@ -5355,11 +5448,67 @@ change_panelandgui() {
         'google-chrome-stable'  # 6
     )
 
-    # START ADITTION ICON ALFRED
-    [[ ! -e "${f[alfred]}" ]] \
-        && sudo curl --silent --location --output "${f[alfred]}" --create-dirs "${l[1]}"  # END ICON
-
     install_packages "${m[1]}" "${m[2]}"
+
+    read $'?\033[1;37mSIR, ARE YOU FACING ISSUES TO TYPE Ç ON YOUR KEYBOARD? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            [[ ! -e "${f[cedilha]}" ]] \
+                && sudo curl --silent --location --output "${f[cedilha]}" --create-dirs "${l[1]}"
+
+            [[ $(stat --format='%a' "${f[cedilha]}") -ne 755 ]] \
+                && sudo chmod 755 "${f[cedilha]}"
+
+            ( nohup "${f[cedilha]}" & ) &> "${f[out]}"
+
+            for (( ; ; )); do
+
+                [[ $(grep --no-messages 'Operation complete.' "${f[out]}") ]] \
+                    && break \
+                    || continue
+
+            done
+
+            echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    sudo reboot
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     # STARTS UPGRADE AUTOMATICALLY
     # crontab -u ${USER} -l
