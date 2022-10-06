@@ -1540,6 +1540,10 @@ dualmonitor_stuffs() {
         [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
         [source]=/org/cinnamon/desktop/background/slideshow/image-source
         [delay]=/org/cinnamon/desktop/background/slideshow/delay
+        [libglew]=/tmp/libglew2.1_2.1.0-4+b1_amd64.deb
+        [lw_cfg]=/tmp/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb
+        [lw_indicator]=/tmp/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb
+        [lw]=/tmp/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb
     )
 
     # 3840x1080 wallpaper
@@ -1548,11 +1552,20 @@ dualmonitor_stuffs() {
         'https://images4.alphacoders.com/885/885300.png'  # 1
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-8.jpg'  # 2
         'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-20.jpg'  # 3
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 4
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 5
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 6
+        'http://ftp.de.debian.org/debian/pool/main/g/glew/libglew2.1_2.1.0-4+b1_amd64.deb'  # 7
     )
 
     local -a m=(
         'wallpapers'  # 0
         'dconf-editor'  # 1
+        'python3-opengl'  # 2
+        'libglew2.1'  # 3
+        'livewallpaper'  # 4
+        'livewallpaper-indicator'  # 5
+        'livewallpaper-config'  # 6
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -1609,39 +1622,114 @@ dualmonitor_stuffs() {
 
     # --word-regexp don't match with disconnected
     # dual monitor wallpaper
-    if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
-        [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+    echo; read -p $'\033[1;37mSIR, DO YOU PREFER ANIMATED WALLPAPER OVER STATIC? \n[Y/N] R: \033[m' option
 
-        for (( iterator=0; iterator<${#l[@]}; iterator++ )); do
+    for (( ; ; )); do
 
-            f+=(
-                [bkg_"${iterator}"]="${d[0]}"bkg"${iterator}".jpg
-            )
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! -e "${f[bkg_${iterator}]}" ]] \
-                && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
+            show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        done
+            install_packages "${m[2]}"
 
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-            && dconf write "${f[picture_gnome]}" "'file://${f[starwars]}'" \
-            && dconf write "${f[option_gnome]}" "'spanned'"
+            [[ $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[3]:u} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[3]:u} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[7]}" --output-document "${f[libglew]}" \
+                && sudo dpkg --install "${f[libglew]}" &> "${f[null]}"
 
-        [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-            && dconf write "${f[picture]}" "'file://${f[starwars]}'" \
-            && dconf write "${f[option]}" "'spanned'" \
-            && dconf write "${f[slideshow]}" true \
-            && dconf write "${f[source]}" "'directory://${d[1]}'" \
-            && dconf write "${f[delay]}" 15
+            [[ $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[4]}" --output-document "${f[lw]}" \
+                && sudo dpkg --install "${f[lw]}" &> "${f[null]}"
 
-    else
+            [[ $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[5]}" --output-document "${f[lw_indicator]}" \
+                && sudo dpkg --install "${f[lw_indicator]}" &> "${f[null]}"
 
-        show "\nYOU DON'T HAVE DUAL MONITOR SETUP. EXITING..."
+            [[ $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[6]:u} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[6]:u} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[6]}" --output-document "${f[lw_cfg]}" \
+                && sudo dpkg --install "${f[lw_cfg]}" &> "${f[null]}"
 
-    fi
+            echo; read -p $'\033[1;37mSIR, SHOULD I OPEN LIVE WALLPAPER? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    ( nohup "${m[6]}" & ) &> "${f[null]}"
+
+                    break
+
+                elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
+
+                [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != ${USER} ]] \
+                    && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
+                    && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+
+                for (( iterator=0; iterator<${#l[@]}; iterator++ )); do
+
+                    f+=(
+                        [bkg_"${iterator}"]="${d[0]}"bkg"${iterator}".jpg
+                    )
+
+                    [[ ! -e "${f[bkg_${iterator}]}" ]] \
+                        && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
+
+                done
+
+                [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
+                    && dconf write "${f[picture_gnome]}" "'file://${f[starwars]}'" \
+                    && dconf write "${f[option_gnome]}" "'spanned'"
+
+                [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
+                    && dconf write "${f[picture]}" "'file://${f[starwars]}'" \
+                    && dconf write "${f[option]}" "'spanned'" \
+                    && dconf write "${f[slideshow]}" true \
+                    && dconf write "${f[source]}" "'directory://${d[1]}'" \
+                    && dconf write "${f[delay]}" 15
+
+            else
+
+                show "\nYOU DON'T HAVE DUAL MONITOR SETUP. EXITING..."
+
+            fi
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U PREFER ANIMATED BACKGROUND?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2711,7 +2799,7 @@ minidlna_stuffs() {
                 && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
                 && sudo chmod --recursive 777 "${d[1]}"
 
-            sudo minidlnad -R
+            # sudo minidlnad -R
 
             [[ $(systemctl is-active minidlna.service) != 'active' ]] \
                 && sudo service minidlna start

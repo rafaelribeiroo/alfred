@@ -1212,6 +1212,10 @@ dualmonitor_stuffs() {
         [slideshow]=/org/cinnamon/desktop/background/slideshow/slideshow-enabled
         [source]=/org/cinnamon/desktop/background/slideshow/image-source
         [delay]=/org/cinnamon/desktop/background/slideshow/delay
+        [libglew]=/tmp/libglew2.1_2.1.0-4+b1_amd64.deb
+        [lw_cfg]=/tmp/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb
+        [lw_indicator]=/tmp/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb
+        [lw]=/tmp/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb
     )
 
     # 3840x1080 wallpaper
@@ -1231,11 +1235,20 @@ dualmonitor_stuffs() {
         'https://24wallpapers.com/app-gateway/wallpaper-uploads/wallpapers/legacyUploads/wi49964a9bbd9-7e33-4244-9183-c994768d3f2710.jpg'  # 13
         'https://24wallpapers.com/app-gateway/wallpaper-uploads/wallpapers/legacyUploads/wi686ef7ff186-0f7d-48f2-b28c-fac6439f5d1820.jpg'  # 14
         'https://24wallpapers.com/app-gateway/wallpaper-uploads/wallpapers/legacyUploads/wi5079361d180-abe7-4ba9-9ba6-357a222f0dbc28.jpg'  # 15
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 16
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 17
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 18
+        'http://ftp.de.debian.org/debian/pool/main/g/glew/libglew2.1_2.1.0-4+b1_amd64.deb'  # 19
     )
 
     local -a m=(
         'wallpapers'  # 1
         'dconf-editor'  # 2
+        'python3-opengl'  # 3
+        'libglew2.1'  # 4
+        'livewallpaper'  # 5
+        'livewallpaper-indicator'  # 6
+        'livewallpaper-config'  # 7
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
@@ -1290,41 +1303,115 @@ dualmonitor_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    # --word-regexp don't match with disconnected
-    # dual monitor wallpaper
-    if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
+    echo; read $'?\033[1;37mSIR, DO YOU PREFER ANIMATED WALLPAPER OVER STATIC? \n[Y/N] R: \033[m' option
 
-        [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
-            && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-            && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
+    for (( ; ; )); do
 
-        for (( iterator=1; iterator<=${#l}; iterator++ )); do
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            f+=(
-                [bkg_"${iterator}"]="${d[1]}"bkg"${iterator}".jpg
-            )
+            show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-            [[ ! -e "${f[bkg_${iterator}]}" ]] \
-                && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
+            install_packages "${m[3]}"
 
-        done
+            [[ $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[19]}" --output-document "${f[libglew]}" \
+                && sudo dpkg --install "${f[libglew]}" &> "${f[null]}"
 
-        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
-            && dconf write "${f[picture_gnome]}" "'file://${f[bkg_1]}'" \
-            && dconf write "${f[option_gnome]}" "'spanned'"
+            [[ $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[16]}" --output-document "${f[lw]}" \
+                && sudo dpkg --install "${f[lw]}" &> "${f[null]}"
 
-        [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
-            && dconf write "${f[picture]}" "'file://${f[bkg_1]}'" \
-            && dconf write "${f[option]}" "'spanned'" \
-            && dconf write "${f[slideshow]}" true \
-            && dconf write "${f[source]}" "'directory://${d[1]}'" \
-            && dconf write "${f[delay]}" 15
+            [[ $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[6]:u} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[6]:u} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[17]}" --output-document "${f[lw_indicator]}" \
+                && sudo dpkg --install "${f[lw_indicator]}" &> "${f[null]}"
 
-    else
+            [[ $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") ]] \
+                && show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" \
+                || show "\n${c[YELLOW]}${m[7]:u} ${c[WHITE]}${linen:${#m[7]}} [INSTALLING]" \
+                && sudo wget --quiet "${l[18]}" --output-document "${f[lw_cfg]}" \
+                && sudo dpkg --install "${f[lw_cfg]}" &> "${f[null]}"
 
-        show "\nYOU DON'T HAVE DUAL MONITOR SETUP. EXITING..."
+            echo; read $'?\033[1;37mSIR, SHOULD I OPEN LIVE WALLPAPER? \n[Y/N] R: \033[m' option
 
-    fi
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    ( nohup "${m[7]}" & ) &> "${f[null]}"
+
+                    break
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            # --word-regexp don't match with disconnected
+            # dual monitor wallpaper
+            if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
+
+                [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
+                    && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+                    && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
+
+                for (( iterator=1; iterator<=${#l}; iterator++ )); do
+
+                    f+=(
+                        [bkg_"${iterator}"]="${d[1]}"bkg"${iterator}".jpg
+                    )
+
+                    [[ ! -e "${f[bkg_${iterator}]}" ]] \
+                        && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
+
+                done
+
+                [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*GNOME ]] \
+                    && dconf write "${f[picture_gnome]}" "'file://${f[bkg_1]}'" \
+                    && dconf write "${f[option_gnome]}" "'spanned'"
+
+                [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
+                    && dconf write "${f[picture]}" "'file://${f[bkg_1]}'" \
+                    && dconf write "${f[option]}" "'spanned'" \
+                    && dconf write "${f[slideshow]}" true \
+                    && dconf write "${f[source]}" "'directory://${d[1]}'" \
+                    && dconf write "${f[delay]}" 15
+
+                break
+
+            else
+
+                show "\nYOU DON'T HAVE DUAL MONITOR SETUP. EXITING..."
+
+            fi
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U PREFER ANIMATED BACKGROUND?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2397,7 +2484,7 @@ minidlna_stuffs() {
                 && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
                 && sudo chmod --recursive 777 "${d[2]}"
 
-            sudo minidlnad -R
+            # sudo minidlnad -R
 
             [[ $(systemctl is-active minidlna.service) != 'active' ]] \
                 && sudo service minidlna start
