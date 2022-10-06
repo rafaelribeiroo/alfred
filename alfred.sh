@@ -1856,6 +1856,8 @@ github_stuffs() {
 
         update && sudo apt install --assume-yes "${m[0]}" &> "${f[null]}"
 
+        sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
+
     fi
 
     check_ssh
@@ -4157,7 +4159,7 @@ sublime_stuffs() {
         'https://www.python.org/doc/versions/'  # 3
         'https://packagecontrol.io/packages/'  # 4
         'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 5
-        'https://download.sublimetext.com/sublime-merge_build-2068_amd64.deb'  # 6
+        'https://download.sublimetext.com/sublime-merge_build-2074_amd64.deb'  # 6
     )
 
     declare -a m=(

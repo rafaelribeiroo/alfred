@@ -110,6 +110,7 @@ declare -A f=(
     [ssh]=/tmp/check_connection
     [apt_history]=/var/log/apt/history.log
     [update]=/tmp/check_update
+    [passwd]=/etc/passwd
 )
 #======================#
 
@@ -1537,6 +1538,8 @@ github_stuffs() {
             && sudo add-apt-repository --yes ppa:git-core/ppa &> "${f[null]}"
 
         update && sudo apt install --assume-yes "${m[1]}" &> "${f[null]}"
+
+        sudo add-apt-repository --remove --yes ppa:git-core/ppa &> "${f[null]}"
 
     fi
 
@@ -3846,7 +3849,7 @@ sublime_stuffs() {
         'https://www.python.org/doc/versions/'  # 4
         'https://packagecontrol.io/packages/'  # 5
         'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 6
-        'https://download.sublimetext.com/sublime-merge_build-2068_amd64.deb'  # 7
+        'https://download.sublimetext.com/sublime-merge_build-2074_amd64.deb'  # 7
     )
 
     declare -a m=(
@@ -5354,9 +5357,9 @@ alias ll='${m[4]}'" \
 
         if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            # sudo sed --in-place 's|/bin/bash|/bin/zsh|g' /etc/passwd
+            # chsh --shell $(which zsh)
             [[ $(ps --pid $$ | tail -1 | awk '{print $4}') = 'bash' ]] \
-                && chsh --shell $(which zsh)
+                && sudo sed --in-place "s|${USER}:/bin/bash|${USER}:/bin/zsh|g" "${f[passwd]}"
 
             echo; read $'?\033[1;37mSIR, I\'M NEED TO APPLY CHANGES. SHOULD I REBOOT? \n[Y/N] R: \033[m' option
 
