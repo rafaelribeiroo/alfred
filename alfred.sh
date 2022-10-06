@@ -1684,7 +1684,7 @@ github_stuffs() {
         'vim'  # 1
         'git-cola'  # 2
         'jq'  # 3
-        'cryptsetup'  # 4
+        'systemd'  # 4
         'dconf-editor'  # 5
         'gh'  # 6
         'python-is-python3'  # 7
@@ -2517,9 +2517,6 @@ hide_devices() {
 
                     sudo update-grub &> "${f[null]}"
 
-                    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-                        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
-
                     break
 
                 elif [[ "${option:0:1}" = @(N|n) ]] ; then
@@ -2597,6 +2594,9 @@ hide_devices() {
     echo; show "INITIALIZING CONFIGS..."
 
     sudo udevadm control --reload-rules && sudo udevadm trigger
+
+    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2714,6 +2714,8 @@ minidlna_stuffs() {
                 && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
                 && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
                 && sudo chmod --recursive 777 "${d[1]}"
+
+            sudo minidlnad -R
 
             [[ $(systemctl is-active minidlna.service) != 'active' ]] \
                 && sudo service minidlna start
@@ -2939,7 +2941,7 @@ postgres_stuffs() {
         'pgadmin4'  # 4
         'pspg'  # 5
         'gawk'  # 6
-        'cryptsetup'  # 7
+        'systemd'  # 7
         'lsb-release'  # 8
     )
 
@@ -5252,7 +5254,7 @@ xscreensaver_stuffs() {
 
         ( nohup "${m[0]}" & ) &> "${f[null]}"
 
-        take_a_break
+        sleep 6s
 
         sudo pkill "${m[0]}"
 
@@ -5354,8 +5356,14 @@ change_panelandgui() {
         [out]=/tmp/cedilha.out
     )
 
+    local -a d=(
+        /tmp/linux-firmware.git/  # 0
+        /lib/firmware/amdgpu/  # 1
+    )
+
     local -a l=(
         'https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla'  # 0
+        'https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware.git'  # 1
     )
 
     local -a m=(
@@ -5422,6 +5430,57 @@ change_panelandgui() {
         else
 
             echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    read -p $'\033[1;37mSIR, YOUR SYSTEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            [[ ! -d "${d[0]}" ]] \
+                && git clone --quiet "${l[1]}" "${d[0]}"
+
+            sudo cp "${d[0]}"* "${d[1]}"
+
+            sudo update-initramfs -k all -u -v > "${f[null]}"
+
+            echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                    sudo reboot
+
+                elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU UNPROTECTED?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 

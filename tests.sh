@@ -60,12 +60,8 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
-    [gtk_theme_gnome]=/org/gnome/desktop/interface/gtk-theme
-    [meslo]=~/.fonts/Meslo.zip/
-    [int_brave]=./try.json
-    [inter]="${HOME}"/.postman/InterceptorBridge/InterceptorBridge
-    [int_chrome]=~/.config/google-chrome/NativeMessagingHosts/com.postman.postmanapp.json
-    [rename_db]=~/.config/Rename\ My\ TV\ Series/LocalData.sqlite3
+    # [askpass]=/lib/cryptsetup/askpass
+    [askpass]=systemd-ask-password
 )
 
 name=(

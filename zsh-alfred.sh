@@ -88,7 +88,9 @@ declare -A e=(
 
 # usefull files
 declare -A f=(
-    [askpass]=/lib/cryptsetup/askpass
+    # cryptsetup dont works with asterisk anymore
+    # [askpass]=/lib/cryptsetup/askpass
+    [askpass]=systemd-ask-password
     [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/
     [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list/
     [zshrc]=~/.zshrc
@@ -1364,7 +1366,7 @@ github_stuffs() {
         'vim'  # 2
         'git-cola'  # 3
         'jq'  # 4
-        'cryptsetup'  # 5
+        'systemd'  # 5
         'dconf-editor'  # 6
         'gh'  # 7
         'python-is-python3'  # 8
@@ -2200,9 +2202,6 @@ hide_devices() {
 
                     sudo update-grub &> "${f[null]}"
 
-                    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
-                        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
-
                     break
 
                 elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
@@ -2280,6 +2279,9 @@ hide_devices() {
     echo; show "INITIALIZING CONFIGS..."
 
     sudo udevadm control --reload-rules && sudo udevadm trigger
+
+    [[ $(grep --no-messages 'Boot Manager' "${f[grub]}") ]] \
+        && sudo sed --in-place 's|Boot Manager|11|g' "${f[grub]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2397,6 +2399,8 @@ minidlna_stuffs() {
                 && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
                 && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
                 && sudo chmod --recursive 777 "${d[2]}"
+
+            sudo minidlnad -R
 
             [[ $(systemctl is-active minidlna.service) != 'active' ]] \
                 && sudo service minidlna start
@@ -2622,7 +2626,7 @@ postgres_stuffs() {
         'pgadmin4'  # 5
         'pspg'  # 6
         'gawk'  # 7
-        'cryptsetup'  # 8
+        'systemd'  # 8
         'lsb-release'  # 9
     )
 
@@ -4950,7 +4954,7 @@ xscreensaver_stuffs() {
 
         ( nohup "${m[1]}" & ) &> "${f[null]}"
 
-        take_a_break
+        sleep 6s
 
         sudo pkill "${m[1]}"
 
@@ -5435,8 +5439,14 @@ change_panelandgui() {
         [out]=/tmp/cedilha.out
     )
 
+    local -a d=(
+        /tmp/linux-firmware.git/  # 1
+        /lib/firmware/amdgpu/  # 2
+    )
+
     local -a l=(
         'https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla'  # 1
+        'https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware.git'  # 2
     )
 
     local -a m=(
@@ -5503,6 +5513,57 @@ change_panelandgui() {
         else
 
             echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    read $'?\033[1;37mSIR, YOUR SYSTEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+            [[ ! -d "${d[1]}" ]] \
+                && git clone --quiet "${l[2]}" "${d[1]}"
+
+            sudo cp "${d[1]}"* "${d[2]}"
+            
+            sudo update-initramfs -k all -u -v > "${f[null]}"
+
+            echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+            for (( ; ; )); do
+
+                if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                    sudo reboot
+
+                elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                    break
+
+                else
+
+                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                    read option
+
+                fi
+
+            done
+
+            break
+
+        elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU UNPROTECTED?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
