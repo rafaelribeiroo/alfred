@@ -2484,7 +2484,7 @@ minidlna_stuffs() {
                 && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
                 && sudo chmod --recursive 777 "${d[2]}"
 
-            # sudo minidlnad -R
+            sudo minidlnad -R
 
             [[ $(systemctl is-active minidlna.service) != 'active' ]] \
                 && sudo service minidlna start
