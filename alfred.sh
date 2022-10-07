@@ -1755,6 +1755,7 @@ github_stuffs() {
         [tmp_success]="${d[0]}"check_success
         [all_title_gh]="${d[0]}"all_title
         [cola_new]=/usr/bin/cola
+        [bearer]=~/.config/gh/hosts.yml
     )
 
     local -a m=(
@@ -1879,7 +1880,7 @@ github_stuffs() {
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
                     && python_stuffs
 
-                install_pip "${m[2]}"
+                pip install --quiet --no-warn-script-location --upgrade "${m[2]}"
 
                 sudo ln --force --symbolic "$(which ${m[2]})" "${f[cola_new]}"
 
@@ -1954,11 +1955,9 @@ github_stuffs() {
 
         echo; read -p $'\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
 
-        [[ ! -e "${f[tmp_tk]}" ]] && sudo touch "${f[tmp_tk]}"
-
-        sudo tee "${f[tmp_tk]}" > "${f[null]}" <<< "${token}"
-
-        gh auth login --with-token < "${f[tmp_tk]}" &> "${f[tmp_success]}"
+        [[ ! -e ${f[bearer]} ]] \
+            && sudo tee "${f[tmp_tk]}" > "${f[null]}" <<< "${token}" \
+            && gh auth login --with-token < "${f[tmp_tk]}" &> "${f[tmp_success]}"
 
         # let --ignore-case as below, api github always changing sensitive case
         # best way to grep AND
@@ -5116,7 +5115,7 @@ workspace_stuffs() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            ssh -T git@github.com &> "${f[out]}"
+            ssh -T git@github.com 2>&- &> "${f[out]}"
 
             [[ ! $(grep --no-messages "You've successfully" "${f[out]}") ]] \
                 && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
