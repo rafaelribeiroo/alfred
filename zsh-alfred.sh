@@ -3893,20 +3893,18 @@ sublime_stuffs() {
         ~/.config/sublime-text/  # 1
         ~/.config/sublime-text/Installed\ Packages/  # 2
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 3
-        ~/.pyenv/  # 4
-        /.Trash-1000/  # 5
-        ~/.config/sublime-merge/  # 6
+        /.Trash-1000/  # 4
+        ~/.config/sublime-merge/  # 5
     )
 
     f+=(
-        [file]="${d[4]}"shims/python
         [config]="${d[1]}"Packages/User/Preferences.sublime-settings
-        [config_merge]="${d[6]}"Packages/User/Preferences.sublime-settings
+        [config_merge]="${d[5]}"Packages/User/Preferences.sublime-settings
         [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
         [license]="${d[1]}"Local/License.sublime_license
-        [license_merge]="${d[6]}"Local/License.sublime_license
+        [license_merge]="${d[5]}"Local/License.sublime_license
         [pkg_ctrl]="${d[2]}"Package\ Control.sublime-package
         [pkgs]="${d[1]}"Packages/User/Package\ Control.sublime-settings
         [anaconda]="${d[1]}"Packages/Anaconda/Anaconda.sublime-settings
@@ -3927,10 +3925,9 @@ sublime_stuffs() {
         'https://download.sublimetext.com/sublimehq-pub.gpg'  # 1
         'https://download.sublimetext.com/ apt/stable/'  # 2
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 3
-        'https://www.python.org/doc/versions/'  # 4
-        'https://packagecontrol.io/packages/'  # 5
-        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 6
-        'https://download.sublimetext.com/sublime-merge_build-2074_amd64.deb'  # 7
+        'https://packagecontrol.io/packages/'  # 4
+        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 5
+        'https://download.sublimetext.com/sublime-merge_build-2074_amd64.deb'  # 6
     )
 
     declare -a m=(
@@ -3938,6 +3935,7 @@ sublime_stuffs() {
         'sublime-text'  # 2
         'gawk'  # 3
         'sublime-merge'  # 4
+        'python-is-python3'  # 5
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
@@ -4000,7 +3998,7 @@ sublime_stuffs() {
 
         [[ ! -e "${f[smerge]}" ]] \
             && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-            && wget --quiet "${l[7]}" --output-document "${f[smerge]}" \
+            && wget --quiet "${l[6]}" --output-document "${f[smerge]}" \
             && sudo dpkg --install "${f[smerge]}" &> "${f[null]}" \
             && sudo rm --force "${f[smerge]}"
 
@@ -4027,7 +4025,7 @@ sublime_stuffs() {
 
     sudo ln --force --symbolic "${f[merge_old]}" "${f[merge_new]}"
 
-    while [[ ! -d "${d[6]}" ]]; do
+    while [[ ! -d "${d[5]}" ]]; do
 
         show "\nRESTARTING MERGE TO GENERATE CONFIG FILES.\nWAIT..."
 
@@ -4040,7 +4038,7 @@ sublime_stuffs() {
     done
 
     [[ ! -e "${f[free_st]}" ]] \
-        && wget --quiet "${l[6]}" --output-document "${f[free_st]}"
+        && wget --quiet "${l[5]}" --output-document "${f[free_st]}"
 
     gcc "${f[free_st]}" --output="${f[free_st]//.c/}"
 
@@ -4092,7 +4090,7 @@ sublime_stuffs() {
 
             echo; read $'?\033[1;37mTITLE (CASE SENSITIVE): \033[m' pkg
 
-            [[ $(curl --silent --write-out %{http_code} --output "${f[null]}" "${l[5]}""${pkg}") -ne 200 ]] \
+            [[ $(curl --silent --write-out %{http_code} --output "${f[null]}" "${l[4]}""${pkg}") -ne 200 ]] \
                 && show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 \
                 && continue
 
@@ -4139,9 +4137,9 @@ sublime_stuffs() {
 
     done
 
-    [[ ! -d "${d[5]}" ]] \
-        && sudo mkdir --parents "${d[5]}" > "${f[null]}" \
-        && sudo chown "${USER}":"${USER}" "${d[5]}"
+    [[ ! -d "${d[4]}" ]] \
+        && sudo mkdir --parents "${d[4]}" > "${f[null]}" \
+        && sudo chown "${USER}":"${USER}" "${d[4]}"
 
     [[ ! $(grep --no-messages rulers "${f[config]}") ]] \
         && sudo tee "${f[config]}" > "${f[null]}" <<< '{
@@ -4203,9 +4201,7 @@ sublime_stuffs() {
         if [[ -e "${f[anaconda]}" && -e "${f[REPL]}" && -e "${f[REPLPY]}" \
             && -e "${f[REPLPY]}" ]]; then
 
-            latest=$(curl --silent "${l[4]}" | grep release | head -2 | tail -1 | awk --field-separator=/ '{print $5}')
-
-            [[ ! -d "${d[4]}" && ! -e "${f[file]}${latest}" ]] \
+            [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PYTHON?" \
                 && python_stuffs
 
@@ -4755,6 +4751,7 @@ workspace_stuffs() {
     f+=(
         [bookmarks]=~/.config/gtk-3.0/bookmarks
         [check_repo]=/tmp/check_repo
+        [out]=/tmp/check_connection
     )
 
     # only here is global because invokes a new function
@@ -4821,10 +4818,11 @@ workspace_stuffs() {
 
         if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            [[ ! -e "${f[tmp_tk]}" ]] \
+            ssh -T git@github.com &> "${f[out]}"
+
+            [[ ! $(grep --no-messages "You've successfully" "${f[out]}") ]] \
                 && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
                 && github_stuffs
-                # || return 1
 
             read $'?\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
@@ -5216,11 +5214,7 @@ zsh_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
-        install_packages "${m[2]}"
-
-        [[ ! $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
-            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GIT STUFFS?" \
-            && github_stuffs
+        install_packages "${m[2]}" "${m[5]}"
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -5367,7 +5361,7 @@ alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}
             [[ ! $(grep --no-messages "${m[4]}" "${f[zshrc]}") ]] \
                 && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
 # Colorls stuffs
-source $(dirname $(gem which ${m[4]}))/tab_complete.sh
+source $(dirname $(sudo gem which ${m[4]}))/tab_complete.sh
 
 alias ll='${m[4]}'" \
                 && source "${f[zshrc]}"
@@ -5523,7 +5517,7 @@ change_panelandgui() {
 
     install_packages "${m[1]}" "${m[2]}"
 
-    read $'?\033[1;37mSIR, ARE YOU FACING ISSUES TO TYPE Ç ON YOUR KEYBOARD? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, ARE YOU FACING ISSUES TO TYPE Ç ON YOUR KEYBOARD? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -5583,7 +5577,7 @@ change_panelandgui() {
 
     done
 
-    read $'?\033[1;37mSIR, YOUR SYSTEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
+    echo; read $'?\033[1;37mSIR, YOUR SYSTEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -5592,9 +5586,9 @@ change_panelandgui() {
             [[ ! -d "${d[1]}" ]] \
                 && git clone --quiet "${l[2]}" "${d[1]}"
 
-            sudo cp "${d[1]}"* "${d[2]}"
+            sudo cp --recursive "${d[1]}"* "${d[2]}"
             
-            sudo update-initramfs -k all -u -v > "${f[null]}"
+            sudo update-initramfs -k all -u -v &> "${f[null]}"
 
             echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
@@ -5700,7 +5694,7 @@ activate-numlock=true'
                 && usefull_pkgs
 
             [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH SUBLIME STUFFS?" \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH SUBLIME TEXT?" \
                 && sublime_stuffs
 
             echo; read $'?\033[1;37mSIR, DO YOU PREFER BRAVE BROWSER OVER CHROME BROWSER? \n[Y/N] R: \033[m' option
