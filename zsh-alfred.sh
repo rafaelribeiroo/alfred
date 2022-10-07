@@ -4752,11 +4752,11 @@ workspace_stuffs() {
         [bookmarks]=~/.config/gtk-3.0/bookmarks
         [check_repo]=/tmp/check_repo
         [out]=/tmp/check_connection
+        [token]=~/.config/gh/hosts.yml
     )
 
-    # only here is global because invokes a new function
-    l=(
-        git@github.com:"${user}"/  # 1
+    local -a l=(
+        'https://api.github.com/user'  # 1
     )
 
     if [[ -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) = ${USER} ]]; then
@@ -4824,6 +4824,12 @@ workspace_stuffs() {
                 && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
                 && github_stuffs
 
+            user_gh=$(grep --no-messages oauth_token: "${f[token]}" | awk '{print $2}')
+
+            l=(
+                git@github.com:$(curl --silent --header "Authorization: Bearer ${user_gh}" "${l[1]}" | jq --raw-output .login)/  # 2
+            )
+
             read $'?\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
             for (( ; ; )); do
@@ -4834,12 +4840,7 @@ workspace_stuffs() {
 
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
-                    git ls-remote "${l[1]}${repo}" &> "${f[check_repo]}"
-
-                    [[ ! $(grep --no-messages HEAD "${f[check_repo]}") ]] \
-                        && git ls-remote "${l[1]}${repo}" &> "${f[check_repo]}"
-
-                    if [[ $(grep HEAD "${f[check_repo]}") ]]; then
+                    if [[ ! -z $(curl --silent https://api.github.com/repos/"${user_gh}"/"${repo}" | jq .id) ]]; then
 
                         git clone --quiet "${l[1]}${repo}.git" "${d[1]}${repo}" 2> "${f[null]}"
 
