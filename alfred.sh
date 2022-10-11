@@ -29,6 +29,8 @@ name=(
     'MR. BRUCE'
 )
 
+# em computacao nao existe aleatoriedade verdadeira, apenas aproximacao. Para
+# se ter a aleatoriedade, teria que ser explorado a fundo a entropia
 random=$(shuf --input-range 0-$((${#name[@]}-1)) --head-count 1)
 
 # Associative array
@@ -86,7 +88,9 @@ declare -A e=(
 
 # usefull files
 declare -A f=(
-    [askpass]=/lib/cryptsetup/askpass
+    # cryptsetup dont works with asterisk anymore
+    # [askpass]=/lib/cryptsetup/askpass
+    [askpass]=systemd-ask-password
     [bashrc]=~/.bashrc
     [custom_gnome]=/org/gnome/settings-daemon/plugins/media-keys/custom-keybindings/
     [custom_cinnamon]=/org/cinnamon/desktop/keybindings/custom-list
@@ -106,6 +110,7 @@ declare -A f=(
     [ssh]=/tmp/check_connection
     [apt_history]=/var/log/apt/history.log
     [update]=/tmp/check_update
+    [passwd]=/etc/passwd
 )
 #======================#
 
@@ -497,6 +502,8 @@ alexa_stuffs() {
         take_a_break
 
         sudo pkill "${m[0]}"
+
+        take_a_break
 
     done
 
@@ -1106,8 +1113,10 @@ deemix_stuffs() {
         sudo rm --force "${f[file]}"
 
         [[ ! $(dpkg --list | awk "/ii  ${m[26]}[[:space:]]/ {print }") ]] \
-            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+            && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PYTHON?" \
             && python_stuffs
+
+        echo; show "SIR, BEFORE PROCEED WE NEED TO GET YOUR ARL..."
 
         show "${c[GREEN]}\n        I${c[WHITE]}NSTALLING ${c[GREEN]}${m[22]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
 
@@ -1142,6 +1151,8 @@ deemix_stuffs() {
         take_a_break
 
         sudo pkill "${m[0]}"
+
+        take_a_break
 
     done
 
@@ -1288,6 +1299,7 @@ docky_stuffs() {
         ~/.local/share/cinnamon/applets/  # 1
         ~/.local/share/cinnamon/applets/separator2@zyzz  # 2
         ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 3
+        ~/.cinnamon/configs/calendar@cinnamon.org  # 4
     )
 
     local -a m=(
@@ -1314,7 +1326,7 @@ docky_stuffs() {
         [dep4]=/tmp/libgnome-keyring0_3.12.0-1build1_amd64.deb
         [dep5]=/tmp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb
         [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
-        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/$(find ~/.cinnamon/configs/calendar@cinnamon.org -maxdepth 1 -type f | awk --field-separator=/ '{print $7}')
+        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/$(find "${d[4]}" -maxdepth 1 -type f | awk --field-separator=/ '{print $7}')
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
@@ -1322,6 +1334,8 @@ docky_stuffs() {
         [panel_size]=/org/cinnamon/panels-height
         [fix-broken]=/tmp/check_upgrade
         [gconf_d]=/tmp/gconf-editor_3.0.1-6_amd64.deb
+        [tray_update]=/com/linuxmint/updates/hide-systray
+        [timeshift]=/com/linuxmint/report/ignored-reports
     )
 
     local -a l=(
@@ -1421,6 +1435,8 @@ docky_stuffs() {
 
         sudo pkill "${m[5]}"
 
+        take_a_break
+
     done
 
     f+=(
@@ -1435,11 +1451,7 @@ docky_stuffs() {
 
     f+=(
         [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
-        [launch]=~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/%gconf.xml
     )
-
-    [[ ! $(grep --no-messages firefox "${f[launch]}") ]] \
-        && sudo sed --in-place '/<entry name="Launchers".*>/{:a;/<\/entry>/!{N;ba;}};/<entry name="Launchers">default<\/entry>/d;' "${f[launch]}"
 
     [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
         && gconftool --type bool --set "${f[icons]}"ShowDockyItem False \
@@ -1450,11 +1462,15 @@ docky_stuffs() {
         && gconftool --type int --set "${f[pref]}"IconSize 50 \
         && gconftool --type int --set "${f[pref]}"ZoomPercent 2 \
         && gconftool --type list --list-type string --set "${f[pref]}"Plugins '[Clock]' \
+        && gconftool --type list --list-type string --set "${f[pref]}"Launchers '[]' \
+        && gconftool --type list --list-type string --set "${f[pref]}"SortList '[]' \
         && gconftool --type string --set "${f[pref]}"Autohide 'UniversalIntellihide' \
         && gconftool --type string --set "${f[theme]}" 'Transparent' \
         && gconftool --type string --set "${f[pref]}"Position 'Bottom' \
         && dconf write "${f[panel_pos]}" "['1:0:top']" \
-        && dconf write "${f[panel_size]}" "['1:40']"
+        && dconf write "${f[panel_size]}" "['1:40']" \
+        && dconf write "${f[tray_update]}" true \
+        && dconf write "${f[timeshift]}" "['timeshift-no-setup']"
 
     # Adding double applets and organizing
     if [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]]; then
@@ -1877,7 +1893,7 @@ github_stuffs() {
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                 [[ ! $(dpkg --list | awk "/ii  ${m[7]}[[:space:]]/ {print }") ]] \
-                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PY UPGRADE?" \
+                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PYTHON?" \
                     && python_stuffs
 
                 pip install --quiet --no-warn-script-location --upgrade "${m[2]}"
@@ -2441,6 +2457,7 @@ hide_devices() {
 
     local -a d=(
         /etc/udev/rules.d/  # 0
+        /boot/grub/themes/  # 1
     )
 
     f+=(
@@ -2450,6 +2467,7 @@ hide_devices() {
         [grub]=/boot/grub/grub.cfg
         [audio]=/usr/share/pulseaudio/alsa-mixer/paths/analog-output.conf.common
         [keyboard]=/etc/modprobe.d/hid_apple.conf
+        [temporary]=/sys/module/hid_apple/parameters/fnmode
     )
 
     local -a l=(
@@ -2564,18 +2582,18 @@ hide_devices() {
                     fi
 
                     d+=(
-                        /boot/grub/themes/$(find /boot/grub/themes -maxdepth 1 -type d | tail -1 | awk --field-separator=/ '{print $5}')/  # 1
+                        "${d[1]}"$(find "${d[1]}" -maxdepth 1 -type d | tail -1 | awk --field-separator=/ '{print $5}')/  # 2
                     )
 
                     f+=(
-                        [bkg_grub_jpg]="${d[1]}"background.jpg
-                        [bkg_grub_png]="${d[1]}"background.png
-                        [old_bkg_grub]="${d[1]}"background_old.png
+                        [bkg_grub_jpg]="${d[2]}"background.jpg
+                        [bkg_grub_png]="${d[2]}"background.png
+                        [old_bkg_grub]="${d[2]}"background_old.png
                     )
 
-                    [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
-                        && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-                        && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
+                    [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+                        && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+                        && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
 
                     if [[ ! -e "${f[old_bkg_grub]}" ]]; then
 
@@ -2594,7 +2612,7 @@ hide_devices() {
                     [[ ! $(grep --no-messages 'ipv6.disable=1' "${f[grub-modified]}") ]] \
                         && sudo sed --in-place 's|GRUB_CMDLINE_LINUX=""|GRUB_CMDLINE_LINUX="ipv6.disable=1"|g' "${f[grub-modified]}"
 
-                    sudo update-grub &> "${f[null]}"
+                    sudo update-grub 2>&- &> "${f[null]}"
 
                     break
 
@@ -2646,9 +2664,12 @@ hide_devices() {
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
+                    [[ ! -e "${f[temporary]}" ]] \
+                        && sudo tee "${f[temporary]}" > "${f[null]}" <<< '0'
+
                     [[ ! $(grep --no-messages '2' "${f[keyboard]}") ]] \
                         && sudo tee "${f[keyboard]}" > "${f[null]}" <<< 'options hid_apple fnmode=2' \
-                        && sudo update-initramfs -u > "${f[null]}"
+                        && sudo update-initramfs -u 2>&- > "${f[null]}"
 
                     break
 
@@ -2696,9 +2717,12 @@ minidlna_stuffs() {
 
     source "${f[user_dirs]}"
 
+    which_os="${PRETTY_NAME//Linux /}"
+
     local -a d=(
         "${XDG_VIDEOS_DIR}"  # 0
         /...  # 1
+        /var/lib/minidlna  # 2
     )
 
     f+=(
@@ -2752,28 +2776,30 @@ minidlna_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    if [[ ! $(grep --no-messages Mídias "${f[config]}") ]]; then
+    source "${f[os_release]}"
+
+    if [[ ! $(grep --no-messages "${which_os}" "${f[config]}") ]]; then
 
         # automatic discover new files
-        sudo sed --in-place "s|#inotify=yes|inotify=yes|g" "${f[config]}"
+        sudo sed --in-place 's|#inotify=.*|inotify=yes|g' "${f[config]}"
 
         # server_name
-        sudo sed --in-place "s|#friendly_name=|friendly_name=Mídias|g" "${f[config]}"
+        sudo sed --in-place "s|#friendly.*|friendly_name=${which_os}|g" "${f[config]}"
 
         # location database
-        sudo sed --in-place "s|#db_dir=/var/cache/minidlna|db_dir=...|g" "${f[config]}"
+        sudo sed --in-place 's|#db_dir=.*|db_dir=...|g' "${f[config]}"
 
         # location logs
-        sudo sed --in-place "s|#log_dir=/var/log|log_dir=...|g" "${f[config]}"
+        sudo sed --in-place 's|#log_dir=.*|log_dir=...|g' "${f[config]}"
 
         # user to access this database
-        sudo sed --in-place "s|#user=minidlna|user=root|g" "${f[config]}"
+        sudo sed --in-place 's|#user=.*|user=root|g' "${f[config]}"
 
-        sudo sed --in-place --null-data "s|/var/lib/minidlna|V,${d[0]}|5" "${f[config]}"
+        sudo sed --in-place --null-data "s|${d[2]}|V,${d[0]}|5" "${f[config]}"
 
         sudo sed --in-place 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
 
-        [[ $(systemctl is-active minidlna.service) = active ]] \
+        [[ $(systemctl is-active minidlna.service) = 'active' ]] \
             && sudo service minidlna restart \
             && sudo service minidlna force-reload \
             || sudo service minidlna start
@@ -2786,18 +2812,26 @@ minidlna_stuffs() {
 
         if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
 
-            [[ $(systemctl is-active minidlna.service) = 'active' ]] \
-                && sudo service minidlna stop
+            if [[ $(systemctl is-active minidlna.service) = 'failed' ]]; then
 
-            [[ ! -d "${d[1]}" || $(stat --format="%a" "${d[1]}" 2>&-) != 777 ]] \
-                && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
-                && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-                && sudo chmod --recursive 777 "${d[1]}"
+                [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
+                    && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+                    && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+                    && sudo chmod 755 "${d[1]}"
 
-            # sudo minidlnad -R
+                sudo service minidlna restart
 
-            [[ $(systemctl is-active minidlna.service) != 'active' ]] \
-                && sudo service minidlna start
+            fi
+
+            take_a_break
+
+            if [[ $(systemctl is-active minidlna.service) = 'start' ]]; then
+
+                sudo service minidlna stop
+
+                sudo minidlnad -R
+
+            fi
 
             break
 
@@ -3097,12 +3131,14 @@ postgres_stuffs() {
 
         install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[4]}"  # "${m[3]}"
 
+        rm --force "${f[ppa-pgadm]}"
+
         echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
         # Or pg_createcluster $(apt version postgresql | cut -c1-2) main --start
         # /etc/init.d/postgresql start
         d+=(
-            /etc/postgresql/"$(apt version postgresql | cut -c1-2)"/main/conf.d/  # 3
+            /etc/postgresql/"$(apt version "${m[0]}" | cut --characters=1-2)"/main/conf.d/  # 3
         )
 
         if [[ ! -d "${d[3]}" ]]; then
@@ -3688,6 +3724,7 @@ python_stuffs() {
         'git'  # 17
         'liblzma-dev'  # 18
         'tk-dev'  # 19
+        'python3.10-venv'  # 20
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[15]}[[:space:]]/ {print }") ]] \
@@ -3747,7 +3784,7 @@ python_stuffs() {
 
         show "${c[GREEN]}\n    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[3]}" "${m[20]}"
 
     fi
 
@@ -4328,6 +4365,8 @@ sublime_stuffs() {
 
         sudo pkill subl
 
+        take_a_break
+
     done
 
     sudo ln --force --symbolic "${f[merge_old]}" "${f[merge_new]}"
@@ -4341,6 +4380,8 @@ sublime_stuffs() {
         take_a_break
 
         sudo pkill merge
+
+        take_a_break
 
     done
 
@@ -4385,7 +4426,7 @@ sublime_stuffs() {
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Sublimerge Pro", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON", "Sync View Scroll"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
@@ -4538,7 +4579,8 @@ sublime_stuffs() {
             { "key": "selection_empty", "operator": "equal", "operand": true, "match_all": true },
             { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
         ]
-    }
+    },
+    { "keys": ["ctrl+t"], "command": "toggle_sync_scroll" }
 ]'
 
             # Removes autocomplete at runtime
@@ -4704,6 +4746,7 @@ usefull_pkgs() {
         'libssl-dev'  # 25
         'dconf-editor'  # 26
         'python3-mediainfodll'  # 27
+        'inotify-tools'  # 28
     )
 
     [[ ! -d "${d[5]}" || $(stat --format="%U" "${d[5]}" 2>&-) != "${USER}" ]] \
@@ -4778,7 +4821,7 @@ usefull_pkgs() {
             && sudo wget --quiet "${l[3]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}" "${m[28]}"
 
         [[ $(snap list 2>&- | grep "${m[11]}") ]] \
             && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \
@@ -4888,6 +4931,8 @@ StartupNotify=true"
 
                         sudo pkill "${m[23]}"
 
+                        take_a_break
+
                     done
 
                     sudo sed --in-place 's|"download-queue-size".*|"download-queue-size": 50,|g' "${f[config]}"
@@ -4988,6 +5033,8 @@ curl --silent --form-string "token=${values[0]}" \
 
         sudo pkill "${m[1]}"
 
+        take_a_break
+
     done
 
     sudo sed --in-place 's|#avcodec-hw=any|avcodec-hw=none|g' "${f[vlc]}"
@@ -5004,7 +5051,9 @@ curl --silent --form-string "token=${values[0]}" \
 
         take_a_break
 
-        kill -9 $(ps aux | egrep 'rename-tv-series|RenameMyTVSeries') &> "${f[null]}"
+        kill -9 $(pidof RenameMyTVSeries rename-tv-series) &> "${f[null]}"
+
+        take_a_break
 
     done
 
@@ -5027,7 +5076,7 @@ curl --silent --form-string "token=${values[0]}" \
         && sudo tee --append "${f[load]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
-    # alias vk='kill -9 \$(ps aux | grep vlc | awk \"{print \$2}\") &> ${f[null]}'
+    # alias vk='kill -9 \$(pidof vlc) &> ${f[null]}'
     [[ ! $(grep --no-messages 'alias vk' "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
 alias vk='pkill --full vlc'" \
@@ -5049,11 +5098,12 @@ workspace_stuffs() {
         [bookmarks]=~/.config/gtk-3.0/bookmarks
         [check_repo]=/tmp/check_repo
         [out]=/tmp/check_connection
+        [token]=~/.config/gh/hosts.yml
     )
 
-    # only here is global because invokes a new function
-    l=(
-        git@github.com:"${user}"/  # 0
+    local -a l=(
+        'https://api.github.com/user'  # 0
+        'https://api.github.com/repos/'  # 1
     )
 
     if [[ -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) = ${USER} ]]; then
@@ -5118,9 +5168,10 @@ workspace_stuffs() {
             ssh -T git@github.com 2>&- &> "${f[out]}"
 
             [[ ! $(grep --no-messages "You've successfully" "${f[out]}") ]] \
-                && show "\nWE NEED YOUR GITHUB CREDENTIALS, TRANSFERRING..." \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GITHUB?" \
                 && github_stuffs
-                # || return 1
+
+            user_gh=$(grep --no-messages oauth_token: "${f[token]}" | awk '{print $2}')
 
             read -p $'\033[1;37m\nSIR, WHICH REPOSITORY DO U WANT?\nR: \033[m' repo
 
@@ -5132,12 +5183,7 @@ workspace_stuffs() {
 
                 if [[ $(grep successfully "${f[ssh]}") ]]; then
 
-                    git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
-
-                    [[ ! $(grep --no-messages HEAD "${f[check_repo]}") ]] \
-                        && git ls-remote "${l[0]}${repo}" &> "${f[check_repo]}"
-
-                    if [[ $(grep HEAD "${f[check_repo]}") ]]; then
+                    if [[ ! -z $(curl --silent "${l[1]}$(curl --silent --header "Authorization: Bearer ${user_gh}" "${l[0]}" | jq --raw-output .login)/${repo}" | jq .id) ]]; then
 
                         git clone --quiet "${l[0]}${repo}.git" "${d[0]}${repo}" 2> "${f[null]}"
 
@@ -5315,6 +5361,8 @@ xscreensaver_stuffs() {
         sleep 6s
 
         sudo pkill "${m[0]}"
+
+        take_a_break
 
     done
 
@@ -5506,7 +5554,7 @@ SY
 
             sudo cp --recursive "${d[0]}"* "${d[1]}"
 
-            sudo update-initramfs -k all -u -v &> "${f[null]}"
+            sudo update-initramfs -k all -u -v 2>&- &> "${f[null]}"
 
             echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
 
