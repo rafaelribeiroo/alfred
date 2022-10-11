@@ -493,35 +493,19 @@ alexa_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    while [[ ! -d "${d[0]}" ]]; do
-
-        show "\nRESTARTING TRIGGERCMD TO GENERATE CONFIG FILES.\nWAIT..."
-
-        ( nohup node "${f[agent]}" --console & ) &> "${f[null]}"
-
-        take_a_break
-
-        sudo pkill "${m[0]}"
-
-        take_a_break
-
-    done
-
     if [[ ! -e "${f[pc_id]}" ]]; then
 
-        echo; read -p $'\033[1;37mENTER YOUR TOKEN FROM TRIGGERCMD \033[m' user
+        echo; show "${c[RED]}SIR${c[WHITE]}, CREATE AN ACCOUNT IN https://www.triggercmd.com/user/auth/login\nAFTER THAT, COPY TOKEN FROM ${c[RED]}INSTRUCTIONS ${c[WHITE]} PANEL AND PASTE IN GUI SCREEN" 1
 
-        # GITHUB STUFF
+        ( nohup "${m[0]}" & ) &> "${f[check_token]}"
+
         for (( ; ; )); do
 
-            echo; show "${c[RED]}${name[random]}${c[WHITE]}, PLEASE CREATE AN ACCOUNT IN https://www.triggercmd.com/user/auth/login\nAFTER THAT, COPY TOKEN FROM ${c[RED]}INSTRUCTIONS ${c[WHITE]} PANEL AND PASTE IN GUI SCREEN" 1
+            take_a_break
 
-            ( nohup "${m[0]}" & ) &> "${f[check_token]}"
-
-            sleep 15s
-
-            [[ -e "${f[check_token]}" && ! $(grep --no-messages 'Token login failed' "${f[check_token]}") ]] \
-                && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1 && sudo pkill "${m[0]}"
+            # node /usr/lib/triggercmdagent/resources/app/src/agent.js --console
+            [[ $(grep --no-messages 'Now connected' "${f[check_token]}") ]] \
+                && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!"
 
         done
 
@@ -532,13 +516,13 @@ alexa_stuffs() {
         && minidlna_stuffs
 
     [[ ! $(grep --no-messages 'icarus' "${f[cmds]}") ]] \
-        && sudo tee --append "${f[cmds]}" > "${f[null]}" <<< '[
+        && sudo tee "${f[cmds]}" > "${f[null]}" <<< '[
   {"trigger":"Reboot","command":"shutdown -r","ground":"background","voice":"init seis","allowParams": "false"},
   {"trigger":"Shut down","command":"shutdown -n now","ground":"background","voice":"protocolo icarus","allowParams": "false"},
   {"trigger":"MiniDLNA Restart","command":"sudo service minidlna restart && sudo service minidlna force-reload","ground":"background","voice":"init tres","allowParams": "false"}
 ]'
 
-    ( nohup node "${f[daemon]}" --run "${d[0]}" & ) &> "${f[null]}"
+    # ( nohup node "${f[daemon]}" --run "${d[0]}" & ) &> "${f[null]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2721,7 +2705,7 @@ minidlna_stuffs() {
 
     local -a d=(
         "${XDG_VIDEOS_DIR}"  # 0
-        /...  # 1
+        ~/.../  # 1
         /var/lib/minidlna  # 2
     )
 
@@ -2817,7 +2801,7 @@ minidlna_stuffs() {
                 [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
                     && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
                     && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-                    && sudo chmod 755 "${d[1]}"
+                    && sudo chown "${USER}":"${USER}" "${d[1]}"
 
                 sudo service minidlna restart
 

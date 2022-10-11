@@ -60,8 +60,7 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
-    # [askpass]=/lib/cryptsetup/askpass
-    [askpass]=systemd-ask-password
+    [token]=~/.config/gh/hosts.yml
 )
 
 name=(
