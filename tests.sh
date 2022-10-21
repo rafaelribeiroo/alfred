@@ -60,7 +60,6 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
-    [token]=~/.config/gh/hosts.yml
 )
 
 name=(
@@ -114,4 +113,18 @@ boilerplate() {
 
 # show "${c[RED]}=======================================================" 1
 
-# sql = 'CREATE TABLE torrent (id SERIAL PRIMARY KEY, title VARCHAR(150), url VARCHAR(50), created_at TIMESTAMPTZ NOT NULL DEFAULT NOW())'
+# [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
+#     && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
+#     && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
+
+# for (( iterator=1; iterator<=${#l}; iterator++ )); do
+
+#     f+=(
+#         [bkg_"${iterator}"]="${d[1]}"bkg"${iterator}".jpg
+#     )
+
+#     [[ ! -e "${f[bkg_${iterator}]}" ]] \
+#         && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
+
+# done
+episodic --api-key=8461b3c7 --no-tree --force .

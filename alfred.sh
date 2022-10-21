@@ -213,7 +213,7 @@ check_source() {
             apt update 2>&- | tail -1 | awk {'print $1'} &> "${f[update]}"
 
             [[ $(cat "${f[update]}") -ge 50 ]] \
-                && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY PACKAGES...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
+                && show "\nHOLY ${name[random]}! THERE'S MORE THAN FIFTY POSSIBLE TREATS...\nUPGRADING YOUR ${c[RED]}ARSENAL" \
                 && upgrade
 
         fi
@@ -1189,6 +1189,8 @@ alias cm=\"rename 's|^[0-9]+ - ||' ${XDG_MUSIC_DIR}/* && rename 's/^(Dj|dj|mc|Mc
 
     sudo sed --in-place 's|"removeAlbumVersion":.*|"removeAlbumVersion": true,|g' "${f[cfg]}"
 
+    sudo sed --in-place "s|\"executeCommand\":.*|\"executeCommand\": \"rename 's/ \([A-a]o [V-v]ivo.*\)\| \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*\"|g" "${f[cfg]}"
+
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
 
@@ -1310,7 +1312,6 @@ docky_stuffs() {
         [dep4]=/tmp/libgnome-keyring0_3.12.0-1build1_amd64.deb
         [dep5]=/tmp/libgnome-keyring1.0-cil_1.0.0-5_amd64.deb
         [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
-        [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/$(find "${d[4]}" -maxdepth 1 -type f | awk --field-separator=/ '{print $7}')
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
         [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
@@ -1409,7 +1410,17 @@ docky_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    while [[ ! -d "${d[4]}" ]]; do
+    f+=(
+        [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
+    )
+
+    get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
+
+    d+=(
+       ~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"  # 5
+    )
+
+    while [[ ! -d "${d[5]}" ]]; do
 
         show "\nRESTARTING DOCKY TO GENERATE CONFIG FILES.\nWAIT..."
 
@@ -1422,16 +1433,6 @@ docky_stuffs() {
         take_a_break
 
     done
-
-    f+=(
-        [get_dock]=/apps/docky-2/Docky/DockController/ActiveDocks
-    )
-
-    get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
-
-    d+=(
-       ~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"  # 4
-    )
 
     f+=(
         [pref]=/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"/
@@ -1474,6 +1475,10 @@ docky_stuffs() {
             && sudo rm --force "${f[forceqt]}"
 
         dconf write "${f[enabled_applets]}" "['panel1:left:0:menu@cinnamon.org:0', 'panel1:left:1:show-desktop@cinnamon.org:1', 'panel1:left:2:grouped-window-list@cinnamon.org:2', 'panel1:right:3:removable-drives@cinnamon.org:3', 'panel1:right:4:separator@cinnamon.org:4', 'panel1:right:5:separator@cinnamon.org:5', 'panel1:right:6:notifications@cinnamon.org:6', 'panel1:right:7:keyboard@cinnamon.org:7', 'panel1:right:8:separator@cinnamon.org:8', 'panel1:right:9:separator@cinnamon.org:9', 'panel1:right:10:force-quit@cinnamon.org:10', 'panel1:right:11:separator@cinnamon.org:11', 'panel1:right:12:separator@cinnamon.org:12', 'panel1:right:13:xapp-status@cinnamon.org:13', 'panel1:right:14:separator@cinnamon.org:14', 'panel1:right:15:separator@cinnamon.org:15', 'panel1:right:16:network@cinnamon.org:16', 'panel1:right:17:separator2@zyzz:17', 'panel1:right:18:calendar@cinnamon.org:18']"
+
+        f+=(
+            [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/$(find "${d[4]}" -maxdepth 1 -type f | awk --field-separator=/ '{print $7}')
+        )
 
         # use custom format
         sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
@@ -1525,6 +1530,10 @@ dualmonitor_stuffs() {
 
     local -a d=(
         /usr/share/backgrounds/customized/  # 0
+        ~/.var/app/es.estoes.wallpaperDownloader/  # 1
+        ~/.wallpaperdownloader/downloads/  # 2
+        ~/.wallpaperdownloader/  # 3
+        ~/.config/autostart/  # 4
     )
 
     f+=(
@@ -1540,18 +1549,21 @@ dualmonitor_stuffs() {
         [lw_cfg]=/tmp/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb
         [lw_indicator]=/tmp/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb
         [lw]=/tmp/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb
+        [pkg]=es.estoes.wallpaperDownloader
+        [bkg_1]="${d[2]}"sw.jpg
+        [config]="${d[3]}"config.txt
+        [dskt]="${d[4]}"wallpaperdownloader.desktop
+        [older]="${d[3]}"wallpaperdownloader.desktop
     )
 
     # 3840x1080 wallpaper
     local -a l=(
-        'https://images3.alphacoders.com/673/673177.jpg'  # 0
-        'https://images4.alphacoders.com/885/885300.png'  # 1
-        'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-8.jpg'  # 2
-        'https://www.dualmonitorbackgrounds.com/albums/SDuaneS/the-force-awakens-20.jpg'  # 3
-        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 4
-        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 5
-        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 6
-        'http://ftp.de.debian.org/debian/pool/main/g/glew/libglew2.1_2.1.0-4+b1_amd64.deb'  # 7
+        'http://ftp.de.debian.org/debian/pool/main/g/glew/libglew2.1_2.1.0-4+b1_amd64.deb'  # 0
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 1
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-indicator_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 2
+        'https://launchpad.net/~fyrmir/+archive/ubuntu/livewallpaper-daily/+files/livewallpaper-config_0.5.0-0~333~ubuntu20.04.1_amd64.deb'  # 3
+        'https://flathub.org/repo/flathub.flatpakrepo' # 4
+        'https://images3.alphacoders.com/673/673177.jpg'  # 5
     )
 
     local -a m=(
@@ -1562,6 +1574,9 @@ dualmonitor_stuffs() {
         'livewallpaper'  # 4
         'livewallpaper-indicator'  # 5
         'livewallpaper-config'  # 6
+        'wallpaperDownloader'  # 7
+        'flatpak'  # 8
+        'flathub'  # 9
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -1632,25 +1647,25 @@ dualmonitor_stuffs() {
             [[ $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[GREEN]}${m[3]:u} ${c[WHITE]}${linei:${#m[3]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[3]:u} ${c[WHITE]}${linen:${#m[3]}} [INSTALLING]" \
-                && sudo wget --quiet "${l[7]}" --output-document "${f[libglew]}" \
+                && sudo wget --quiet "${l[0]}" --output-document "${f[libglew]}" \
                 && sudo dpkg --install "${f[libglew]}" &> "${f[null]}"
 
             [[ $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[GREEN]}${m[4]:u} ${c[WHITE]}${linei:${#m[4]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                && sudo wget --quiet "${l[4]}" --output-document "${f[lw]}" \
+                && sudo wget --quiet "${l[1]}" --output-document "${f[lw]}" \
                 && sudo dpkg --install "${f[lw]}" &> "${f[null]}"
 
             [[ $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[GREEN]}${m[5]:u} ${c[WHITE]}${linei:${#m[5]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[5]:u} ${c[WHITE]}${linen:${#m[5]}} [INSTALLING]" \
-                && sudo wget --quiet "${l[5]}" --output-document "${f[lw_indicator]}" \
+                && sudo wget --quiet "${l[2]}" --output-document "${f[lw_indicator]}" \
                 && sudo dpkg --install "${f[lw_indicator]}" &> "${f[null]}"
 
             [[ $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]] \
                 && show "\n${c[GREEN]}${m[6]:u} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" \
                 || show "\n${c[YELLOW]}${m[6]:u} ${c[WHITE]}${linen:${#m[6]}} [INSTALLING]" \
-                && sudo wget --quiet "${l[6]}" --output-document "${f[lw_cfg]}" \
+                && sudo wget --quiet "${l[3]}" --output-document "${f[lw_cfg]}" \
                 && sudo dpkg --install "${f[lw_cfg]}" &> "${f[null]}"
 
             echo; read -p $'\033[1;37mSIR, SHOULD I OPEN LIVE WALLPAPER? \n[Y/N] R: \033[m' option
@@ -1683,30 +1698,94 @@ dualmonitor_stuffs() {
 
             if [[ $(xrandr --query | grep --count --word-regexp connected) -eq 2 ]] ; then
 
-                [[ ! -d "${d[0]}" || $(stat --format="%U" "${d[0]}" 2>&-) != ${USER} ]] \
-                    && sudo mkdir --parents "${d[0]}" > "${f[null]}" \
-                    && sudo chown --recursive "${USER}":"${USER}" "${d[0]}"
+                if [[ ! $(sudo flatpak list 2>&- | grep --no-messages "${m[7]}") ]]; then
 
-                for (( iterator=0; iterator<${#l[@]}; iterator++ )); do
+                    if [[ ! $(sudo flatpak remotes 2>&- | grep --no-messages "${m[9]}") ]]; then
 
-                    f+=(
-                        [bkg_"${iterator}"]="${d[0]}"bkg"${iterator}".jpg
-                    )
+                        sudo flatpak remote-add "${m[9]}" "${l[4]}"  # --if-not-exists
 
-                    [[ ! -e "${f[bkg_${iterator}]}" ]] \
-                        && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
+                        echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
+
+                        for (( ; ; )); do
+
+                            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+                                sudo reboot
+
+                            elif [[ "${option:0:1}" = @(n|N) ]] ; then
+
+                                break
+
+                            else
+
+                                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                                read option
+
+                            fi
+
+                        done
+
+                    fi
+
+                    show "\n${c[YELLOW]}${m[7]^^} ${c[WHITE]}${linen:${#m[7]}} [INSTALLING]"
+
+                    flatpak install --assumeyes "${m[9]}" "${f[pkg]}" &> "${f[null]}"
+
+                fi
+
+                while [[ ! -d "${d[3]}" ]]; do
+
+                    show "\nRESTARTING WALLPAPER DOWNLOADER TO GENERATE CONFIG FILES.\nWAIT..."
+
+                    ( flatpak run "${f[pkg]}" & ) &> "${f[null]}"
+
+                    take_a_break
+
+                    flatpak kill "${f[pkg]}"
+
+                    take_a_break
 
                 done
 
+                [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != "${USER}" ]] \
+                    && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+                    && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
+                    && sudo chown "${USER}":"${USER}" "${d[2]}"
+
+                [[ ! -e "${f[bkg_1]}" ]] \
+                    && curl --silent --output "${f[bkg_1]}" --create-dirs "${l[5]}"
+
+                sudo sed --in-place "s|${pkg}.window.wallpaper-resolution.*|${pkg}.window.wallpaper-resolution=3840x1080|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.download-policy.*|${pkg}.window.download-policy=2|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.provider-devianart.*|${pkg}.window.provider-devianart=yes|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.provider-dualMonitorBackgrounds.*|${pkg}.window.provider-dualMonitorBackgrounds=yes|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.provider-bing.*|${pkg}.window.provider-bing=yes|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.provider-socialWallpapering.*|${pkg}.window.provider-socialWallpapering=yes|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.provider-wallhaven.*|${pkg}.window.provider-wallhaven=yes|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.provider-unsplash.*|${pkg}.window.provider-unsplash=yes|g" "${f[config]}"
+
+                sudo sed --in-place "s|${pkg}.window.application-max-download-folder-size.*|${pkg}.window.application-max-download-folder-size=1024|g" "${f[config]}"
+
+                [[ ! -L "${f[dskt]}" ]] \
+                    && sudo ln --force --symbolic "${f[older]}" "${f[dskt]}"
+
                 [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*GNOME ]] \
-                    && dconf write "${f[picture_gnome]}" "'file://${f[starwars]}'" \
+                    && dconf write "${f[picture_gnome]}" "'file://${f[bkg_1]}'" \
                     && dconf write "${f[option_gnome]}" "'spanned'"
 
                 [[ "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-                    && dconf write "${f[picture]}" "'file://${f[starwars]}'" \
+                    && dconf write "${f[picture]}" "'file://${f[bkg_1]}'" \
                     && dconf write "${f[option]}" "'spanned'" \
                     && dconf write "${f[slideshow]}" true \
-                    && dconf write "${f[source]}" "'directory://${d[1]}'" \
+                    && dconf write "${f[source]}" "'directory://${d[2]}'" \
                     && dconf write "${f[delay]}" 15
 
             else
@@ -2253,7 +2332,7 @@ flameshot_stuffs() {
 
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                reboot
+                sudo reboot
 
             elif [[ "${option:0:1}" = @(n|N) ]] ; then
 
@@ -2699,19 +2778,20 @@ minidlna_stuffs() {
         && show "\nBEFORE PROCEED, WE MUST INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[1]}"
 
-    source "${f[user_dirs]}"
+    source "${f[os_release]}"
 
     which_os="${PRETTY_NAME//Linux /}"
 
     local -a d=(
         "${XDG_VIDEOS_DIR}"  # 0
-        ~/.../  # 1
+        /home/"${USER}"/.config/minidlna  # 1
         /var/lib/minidlna  # 2
     )
 
     f+=(
         [config]=/etc/minidlna.conf
         [dft]=/etc/default/minidlna
+        [service]=/lib/systemd/system/minidlna.service
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") ]]; then
@@ -2760,9 +2840,7 @@ minidlna_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    source "${f[os_release]}"
-
-    if [[ ! $(grep --no-messages "${which_os}" "${f[config]}") ]]; then
+    if [[ ! $(grep --no-messages "${d[1]}" "${f[config]}") ]]; then
 
         # automatic discover new files
         sudo sed --in-place 's|#inotify=.*|inotify=yes|g' "${f[config]}"
@@ -2771,67 +2849,33 @@ minidlna_stuffs() {
         sudo sed --in-place "s|#friendly.*|friendly_name=${which_os}|g" "${f[config]}"
 
         # location database
-        sudo sed --in-place 's|#db_dir=.*|db_dir=...|g' "${f[config]}"
+        sudo sed --in-place "s|#db_dir=.*|db_dir=${d[1]}|g" "${f[config]}"
 
         # location logs
-        sudo sed --in-place 's|#log_dir=.*|log_dir=...|g' "${f[config]}"
+        sudo sed --in-place "s|#log_dir=.*|log_dir=${d[1]}|g" "${f[config]}"
 
-        # user to access this database
-        sudo sed --in-place 's|#user=.*|user=root|g' "${f[config]}"
-
+        # media dirs
         sudo sed --in-place --null-data "s|${d[2]}|V,${d[0]}|5" "${f[config]}"
 
-        sudo sed --in-place 's|#USER="minidlna"|USER="root"|g' "${f[dft]}"
+        # user to access this database
+        sudo sed --in-place "s|#USER=.*|USER=\"${USER}\"|g" "${f[dft]}"
 
+        sudo sed --in-place "s|#GROUP=.*|GROUP=\"${USER}\"|g" "${f[dft]}"
+
+        sudo sed --in-place "s|User.*|User=${USER}|g" "${f[service]}"
+
+        sudo sed --in-place "s|Group.*|Group=${USER}|g" "${f[service]}"
+
+        # after double lasts commands, daemon-reload is necessary
+        systemctl daemon-reload
+
+        # sudo minidlnad -R when service is stopped
         [[ $(systemctl is-active minidlna.service) = 'active' ]] \
             && sudo service minidlna restart \
             && sudo service minidlna force-reload \
             || sudo service minidlna start
 
     fi
-
-    echo; read -p $'\033[1;37mSIR, ARE YOU HAVING ISSUES WITH MINIDLNA? \n[Y/N] R: \033[m' option
-
-    for (( ; ; )); do
-
-        if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
-
-            if [[ $(systemctl is-active minidlna.service) = 'failed' ]]; then
-
-                [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != "${USER}" ]] \
-                    && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
-                    && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-                    && sudo chown "${USER}":"${USER}" "${d[1]}"
-
-                sudo service minidlna restart
-
-            fi
-
-            take_a_break
-
-            if [[ $(systemctl is-active minidlna.service) = 'start' ]]; then
-
-                sudo service minidlna stop
-
-                sudo minidlnad -R
-
-            fi
-
-            break
-
-        elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
-
-            break
-
-        else
-
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU HAVING ISSUES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-        fi
-
-    done
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2992,7 +3036,7 @@ alias lbm-nouveau off'
 
     fi
 
-    local=$(apt show "${m[0]}-"* 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
+    local=$(apt version "${m[0]}-"* 2>&-)
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -3113,7 +3157,7 @@ postgres_stuffs() {
 
         update
 
-        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[4]}"  # "${m[3]}"
+        install_packages "${m[0]}" "${m[1]}" "${m[2]}" "${m[4]}" "${m[5]}"  # "${m[3]}"
 
         rm --force "${f[ppa-pgadm]}"
 
@@ -3153,10 +3197,21 @@ postgres_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
+    f+=(
+        [pspg]=$(which pspg)  # /usr/bin/pspg
+    )
+
+    [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
+        && sudo tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${f[null]}" <<< "\pset linestyle unicode
+\pset border 2
+\setenv PAGER '${f[pspg]} --blackwhite --reprint-on-exit --no-mouse'" \
+        && sudo chown postgres:postgres "${f[pspg_postgres]}" \
+        && sudo chown "${user}":"${user}" "${f[pspg_user]}"
+
     latest=$(curl --silent "${l[1]}" | grep scope | head -1 | tr --complement --delete 0-9,. | xargs)
 
     # Match perhaps with -10 or -11 etc (fixed installation)
-    local=$(apt show "${m[0]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
+    local=$(apt version "${m[0]}" 2>&-)
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -3186,11 +3241,9 @@ postgres_stuffs() {
 
     fi
 
-    check_version=$(apt show "${m[0]}" 2>&- | grep Version | awk '{print $2}')
-
     f+=(
-        [cfg]="${d[0]}""${check_version:0:2}"/main/postgresql.conf
-        [hba]="${d[0]}""${check_version:0:2}"/main/pg_hba.conf
+        [cfg]="${d[0]}""${local:0:2}"/main/postgresql.conf
+        [hba]="${d[0]}""${local:0:2}"/main/pg_hba.conf
     )
 
     sudo sed --in-place "s|#listen_addresses|listen_addresses|g" "${f[cfg]}"
@@ -3239,6 +3292,14 @@ postgres_stuffs() {
                     sudo --user=postgres psql --command "GRANT ALL PRIVILEGES ON DATABASE ${database} TO ${user}" &> "${f[null]}"
 
                     sudo --user=postgres psql --dbname="${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}" &> "${f[null]}"
+
+                    [[ "${database}" = 'rarbg' ]] \
+                        && sudo --user=postgres psql --dbname="${database}" --command "CREATE TABLE IF NOT EXISTS torrent (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(150),
+    url VARCHAR(50),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);" &> "${f[null]}"
 
                     [[ "${database}" = 'cursoemvideo' ]] \
                         && sudo --user=postgres psql --dbname="${database}" --command "CREATE TYPE definicao AS ENUM ('M', 'F');
@@ -3356,19 +3417,23 @@ VALUES
 (29,'PHP7','Curso de PHP, versão 7.0',40,20,2020),
 (30,'PHP4','Curso de PHP, versão 4.0',30,11,2010);" &> "${f[null]}"
 
-                    # Check this resource running: "psql -U <user> -d <database>" and selecting all data from some table.
-                    install_packages "${m[5]}"
+                    read -p $'\033[1;37mWANT CREATE MORE DATABASES? \n[Y/N] R: \033[m' option
 
-                    f+=(
-                        [pspg]=$(which pspg)  # /usr/bin/pspg
-                    )
+                    if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-                    [[ ! -e "${f[pspg_postgres]}" && ! -e "${f[pspg_user]}" ]] \
-                        && sudo tee "${f[pspg_postgres]}" "${f[pspg_user]}" > "${f[null]}" <<< "\pset linestyle unicode
-\pset border 2
-\setenv PAGER '${f[pspg]} --blackwhite --reprint-on-exit --no-mouse'" \
-                        && sudo chown postgres:postgres "${f[pspg_postgres]}" \
-                        && sudo chown "${user}":"${user}" "${f[pspg_user]}"
+                        continue  # Simillar to pass
+
+                    elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+                        break
+
+                    else
+
+                        echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. WANT U CREATE MORE DATABASES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                        read option
+
+                    fi
 
                     break
 
@@ -3380,7 +3445,7 @@ VALUES
 
                     echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-                    read resposta
+                    read option
 
                 fi
 
@@ -3396,7 +3461,7 @@ VALUES
 
             echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I CREATE A USER?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-            read resposta
+            read option
 
         fi
 
@@ -3775,12 +3840,12 @@ python_stuffs() {
     echo; show "INITIALIZING CONFIGS..."
 
     # pip versions
-    local=$(apt show "${m[1]}" 2>&- | grep 'Version:' | awk --field-separator=':' '{print $2}' | xargs)
+    local=$(apt version "${m[1]}" 2>&-)
 
     latest=$(curl --silent "${l[0]}" | grep --after-context=2 '_le' | tail -1 | awk '{print $2}')
 
     ( $(dpkg --compare-versions "${local}" lt "${latest}") ) \
-        && pip install --no-warn-script-location --quiet --upgrade pip
+        && python3 -m pip install --quiet --no-warn-script-location --upgrade pip
 
     # python versions
     # apt version python don't works, because it shows only packages added by
@@ -5060,10 +5125,9 @@ curl --silent --form-string "token=${values[0]}" \
         && sudo tee --append "${f[load]}" > "${f[null]}" <<< 'set mouse=a
 set wrap'
 
-    # alias vk='kill -9 \$(pidof vlc) &> ${f[null]}'
     [[ ! $(grep --no-messages 'alias vk' "${f[bashrc]}") ]] \
         && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-alias vk='pkill --full vlc'" \
+alias vk='kill -9 \$(pidof vlc) &> ${f[null]}'" \
         && source "${f[bashrc]}"
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
