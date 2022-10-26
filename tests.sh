@@ -111,7 +111,7 @@ boilerplate() {
 
 }
 
-# show "${c[RED]}=======================================================" 1
+show "${c[RED]}=======================================================" 1
 
 # [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
 #     && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
@@ -127,4 +127,6 @@ boilerplate() {
 #         && curl --silent --output "${f[bkg_${iterator}]}" --create-dirs "${l[${iterator}]}"
 
 # done
-episodic --api-key=8461b3c7 --no-tree --force .
+# episodic --api-key=8461b3c7 --no-tree --force .
+
+

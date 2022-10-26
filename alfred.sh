@@ -5502,22 +5502,28 @@ change_panelandgui() {
         [trash_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-trash
         [mount_gnome]=/org/gnome/shell/extensions/dash-to-dock/show-mounts
         [delay_screensaver]=/org/cinnamon/desktop/session/idle-delay
-        [cron]=/var/spool/cron/"${USER}"
-        [cron_bin]=/usr/bin/crontab
-        [mint_update]=/usr/bin/mintupdate-cli
-        [update_log]=/var/log/mintupdate.log
+        [auto_upgrade]=/etc/apt/apt.conf.d/20auto-upgrades
         [cedilha]=/usr/bin/cedilha
         [out]=/tmp/cedilha.out
+        [cursor]=/org/cinnamon/desktop/interface/cursor-theme
+        [util_extract]=/etc/manage_files.sh
+        [cron]=/var/spool/cron/"${USER}"
+        [cron_bin]=/usr/bin/crontab
+        [unattended]=/etc/apt/apt.conf.d/50unattended-upgrades
     )
 
     local -a d=(
         /tmp/linux-firmware.git/  # 0
         /lib/firmware/amdgpu/  # 1
+        /tmp/linux-firmware/amdgpu/  # 2
+        /tmp/oreo-cursors/  # 3
     )
 
     local -a l=(
         'https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla'  # 0
         'https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware.git'  # 1
+        'https://github.com/varlesh/oreo-cursors.git'  # 2
+        'https://gist.githubusercontent.com/rafaelribeiroo/d94647481b907cc3062c8ab594c5b89c/raw/08a660dc44a6cd6d7420e0b74a4595b452d234d5/manage_files.sh'  # 3
     )
 
     local -a m=(
@@ -5527,9 +5533,94 @@ change_panelandgui() {
         'sublime-text'  # 3
         'brave-browser'  # 4
         'google-chrome-stable'  # 5
+        'git'  # 6
+        'make'  # 7
+        'inkscape'  # 8
+        'ruby'  # 9
+        'inotify-tools'  # 10
+        'unattended-upgrades'  # 11
+        'update-notifier-common'  # 12
     )
 
     install_packages "${m[0]}" "${m[1]}"
+
+    # Cinnamon needs a png thumbnail in the icon themes cursors folder called
+    # thumbnail.png or a named thumbnail in /usr/share/cinnamon/thumbnails/cursors
+    # e.g. capitaine.png.
+    echo; read -p $'\033[1;37mSIR, DO YOU WANT A CUSTOM CURSOR? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            install_packages "${m[6]}" "${m[7]}" "${m[8]}"
+
+            git clone --quiet "${l[2]}" "${d[3]}"
+
+            [[ ! $(dpkg --list | awk "/ii  ${m[9]}[[:space:]]/ {print }") ]] \
+                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY?" \
+                && ruby_stuffs
+
+            ruby "${d[4]}generator/convert.rb" &> "${f[null]}"
+
+            make "${d[4]}build" &> "${f[null]}"
+
+            sudo make "${d[4]}install" &> "${f[null]}"
+
+            dconf write "${f[cursor]}" "'oreo_spark_violet_cursors'"
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO YOU WANT A CUSTOM CURSOR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
+
+    echo; read -p $'\033[1;37mSIR, DO YOU WANT UNPACK AUTOMATICALLY AT DOWNLOADS FOLDER? \n[Y/N] R: \033[m' option
+
+    for (( ; ; )); do
+
+        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
+
+            install_packages "${m[10]}"
+
+            [[ ! -e "${f[util_extract]}" ]] \
+                && wget --quiet "${l[3]}" --output-document "${f[util_extract]}"
+
+            [[ $(stat --format="%U" "${f[util_extract]}" 2>&-) != ${USER} ]] \
+                && sudo chown "${USER}":"${USER}" "${f[util_extract]}"
+
+            # crontab -u ${USER} -l
+            [[ ! $(grep --no-messages upgrade "${f[cron]}") ]] \
+                && sudo tee "${f[cron]}" > "${f[null]}" <<< "# MINUTE HOUR MONTH_DAY MONTH  WEEKDAY COMMAND
+# 0-59    0-23 1-31       1-12 0-7           zsh MY_SCRIPT.sh
+@reboot zsh ${f[util_extract]}" \
+                && "${f[cron_bin]}" "${f[cron]}"
+
+            break
+
+        elif [[ "${option:0:1}" = @(N|n) ]] ; then
+
+            break
+
+        else
+
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO YOU WANT A AUTOMATICALLY EXTRACT?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+            read option
+
+        fi
+
+    done
 
     echo; read -p $'\033[1;37mSIR, ARE YOU FACING ISSUES TO TYPE Ç ON YOUR KEYBOARD? \n[Y/N] R: \033[m' option
 
@@ -5590,8 +5681,8 @@ change_panelandgui() {
         fi
 
     done
-SY
-    echo; read -p $'\033[1;37mSIR, YOUR STEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
+
+    echo; read -p $'\033[1;37mSIR, YOUR SYSTEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -5643,12 +5734,18 @@ SY
     done
 
     # STARTS UPGRADE AUTOMATICALLY
-    # crontab -u ${USER} -l
-    [[ ! $(grep --no-messages upgrade "${f[cron]}") && "${XDG_CURRENT_DESKTOP^^}" =~ .*CINNAMON ]] \
-        && sudo tee "${f[cron]}" > "${f[null]}" <<< "# MINUTE HOUR MONTH_DAY MONTH  WEEKDAY COMMAND
-# 0-59    0-23 1-31       1-12 0-7           bash MY_SCRIPT.sh
-0 14 * * * ${f[mint_update]} upgrade --refresh-cache --yes > ${f[update_log]} 2>&1" \
-        && "${f[cron_bin]}" "${f[cron]}"  # ENDS UPGRADE AUTOMATIC
+    if [[ ! $(grep --no-messages 'Update-Package' "${f[auto_upgrade]}") ]]; then
+
+        install_packages "${m[11]}" "${m[12]}"
+
+        sudo sed -i 's|//    "${distro_id}:${distro_codename}-updates";|    "${distro_id}:${distro_codename}-updates";|g' "${f[unattended]}"
+
+        # sudo unattended-upgrades --dry-run --debug
+        sudo tee "${f[auto_upgrade]}" > "${f[null]}" <<< 'APT::Periodic::Update-Package-Lists "1";
+APT::Periodic::Unattended-Upgrade "1";
+APT::Periodic::AutocleanInterval "7";'
+
+    fi  # ENDS UPGRADE AUTOMATICALLY
 
     # START GUI CHANGES
     dconf write "${f[paste]}" "'<Ctrl>v'"
