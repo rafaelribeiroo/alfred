@@ -412,6 +412,7 @@ alexa_stuffs() {
 
     local -a d=(
         ~/.TRIGGERcmdData/  # 1
+        ~/.nvm/  # 2
     )
 
     local -a m=(
@@ -438,6 +439,8 @@ alexa_stuffs() {
 
     local -a l=(
         'https://s3.amazonaws.com/triggercmdagents/triggercmdagent_1.0.1_amd64.deb'  # 1
+        'https://nodejs.org/en/'  # 2
+        'https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh'  # 3
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
@@ -492,6 +495,49 @@ alexa_stuffs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    latest=$(curl --silent "${l[2]}" | grep data-version | head -1 | awk '{print $5}')
+
+    local=$(apt version "${m[3]}")
+
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        echo; read $'?\033[1;37mSIR, SHOULD I UPGRADE NODEJS VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
+
+                [[ ! -d "${d[2]}" ]] \
+                    && curl --output - "${l[3]}" | zsh
+
+                [[ ! $(grep --no-messages '.nvm' "${f[zshrc]}") ]] \
+                    && sudo tee "${f[zshrc]}" > "${f[null]}" <<< '
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion' \
+                    && source "${f[zshrc]}"
+
+                # nvm ls-remote
+                nvm install "${latest}" &> "${f[null]}"
+
+                break
+
+            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    fi
 
     if [[ ! -e "${f[pc_id]}" ]]; then
 
@@ -4408,6 +4454,8 @@ usefull_pkgs() {
         /etc/series-renamer/  # 5
         ~/.config/autostart/  # 6
         ~/.config/Rename\ My\ TV\ Series/  # 7
+        /tmp/coreutils-8.32  # 8
+        ~/.local/bin  # 9
     )
 
     f+=(
@@ -4428,6 +4476,10 @@ usefull_pkgs() {
         [daemon_rnm]=/usr/bin/rename-tv-series
         [recent_items]=/net/launchpad/diodon/clipboard/recent-items-size
         [after_torrent]=/usr/bin/torrent_completed.sh
+        [cp_custom]=/tmp/coreutils-8.32.tar.xz
+        [patch]=/tmp/coreutils-8.32/advcpmv-0.8-8.32.patch
+        [new_cp]=~/.local/bin/cp
+        [old_cp]=src/cp
     )
 
     local -a l=(
@@ -4436,6 +4488,8 @@ usefull_pkgs() {
         'https://github.com/transmission/transmission/releases/'  # 3
         'https://github.com/linux-man/nemo-mediainfo-tab/releases/download/v1.0.4/nemo-mediainfo-tab_1.0.4_all.deb'  # 4
         'https://api.pushover.net/1/messages.json'  # 5
+        'http://ftp.gnu.org/gnu/coreutils/coreutils-8.32.tar.xz'  # 6
+        'https://raw.githubusercontent.com/jarun/advcpmv/master/advcpmv-0.8-8.32.patch'  # 7
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -4469,6 +4523,11 @@ usefull_pkgs() {
         'dconf-editor'  # 27
         'python3-mediainfodll'  # 28
         'inotify-tools'  # 29
+        'gcc'  # 30
+        'g++'  # 31
+        'make'  # 32
+        'build-essential'  # 33
+        'cprogressbar'  # 34
     )
 
     [[ ! -d "${d[6]}" || $(stat --format="%U" "${d[6]}" 2>&-) != "${USER}" ]] \
@@ -4549,7 +4608,7 @@ usefull_pkgs() {
             && sudo wget --quiet "${l[4]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[25]}" "${m[26]}" "${m[27]}" "${m[29]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[25]}" "${m[26]}" "${m[27]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[33]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
@@ -4609,6 +4668,35 @@ StartupNotify=true"
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    if [[ ! -e "${f[new_cp]}" ]]; then
+
+        show "\n${c[YELLOW]}${m[34]:u} ${c[WHITE]}${linen:${#m[34]}} [INSTALLING]"
+
+        [[ ! -d "${d[8]}" ]] \
+            && sudo wget --quiet "${l[6]}" --output-document "${f[cp_custom]}" \
+            && sudo tar --extract --file="${f[cp_custom]}" \
+            && cd "${d[8]}" > "${f[null]}"
+
+        [[ ! -f "${f[patch]}" ]] \
+            && sudo wget --quiet "${l[7]}" --output-document "${f[patch]}" \
+            && patch -p1 --input=advcpmv-0.8-8.32.patch &> "${f[null]}" \
+            && ./configure &> "${f[null]}" \
+            && make &> "${f[null]}"
+
+        [[ ! -d "${d[9]}" || $(stat --format="%U" "${d[9]}" 2>&-) != "${USER}" ]] \
+            && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
+            && sudo mkdir --parents "${d[9]}" > "${f[null]}" \
+            && sudo chown --recursive "${USER}":"${USER}" "${d[9]}"
+
+        sudo cp "${f[old_cp]}" "${f[new_cp]}"
+
+        [[ ! $(grep --no-messages '--progress-bar' "${f[zshrc]}") ]] \
+            && sudo tee "${f[zshrc]}" > "${f[null]}" <<< '
+alias cp="${HOME}/.local/bin/cp --progress-bar"' \
+            && source "${f[zshrc]}"
+
+    fi
 
     [[ ! -L "${f[daemon_rnm]}" ]] \
         && sudo ln --force --symbolic "${f[series]}" "${f[daemon_rnm]}"
