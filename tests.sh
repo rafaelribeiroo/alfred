@@ -60,6 +60,9 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
+    [bookmarks]=/org/nemo/preferences/show-bookmarks-in-to-menus
+    [expand]=/org/nemo/window-state/bookmarks-expanded
+    [show]=/com/linuxmint/mintmenu/plugins/places/show-gtk-bookmarks
 )
 
 name=(
@@ -111,8 +114,6 @@ boilerplate() {
 
 }
 
-show "${c[RED]}=======================================================" 1
-
 # [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
 #     && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
 #     && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
@@ -129,4 +130,13 @@ show "${c[RED]}=======================================================" 1
 # done
 # episodic --api-key=8461b3c7 --no-tree --force .
 
+# sed -i 's|<[^>]*>||g' Alucinação.srt
 
+# local -a m=(
+#     'wallpapers'  # 1
+# )
+
+# function pad () { [ "$#" -gt 1 ] && [ -n "$2" ] && printf "%$2.${2#-}s" "$1"; }
+
+# show "${c[RED]}=======================================================" 1
+# show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
