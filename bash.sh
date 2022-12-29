@@ -2119,13 +2119,11 @@ github_stuffs() {
 
         if [[ $(grep --no-messages "Sent from my ${NAME//Linux/}" "${f[all_title_gh]}") ]]; then
 
-            echo; read -p $'\033[1;37mSIR, SHOULD I REPLACE YOUR SSH ON GITHUB? \n[Y/N] R: \033[m' option
+            echo; read -p $'\033[1;37mSIR, SHOULD I REPLACE YOUR SSH ON GITHUB? THERE\'S AN INCONSISTENCY! \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
                 if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                    show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1
 
                     old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[0]}" | jq --raw-output ".[] | .id, .title" | grep --before-context=1 "Sent from my ${NAME//Linux/}" | head -1)
 
@@ -2952,7 +2950,7 @@ minidlna_stuffs() {
 
     fi
 
-    echo; read -p $'\033[1;37mSIR, ARE YOUR FILES NOT BEING REFRESHED ON MINIDLNA DATABASE? \n[Y/N] R: \033[m' option
+    echo; read -p $'\033[1;37mSIR, AREN\'T YOUR FILES BEING REFRESHED ON MINIDLNA DATABASE? \n[Y/N] R: \033[m' option
 
     for (( ; ; )); do
 
@@ -2970,7 +2968,7 @@ minidlna_stuffs() {
 
         else
 
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. YOUR NEW FILES ARE BEING STORED IN DATABASE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU LOOKING AT TV YOUR NEW MISSING FILES?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
             read option
 
@@ -5380,7 +5378,7 @@ workspace_stuffs() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! $(ssh -T git@github.com 2>&1 | grep --no-messages "You've successfully") ]] \
+            [[ ! $(yes "" | ssh -T git@github.com 2>&1 | grep --no-messages "You've successfully") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GITHUB?" \
                 && github_stuffs
 
