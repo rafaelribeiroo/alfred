@@ -4075,8 +4075,6 @@ sublime_stuffs() {
         [reduce]=config/Python/Main.sublime-menu
         [REPLPYT]="${d[1]}"Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
-        [free_st]=/tmp/st_sm_cracker.c
-        [out]=/tmp/crack.out
     )
 
     declare -a l=(
@@ -4084,7 +4082,6 @@ sublime_stuffs() {
         'https://download.sublimetext.com/ apt/stable/'  # 2
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 3
         'https://packagecontrol.io/packages/'  # 4
-        'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 5
     )
 
     declare -a m=(
@@ -4174,23 +4171,8 @@ sublime_stuffs() {
 
     done
 
-    [[ ! -e "${f[free_st]}" ]] \
-        && wget --quiet "${l[5]}" --output-document "${f[free_st]}"
 
-    gcc "${f[free_st]}" --output="${f[free_st]//.c/}"
 
-    [[ $(stat --format='%a' "${f[free_st]}") -ne 776 ]] \
-        && sudo chmod 776 "${f[free_st]}"
-
-    ( nohup sudo "${f[free_st]//.c/}" & ) &> "${f[out]}"
-
-    for (( ; ; )); do
-
-        [[ $(grep --no-messages 'Paying' "${f[out]}") ]] \
-            && break \
-            || continue
-
-    done
 
     # Adding license key
     [[ ! $(grep --no-messages Paying "${f[license]}") ]] \
