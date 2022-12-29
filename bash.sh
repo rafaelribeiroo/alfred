@@ -741,7 +741,7 @@ declare -A c=(
     [END]='\e[0m'
 )
 
-alias unstaged='find -type d -name .git | while read dir; do zsh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
+alias unstaged='find -type d -name .git | sed \"s|^./||g\" | while read dir; do zsh -c \"cd \${dir}/../ && echo \"\${c[WHITE]}GIT STATUS IN \${dir%%.git}\${c[END]}\" && git status --short\"; done'" \
         && sudo sed --in-place 's|echo "\${c\[W|echo \\"${c[W|g' "${f[bashrc]}" \
         && sudo sed --in-place 's|\[END]}"|[END]}\\"|g' "${f[bashrc]}" \
         && source "${f[bashrc]}"
