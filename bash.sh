@@ -4386,7 +4386,6 @@ sublime_stuffs() {
         ~/.cinnamon/configs/grouped-window-list@cinnamon.org  # 2
         ~/.pyenv/  # 3
         /.Trash-1000/  # 4
-        ~/.config/sublime-merge/  # 5
     )
 
     f+=(
@@ -4408,9 +4407,6 @@ sublime_stuffs() {
         [recently_used]=~/.local/share/recently-used.xbel
         [free_st]=/tmp/st_sm_cracker.c
         [out]=/tmp/crack.out
-        [merge_old]=/opt/sublime_merge/sublime_merge
-        [merge_new]=/usr/bin/merge
-        [smerge]=/tmp/sublime-merge_build-2068_amd64.deb
     )
 
     declare -a l=(
@@ -4419,23 +4415,20 @@ sublime_stuffs() {
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
         'https://packagecontrol.io/packages/'  # 3
         'https://gist.githubusercontent.com/rafaelribeiroo/bbacd1e735e1b7657b3b0e1a984b2ae7/raw/231a95f55ecd7bc23202885591ed2ce69403396d/st_sm_cracker.c'  # 4
-        'https://download.sublimetext.com/sublime-merge_build-2074_amd64.deb'  # 5
     )
 
     declare -a m=(
         'apt-transport-https'  # 0
         'sublime-text'  # 1
         'gawk'  # 2
-        'sublime-merge'  # 3
-        'python-is-python3'  # 4
+        'python-is-python3'  # 3
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
         && show "\nBEFORE PROCEED, LET'S INSTALL SOME REQUIREMENTS..." \
         && install_packages "${m[2]}"
 
-    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
-        && -e "${f[merge_old]}" ]]; then
+    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
         show "\n${c[GREEN]}${m[1]^^} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
 
@@ -4517,22 +4510,6 @@ sublime_stuffs() {
 
     done
 
-    sudo ln --force --symbolic "${f[merge_old]}" "${f[merge_new]}"
-
-    while [[ ! -d "${d[5]}" ]]; do
-
-        show "\nRESTARTING MERGE TO GENERATE CONFIG FILES.\nWAIT..."
-
-        ( nohup merge & ) &> "${f[null]}"
-
-        take_a_break
-
-        sudo pkill merge
-
-        take_a_break
-
-    done
-
     [[ ! -e "${f[free_st]}" ]] \
         && wget --quiet "${l[4]}" --output-document "${f[free_st]}"
 
@@ -4554,10 +4531,6 @@ sublime_stuffs() {
     # Adding license key
     [[ ! $(grep --no-messages Paying "${f[license]}") ]] \
         && sudo tee "${f[license]}" > "${f[null]}" <<< 'Paying $99 USD'
-
-    # Adding license key
-    [[ ! $(grep --no-messages Paying "${f[license_merge]}") ]] \
-        && sudo tee "${f[license_merge]}" > "${f[null]}" <<< 'Paying $99 USD'
 
     # Remove file changes history
     # sudo rm --force "${f[recently_used]}"
@@ -4697,7 +4670,7 @@ sublime_stuffs() {
         if [[ -e "${f[anaconda]}" && -e "${f[REPL]}" && -e "${f[REPLPY]}" \
             && -e "${f[REPLPY]}" ]]; then
 
-            [[ ! $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]] \
+            [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PYTHON?" \
                 && python_stuffs
 
