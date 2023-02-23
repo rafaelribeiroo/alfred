@@ -300,7 +300,7 @@ install_pip(){
 
             echo && show "${c[YELLOW]}${package^^} ${c[WHITE]}${linen:${#package}} [INSTALLING]"
 
-            pip install --quiet --no-warn-script-location "${package}"
+            python -m pip install --quiet --no-warn-script-location "${package}"
 
             notify-send "Status from Alfred" "${package} was installed successfully" --icon="${f[alfred]}"
 
@@ -1045,6 +1045,7 @@ deemix_stuffs() {
     f+=(
         [file]="${d[0]}"linux-x86_64-latest.deb
         [decrypt]=/etc/browser_cookie3_n.py
+        [clear_garbage]=/etc/clear_garbage.sh
         [cookies]="${d[0]}"cookies
         [arl_value]="${d[3]}".arl
         [cfg]="${d[3]}"config.json
@@ -1212,9 +1213,13 @@ deemix_stuffs() {
 
     source "${f[user_dirs]}"
 
-    [[ ! $(grep --no-messages 'alias cm' "${f[bashrc]}") ]] \
-        && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-alias cm=\"rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|AC_DC|ACDC|g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*\""
+    [[ ! -e "${f[clear_garbage]}" ]] \
+        && sudo tee "${f[clear_garbage]}" > "${f[null]}" <<< "#!/usr/bin/env bash
+
+rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|Ac_dc|ACDC|g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*"
+
+    [[ $(stat --format='%a' "${f[clear_garbage]}") -ne 755 ]] \
+        && sudo chmod 755 "${f[clear_garbage]}"
 
     [[ ! $(grep --no-messages 'autoCheckForUpdates' "${f[cfg]}") ]] \
         && sudo sed --in-place --null-data 's|}|},\n  "autoCheckForUpdates": true|1' "${f[cfg]}"
@@ -1229,6 +1234,7 @@ alias cm=\"rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|AC_DC
 
     sudo sed --in-place 's|"queueConcurrency":.*|"queueConcurrency": 50,|g' "${f[cfg]}"
 
+    # MP3 320KBPS SET TO 3, FLAC 9
     sudo sed --in-place 's|"maxBitrate":.*|"maxBitrate": "3",|g' "${f[cfg]}"
 
     sudo sed --in-place 's|"titleCasing":.*|"titleCasing": "start",|g' "${f[cfg]}"
@@ -1241,7 +1247,7 @@ alias cm=\"rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|AC_DC
 
     sudo sed --in-place 's|"removeAlbumVersion":.*|"removeAlbumVersion": true,|g' "${f[cfg]}"
 
-    sudo sed --in-place "s|\"executeCommand\":.*|\"executeCommand\": \"zsh -c \$(cm) &> /dev/null\",|g" "${f[cfg]}"
+    sudo sed --in-place "s|\"executeCommand\":.*|\"executeCommand\": \"${f[clear_garbage]}\",|g" "${f[cfg]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
@@ -1300,29 +1306,33 @@ alias ct='rm --recursive --force ${d[2]}'"
 
     fi
 
-    echo; read -p $'\033[1;37mSIR, SHOULD I OPEN DEEMIX? (CLIPBOARD CONTAINS ARL) \n[Y/N] R: \033[m' option
+    if [[ ! -e "${f[arl_value]}" ]]; then
 
-    for (( ; ; )); do
+        echo; read -p $'\033[1;37mSIR, SHOULD I OPEN DEEMIX? (CLIPBOARD CONTAINS ARL) \n[Y/N] R: \033[m' option
 
-        if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
+        for (( ; ; )); do
 
-            ( nohup "${m[0]}" & ) &> "${f[null]}"
+            if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
 
-            break
+                ( nohup "${m[0]}" & ) &> "${f[null]}"
 
-        elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
+                break
 
-            break
+            elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
 
-        else
+                break
 
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+            else
 
-            read option
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I OPEN?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
-        fi
+                read option
 
-    done
+            fi
+
+        done
+
+    fi
 
     echo; show "OPERATION COMPLETED SUCCESSFULLY, ${name[random]}!"
 
@@ -2956,6 +2966,7 @@ minidlna_stuffs() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
+            # forces a rescan
             sudo minidlnad -r && sudo service minidlna restart
 
             sudo service minidlna force-reload
@@ -4405,6 +4416,7 @@ sublime_stuffs() {
         [reduce]=config/Python/Main.sublime-menu
         [REPLPYT]="${d[0]}"Packages/SublimeREPL/sublimerepl.py
         [recently_used]=~/.local/share/recently-used.xbel
+        [gpg]=/etc/apt/trusted.gpg.d/sublimehq-archive.gpg
     )
 
     declare -a l=(
@@ -4412,6 +4424,7 @@ sublime_stuffs() {
         'https://download.sublimetext.com/ apt/stable/'  # 1
         'https://packagecontrol.io/Package%20Control.sublime-package'  # 2
         'https://packagecontrol.io/packages/'  # 3
+        'https://www.sublimetext.com/download'  # 4
     )
 
     declare -a m=(
@@ -4472,11 +4485,7 @@ sublime_stuffs() {
         # 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Sublime) ]] \
-            && sudo wget --quiet --output-document - "${l[0]}" | sudo apt-key add - &> "${f[null]}"
-
-        # [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
-        #     && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[1]}" \
-        #     && update
+            && sudo wget --quiet --output-document - "${l[0]}" | gpg --dearmor | sudo tee "${f[gpg]}" &> "${f[null]}"
 
         install_packages "${m[0]}" "${m[1]}"
 
@@ -4486,6 +4495,43 @@ sublime_stuffs() {
     fi
 
     echo; show "INITIALIZING CONFIGS..."
+
+    local=$(subl --version | awk '{print $4}')
+
+    latest=$(curl --silent "${l[4]}" | grep latest | awk '{print $4}' | sed 's/<[^>]*>//g')
+
+    if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
+
+        echo; read -p $'\033[1;37mSIR, SHOULD I UPGRADE TRANSMISSION VERSION FROM '${local}' TO '${latest}$'? \n[Y/N] R: \033[m' option
+
+        for (( ; ; )); do
+
+            if [[ "${option:0:1}" =~ @(s|S|y|Y) ]] ; then
+
+                [[ ! $(grep --no-messages sublimetext "${f[ppa]}") ]] \
+                    && sudo tee "${f[ppa]}" > "${f[null]}" <<< "deb ${l[1]}"
+
+                update && sudo apt install --assume-yes "${m[1]}" &> "${f[null]}"
+
+                sudo rm --force "${f[ppa]}"
+
+                break
+
+            elif [[ "${option:0:1}" =~ @(N|n) ]] ; then
+
+                break
+
+            else
+
+                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I UPGRADE?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
+
+                read option
+
+            fi
+
+        done
+
+    fi
 
     while [[ ! -d "${d[0]}" ]]; do
 
@@ -4501,7 +4547,28 @@ sublime_stuffs() {
 
     done
 
+    if [[ $(md5sum --check <<< "AFDEBB91F2BF42C9B491BAFD517C0A49 ${f[exec]}" 2> "${f[null]}" | grep --no-messages 'OK') ]]; then
 
+        # https://gist.github.com/maboloshi/feaa63c35f4c2baab24c9aaf9b3f4e47
+        [[ $(xxd -postscript -seek 3813874 -len 4 "${f[exec]}") =~ 55415741 ]] \
+            && echo 003A31F2: 48 31 C0 C3 | sudo xxd -revert - "${f[exec]}"
+
+        [[ $(xxd -postscript -seek 3773319 -len 5 "${f[exec]}") =~ e8080e1200 ]] \
+            && echo 00399387: 90 90 90 90 90 | sudo xxd -revert - "${f[exec]}"
+
+        [[ $(xxd -postscript -seek 3773341 -len 5 "${f[exec]}") =~ e8f20d1200 ]] \
+            && echo 0039939D: 90 90 90 90 90 | sudo xxd -revert - "${f[exec]}"
+
+        [[ $(xxd -postscript -seek 3821104 -len 7 "${f[exec]}") =~ 554156534189f6 ]] \
+            && echo 003A4E30: 48 31 C0 48 FF C0 C3 | sudo xxd -revert - "${f[exec]}"
+
+        [[ $(xxd -postscript -seek 3812994 -len 1 "${f[exec]}") =~ 41 ]] \
+            && echo 003A2E82: C3 | sudo xxd -revert - "${f[exec]}"
+
+        [[ $(xxd -postscript -seek 3721712 -len 1 "${f[exec]}") =~ 55 ]] \
+            && echo 0038C9F0: C3 | sudo xxd -revert - "${f[exec]}"
+
+    fi
 
     # Adding license key
     [[ ! $(grep --no-messages Paying "${f[license]}") ]] \
@@ -4794,7 +4861,7 @@ usefull_pkgs() {
 
     f+=(
         [cfg]="${d[1]}"autoload/SpaceVim.vim
-        [load]=~/.config/nvim/init.vim
+        [load]=~/.nvim/init.vim
         [lock]="${d[3]}"apt/preferences.d/nosnap.pref
         [out]=/tmp/spacevim.out
         [vlc]="${d[2]}"vlcrc
@@ -4965,6 +5032,7 @@ usefull_pkgs() {
                 && wget --quiet "${l[6]}" --output-document "${f[patch]}" \
                 && patch --strip=1 --input="${f[patch]}" &> "${f[null]}" \
                 && cd "${d[7]}" > "${f[null]}" \
+                && sudo chmod +x configure \
                 && ./configure &> "${f[null]}" \
                 && make &> "${f[null]}" \
                 && cd - > "${f[null]}"
@@ -5017,7 +5085,7 @@ StartupNotify=true"
 
         for (( ; ; )); do
 
-            [[ $(grep --no-messages "Updating font cache" "${f[out]}") ]] \
+            [[ $(grep --no-messages "That's it." "${f[out]}") ]] \
                 && break \
                 || continue
 
@@ -5211,6 +5279,8 @@ curl --silent --form-string "token=${values[0]}" \
     sqlite3 "${f[rename_db]}" "UPDATE preferences SET SeasonNrAtLeast2Chars = 0;" "" > "${f[null]}"
 
     sqlite3 "${f[rename_db]}" 'DELETE FROM replacechars WHERE replacement = "`";' "" > "${f[null]}"
+
+    sqlite3 "${f[rename_db]}" 'UPDATE replacechars SET replacement = "／" WHERE original = "/";' "" > "${f[null]}"
 
     # These character class match once only, so we need +
     # https://www.petefreitag.com/cheatsheets/regex/character-classes/
@@ -5616,26 +5686,15 @@ change_panelandgui() {
         [auto_upgrade]=/etc/apt/apt.conf.d/20auto-upgrades
         [cedilha]=/usr/bin/cedilha
         [out]=/tmp/cedilha.out
-        [cursor]=/org/cinnamon/desktop/interface/cursor-theme
         [util_extract]=/etc/manage_files.sh
         [cron]=/var/spool/cron/"${USER}"
         [cron_bin]=/usr/bin/crontab
         [unattended]=/etc/apt/apt.conf.d/50unattended-upgrades
-        [convert]=generator/convert.rb
-    )
-
-    local -a d=(
-        /tmp/linux-firmware.git/  # 0
-        /lib/firmware/amdgpu/  # 1
-        /tmp/linux-firmware/amdgpu/  # 2
-        /tmp/oreo-cursors/  # 3
     )
 
     local -a l=(
         'https://raw.githubusercontent.com/marcopaganini/gnome-cedilla-fix/master/fix-cedilla'  # 0
-        'https://kernel.googlesource.com/pub/scm/linux/kernel/git/firmware/linux-firmware.git'  # 1
-        'https://github.com/varlesh/oreo-cursors.git'  # 2
-        'https://gist.githubusercontent.com/rafaelribeiroo/d94647481b907cc3062c8ab594c5b89c/raw/08a660dc44a6cd6d7420e0b74a4595b452d234d5/manage_files.sh'  # 3
+        'https://gist.githubusercontent.com/rafaelribeiroo/d94647481b907cc3062c8ab594c5b89c/raw/08a660dc44a6cd6d7420e0b74a4595b452d234d5/manage_files.sh'  # 1
     )
 
     local -a m=(
@@ -5645,66 +5704,17 @@ change_panelandgui() {
         'sublime-text'  # 3
         'brave-browser'  # 4
         'google-chrome-stable'  # 5
-        'git'  # 6
-        'make'  # 7
-        'inkscape'  # 8
-        'ruby'  # 9
-        'inotify-tools'  # 10
-        'unattended-upgrades'  # 11
-        'update-notifier-common'  # 12
-        'language-pack-pt-base'  # 13
-        'language-pack-gnome-pt-base'  # 14
-        'hyphen-fi'  # 15
-        'hyphen-ga'  # 16
-        'hyphen-id'  # 17
+        'inotify-tools'  # 6
+        'unattended-upgrades'  # 7
+        'update-notifier-common'  # 8
+        'language-pack-pt-base'  # 9
+        'language-pack-gnome-pt-base'  # 10
+        'hyphen-fi'  # 11
+        'hyphen-ga'  # 12
+        'hyphen-id'  # 13
     )
 
-    install_packages "${m[0]}" "${m[1]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}"
-
-    # Cinnamon needs a png thumbnail in the icon themes cursors folder called
-    # thumbnail.png or a named thumbnail in /usr/share/cinnamon/thumbnails/cursors
-    # e.g. capitaine.png.
-    echo; read -p $'\033[1;37mSIR, DO YOU WANT A CUSTOM CURSOR? \n[Y/N] R: \033[m' option
-
-    for (( ; ; )); do
-
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-            install_packages "${m[6]}" "${m[7]}" "${m[8]}"
-
-            git clone --quiet "${l[2]}" "${d[3]}"
-
-            [[ ! $(dpkg --list | awk "/ii  ${m[9]}[[:space:]]/ {print }") ]] \
-                && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY?" \
-                && ruby_stuffs
-
-            cd "${d[3]}" > "${f[null]}"
-
-            ruby "${f[convert]}" &> "${f[null]}"
-
-            make build &> "${f[null]}"
-
-            sudo make install &> "${f[null]}"
-
-            cd - > "${f[null]}"
-
-            dconf write "${f[cursor]}" "'oreo_spark_violet_cursors'"
-
-            break
-
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-            break
-
-        else
-
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. DO YOU WANT A CUSTOM CURSOR?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-        fi
-
-    done
+    install_packages "${m[0]}" "${m[1]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}"
 
     echo; read -p $'\033[1;37mSIR, DO YOU WANT UNPACK AUTOMATICALLY AT DOWNLOADS FOLDER? \n[Y/N] R: \033[m' option
 
@@ -5712,10 +5722,10 @@ change_panelandgui() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            install_packages "${m[10]}"
+            install_packages "${m[6]}"
 
             [[ ! -e "${f[util_extract]}" ]] \
-                && sudo wget --quiet "${l[3]}" --output-document "${f[util_extract]}"
+                && sudo wget --quiet "${l[1]}" --output-document "${f[util_extract]}"
 
             [[ $(stat --format="%U" "${f[util_extract]}" 2>&-) != ${USER} ]] \
                 && sudo chown "${USER}":"${USER}" "${f[util_extract]}"
@@ -5803,63 +5813,12 @@ change_panelandgui() {
 
     done
 
-    echo; read -p $'\033[1;37mSIR, YOUR SYSTEM ARE LOST SOME AMD FIRMWARES? \n[Y/N] R: \033[m' option
-
-    for (( ; ; )); do
-
-        if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-            [[ ! -d "${d[0]}" ]] \
-                && git clone --quiet "${l[1]}" "${d[0]}"
-
-            sudo cp --recursive "${d[0]}"* "${d[1]}"
-
-            sudo update-initramfs -k all -u -v 2>&- &> "${f[null]}"
-
-            echo && read -p $'\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
-
-            for (( ; ; )); do
-
-                if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                    sudo reboot
-
-                elif [[ "${option:0:1}" = @(n|N) ]] ; then
-
-                    break
-
-                else
-
-                    echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                    read option
-
-                fi
-
-            done
-
-            break
-
-        elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-            break
-
-        else
-
-            echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. ARE YOU UNPROTECTED?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-            read option
-
-        fi
-
-    done
-
     # STARTS UPGRADE AUTOMATICALLY
     if [[ ! $(grep --no-messages 'Update-Package' "${f[auto_upgrade]}") ]]; then
 
-        install_packages "${m[11]}" "${m[12]}"
+        install_packages "${m[7]}" "${m[8]}"
 
-        echo; read -p $'\033[1;37m\nENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email
+        echo; read -p $'\033[1;37mENTER YOUR EMAIL, '"${name[random]}"$': \033[m' email
 
         sudo sed --in-place "s|//Unattended-Upgrade::Mail \"\";|Unattended-Upgrade::Mail \"${email}\";|g" "${f[unattended]}"
 
