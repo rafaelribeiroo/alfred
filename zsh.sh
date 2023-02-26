@@ -253,7 +253,7 @@ show() {
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
     # Don't sleep if 2ø argument exists (1)
-    [[ "${2}" -ne 1 ]] && take_a_break || return 0
+    [[ "${2}" == 'fast' ]] && return 0 || take_a_break
 
 }
 #======================#
@@ -346,7 +346,7 @@ thatsallfolks() {
 
     show "\nOPERATION COMPLETED SUCCESSFULLY, ${name[random]}!\n"
 
-    [[ "${1}" -ne 1 ]] && show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${choice} ${c[RED]}––––––––––––––––––––––––" 1
+    [[ "${1}" -ne 1 ]] && show "${c[RED]}––––––––––––––––––––––– ${c[YELLOW]}END ${c[GREEN]}${choice} ${c[RED]}––––––––––––––––––––––––" 'fast'
 
 }
 
@@ -362,11 +362,11 @@ update() {
 #======================#
 uninstall_or_configure() {
 
-    echo; show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${choice} ${c[RED]}–––––––––––––––––––" 1
+    echo; show "${c[RED]}––––––––––––––––––– ${c[YELLOW]}YOUR CHOICE: ${c[GREEN]}${choice} ${c[RED]}–––––––––––––––––––" 'fast'
 
     if [[ "${1}" ]]; then
 
-        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[0]:u} ${c[WHITE]}${linei:${#m[0]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -445,7 +445,7 @@ alexa_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -479,7 +479,7 @@ alexa_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         install_packages "${m[3]}"
 
@@ -606,7 +606,7 @@ brave_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -648,7 +648,7 @@ brave_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep brave) ]] \
             && curl --silent "${l[1]}" | sudo apt-key --keyring "${f[gpg]}" add - &> "${f[null]}"
@@ -756,7 +756,7 @@ deemix_stuffs() {
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[25]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -796,7 +796,7 @@ deemix_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         # Dependencies
         install_packages "${m[2]}" "${m[25]}"
@@ -816,7 +816,7 @@ deemix_stuffs() {
 
         echo; show "SIR, BEFORE PROCEED WE NEED TO GET YOUR ARL..."
 
-        show "${c[GREEN]}\n        I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n        I${c[WHITE]}NSTALLING ${c[GREEN]}${m[23]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         install_pip "${m[3]}" "${m[4]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[28]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}"
 
@@ -1061,7 +1061,7 @@ docky_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[6]:u} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[6]:u} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1096,7 +1096,7 @@ docky_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[6]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[6]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         # Dependencies
         if [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]]; then
@@ -1310,7 +1310,7 @@ dualmonitor_stuffs() {
         && -e "${d[1]}" ]]; then
         # 2>&- if dconf not installed
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linec:${#m[1]}} [APPLIED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linec:${#m[1]}} [APPLIED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1350,7 +1350,7 @@ dualmonitor_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  S${c[WHITE]}ETING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[2]}"
 
@@ -1364,7 +1364,7 @@ dualmonitor_stuffs() {
 
         if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+            show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
             install_packages "${m[3]}"
 
@@ -1584,7 +1584,7 @@ github_stuffs() {
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") && \
         $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1625,7 +1625,7 @@ github_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         echo; read $'?\033[1;37mSIR, ARE U OVER VPN? \n[Y/N] R: \033[m' option
 
@@ -1756,7 +1756,7 @@ github_stuffs() {
     # GITHUB STUFF
     for (( ; ; )); do
 
-        echo; show "${c[RED]}${user:u}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 1
+        echo; show "${c[RED]}${user:u}${c[WHITE]}, PLEASE CREATE A TOKEN IN https://github.com/settings/tokens\nPLEASE, ENABLE ${c[RED]}REPO/ADMIN:ORG/ADMIN:PUBLIC_KEY" 'fast'
 
         echo; read $'?\033[1;37mPASTE HERE YOUR TOKEN: \033[m' token
 
@@ -1770,7 +1770,7 @@ github_stuffs() {
             $(curl --silent --head --header "Authorization: token $(cat ${f[tmp_tk]})" "${l[1]}" | grep --extended-regexp --ignore-case '^x-oauth-scopes' | grep 'admin:org' | grep 'admin:public_key' | grep 'repo') &&
             ! -z "${f[tmp_success]}" \
         ]] \
-            && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 1
+            && break || show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!" 'fast'
         # if file is empty, is 200 OK
 
     done
@@ -1797,7 +1797,7 @@ github_stuffs() {
 
                 if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                    show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 1
+                    show "\nTHERE'S AN INCONSISTENCY IN YOUR LOCAL/REMOTE KEYS\nFIXING..." 'fast'
 
                     old_ssh_id=$(curl --silent --user "${user}":"$(cat ${f[tmp_tk]})" "${l[1]}" | jq --raw-output ".[] | .id, .title" | grep --before-context=1 "Sent from my ${NAME//Linux/}" | head -1)
 
@@ -1875,7 +1875,7 @@ chrome_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -1918,7 +1918,7 @@ chrome_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         # Dependencies
         install_packages "${m[2]}" "${m[3]}" "${m[4]}"
@@ -2000,7 +2000,7 @@ flameshot_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2036,7 +2036,7 @@ flameshot_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}" "${m[2]}"
 
@@ -2153,7 +2153,7 @@ heroku_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2191,7 +2191,7 @@ heroku_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -2212,7 +2212,7 @@ heroku_stuffs() {
             # https://devcenter.heroku.com/articles/heroku-cli#login-issues
             while [[ ! -e "${f[auth]}" ]]; do
 
-                show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" 1
+                show "\n\t\t${c[WHITE]}TRY HARDER ${c[RED]}${name[random]}${c[WHITE]}!!!\n" 'fast'
 
                 heroku login -i
 
@@ -2282,7 +2282,7 @@ hide_devices() {
         # --no-messages hide if file don't exists
         if [[ $(grep --no-messages ID_FS_UUID "${f[config]}") ]]; then
 
-            show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${lineh:${#m[1]}} [HIDED]\n" 1
+            show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${lineh:${#m[1]}} [HIDED]\n" 'fast'
 
             read $'?\033[1;37mSIR, SHOULD I SHOW THEM? \n[Y/N] R: \033[m' option
 
@@ -2314,7 +2314,7 @@ hide_devices() {
 
         else
 
-            show "${c[GREEN]}\n\tH${c[WHITE]}IDING ${c[GREEN]}WINDOWS ${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
+            show "${c[GREEN]}\n\tH${c[WHITE]}IDING ${c[GREEN]}WINDOWS ${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 'fast'
 
             show "${c[GREEN]}H${c[WHITE]}IDING ${c[GREEN]}DEVICE${c[WHITE]}"
 
@@ -2546,7 +2546,7 @@ minidlna_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2582,7 +2582,7 @@ minidlna_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}"
 
@@ -2703,7 +2703,7 @@ nvidia_stuffs() {
 
         if [[ "${check_driver%%_drm}" = "nvidia" ]]; then
 
-            show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+            show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
             read $'?\033[1;37mSIR, SHOULD I RESTORE NOUVEAU DRIVER? \n[Y/N] R: \033[m' option
 
@@ -2766,7 +2766,7 @@ nvidia_stuffs() {
 
         else
 
-            show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+            show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
             [[ ! $(apt search nvidia-driver-"${latest}") ]] \
                 && sudo add-apt-repository --yes ppa:graphics-drivers/ppa &> "${f[null]}" \
@@ -2870,7 +2870,7 @@ postgres_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -2908,7 +2908,7 @@ postgres_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         # lsb_release get os version name
         [[ "${XDG_CURRENT_DESKTOP:u}" =~ .*CINNAMON ]] \
@@ -3305,7 +3305,7 @@ postman_stuffs() {
 
     if [[ -f "${f[bin]}" ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -3342,7 +3342,7 @@ postman_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -3569,7 +3569,7 @@ python_stuffs() {
         && $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]" 'fast'
 
         read $'?\033[1;37m\nSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -3609,7 +3609,7 @@ python_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n    I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}" "${m[21]}"
 
@@ -3640,7 +3640,7 @@ python_stuffs() {
 
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[5]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
                 # Dependencies
                 install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}" "${m[13]}" "${m[14]}" "${m[15]}" "${m[18]}" "${m[19]}" "${m[20]}"
@@ -3734,7 +3734,7 @@ reduceye_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -3772,7 +3772,7 @@ reduceye_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}" "${m[2]}"
 
@@ -3931,7 +3931,7 @@ ruby_stuffs() {
    if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[19]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -3973,7 +3973,7 @@ ruby_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         [[ ! $(sudo apt-key list 2> "${f[null]}" | grep Yarn) ]] \
             && sudo wget --quiet --output-document - "${l[4]}" | sudo apt-key add - &> "${f[null]}"
@@ -4001,7 +4001,7 @@ ruby_stuffs() {
 
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+                show "${c[GREEN]}\n\t   I${c[WHITE]}NSTALLING ${c[GREEN]}${m[4]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
                 # Dependencies
                 install_packages "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[12]}""${m[13]}" "${m[14]}" "${m[15]}" "${m[16]}" "${m[17]}" "${m[18]}"
@@ -4110,7 +4110,7 @@ sublime_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[2]:u} ${c[WHITE]}${linei:${#m[2]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -4150,7 +4150,7 @@ sublime_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[2]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n       I${c[WHITE]}NSTALLING ${c[GREEN]}${m[2]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         # 2> hides
         # Warning: apt-key output should not be parsed (stdout is not a terminal)
@@ -4464,7 +4464,7 @@ tmate_stuffs() {
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -4498,7 +4498,7 @@ tmate_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\t  I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}"
 
@@ -4616,7 +4616,7 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[16]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" 1
+        show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" 'fast'
 
         read $'?\033[1;37m\nSIR, SHOULD I UNINSTALL THEM? \n[Y/N] R: \033[m' option
 
@@ -4666,7 +4666,7 @@ usefull_pkgs() {
 
     else
 
-        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[7]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 1
+        show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[7]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[4]}"
 
@@ -5012,7 +5012,7 @@ workspace_stuffs() {
 
     if [[ -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) = ${USER} ]]; then
 
-        show "\n${c[GREEN]}${d[1]:u} ${c[WHITE]}${linec:${#d[1]}} [CREATED]\n" 1
+        show "\n${c[GREEN]}${d[1]:u} ${c[WHITE]}${linec:${#d[1]}} [CREATED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I REMOVE? \n[Y/N] R: \033[m' option
 
@@ -5047,7 +5047,7 @@ workspace_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\t C${c[WHITE]}REATING ${c[GREEN]}${d[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 1
+        show "${c[GREEN]}\n\t C${c[WHITE]}REATING ${c[GREEN]}${d[1]:u}${c[WHITE]} AND ${c[GREEN]}CONFIGURATING${c[WHITE]}!\n" 'fast'
 
         show "${c[GREEN]}C${c[WHITE]}REATING ${c[GREEN]}${d[1]:u}${c[WHITE]}"
 
@@ -5203,7 +5203,7 @@ xscreensaver_stuffs() {
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -5237,7 +5237,7 @@ xscreensaver_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n      I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         install_packages "${m[1]}" "${m[2]}" "${m[3]}" "${m[5]}" "${m[6]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[11]}"
 
@@ -5374,7 +5374,7 @@ zsh_stuffs() {
 
     if [[ -d "${d[1]}" ]]; then
 
-        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 1
+        show "\n${c[GREEN]}${m[1]:u} ${c[WHITE]}${linei:${#m[1]}} [INSTALLED]\n" 'fast'
 
         read $'?\033[1;37mSIR, SHOULD I UNINSTALL? \n[Y/N] R: \033[m' option
 
@@ -5468,7 +5468,7 @@ zsh_stuffs() {
 
     else
 
-        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 1
+        show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
         install_packages "${m[2]}" "${m[5]}"
 
@@ -6151,7 +6151,7 @@ menu() {
 
     for (( ; ; )); do
 
-        sleep 0.1s; show "${c[RED]}=======================================================" 1
+        sleep 0.1s; show "${c[RED]}=======================================================" 'fast'
 
         for line in "${(@k)logo}"; do
 
@@ -6159,33 +6159,33 @@ menu() {
 
         done
 
-        sleep 0.1s; show "${c[RED]}=======================================================" 1
-        sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[door]}" 1
-        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}ALEXA SKILLS ${e[alexa]}" 1
-        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 1
-        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 1
-        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DOCKY ${e[control]}" 1
-        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 1
-        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 1
-        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 1
-        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 1
-        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HEROKU ${e[rocket]}" 1
-        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 1
-        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 1
-        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 1
-        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 1
-        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 1
-        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}PYTHON ${e[snake]}" 1
-        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 1
-        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}RUBY ${e[ruby]}" 1
-        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 1
-        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}TMATE ${e[magnet]}" 1
-        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 1
-        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 1
-        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}XSCREENSAVER ${e[screensaver]}" 1
-        sleep 0.1s; show "${c[RED]}[ 23 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 1
-        sleep 0.1s; show "${c[RED]}[ 24 ] ${c[WHITE]}ALL ${e[whale]}" 1
-        sleep 0.1s; show "${c[RED]}=======================================================" 1
+        sleep 0.1s; show "${c[RED]}=======================================================" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 00 ] ${c[WHITE]}EXIT ${e[door]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 01 ] ${c[WHITE]}ALEXA SKILLS ${e[alexa]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 02 ] ${c[WHITE]}BRAVE BROWSER ${e[leo]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 03 ] ${c[WHITE]}DEEMIX ${e[headphone]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 04 ] ${c[WHITE]}DOCKY ${e[control]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 05 ] ${c[WHITE]}DUAL MONITOR SETUP ${e[landscape]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 06 ] ${c[WHITE]}GIT/GITHUB ${e[octopus]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 07 ] ${c[WHITE]}GOOGLE CHROME ${e[globe]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 08 ] ${c[WHITE]}FLAMESHOT ${e[camera]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 09 ] ${c[WHITE]}HEROKU ${e[rocket]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 10 ] ${c[WHITE]}HIDE WINDOWS DEVICES (DUAL BOOT) ${e[blind_monkey]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 11 ] ${c[WHITE]}MINIDLNA ${e[popcorn]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 12 ] ${c[WHITE]}NVIDIA DRIVER ${e[n]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 13 ] ${c[WHITE]}POSTGRES ${e[elephant]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 14 ] ${c[WHITE]}POSTMAN ${e[satellite]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 15 ] ${c[WHITE]}PYTHON ${e[snake]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 16 ] ${c[WHITE]}REDUCE EYE STRAIN ${e[moon]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 17 ] ${c[WHITE]}RUBY ${e[ruby]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 18 ] ${c[WHITE]}SUBLIME TEXT ${e[letters]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 19 ] ${c[WHITE]}TMATE ${e[magnet]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 20 ] ${c[WHITE]}USEFULL PROGRAMS ${e[diamond]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 21 ] ${c[WHITE]}WORKSPACE ${e[suitcase]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 22 ] ${c[WHITE]}XSCREENSAVER ${e[screensaver]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 23 ] ${c[WHITE]}ZSH (OH-MY-ZSH) ${e[paint]}" 'fast'
+        sleep 0.1s; show "${c[RED]}[ 24 ] ${c[WHITE]}ALL ${e[whale]}" 'fast'
+        sleep 0.1s; show "${c[RED]}=======================================================" 'fast'
 
         # zsh convention, anything after a ? is used as the prompt string
         # https://superuser.com/questions/555874/zsh-read-command-fails-within-bash-function-read1-p-no-coprocess
