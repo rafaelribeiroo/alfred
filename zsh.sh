@@ -252,7 +252,6 @@ show() {
 
     echo -e ${c[WHITE]}"${1}"${c[END]}
 
-    # Don't sleep if 2ø argument exists (1)
     [[ "${2}" == 'fast' ]] && return 0 || take_a_break
 
 }
@@ -420,6 +419,7 @@ alexa_stuffs() {
         'gawk'  # 2
         'nodejs'  # 3
         'minidlna'  # 4
+        'libgconf-2-4'  # 5
     )
 
     [[ ! $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") ]] \
@@ -435,6 +435,7 @@ alexa_stuffs() {
         [cmds]=~/.TRIGGERcmdData/commands.json
         [pc_id]=~/.TRIGGERcmdData/computerid.cfg
         [daemon]=/usr/lib/triggercmdagent/resources/app/src/daemon.js
+        [fix-broken]=/tmp/check_libgconf
     )
 
     local -a l=(
@@ -481,7 +482,15 @@ alexa_stuffs() {
 
         show "${c[GREEN]}\n     I${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
-        install_packages "${m[3]}"
+        install_packages "${m[3]}" "${m[5]}"
+
+        # lib m[5] always broken for being so old
+        sudo apt update &> "${f[null]}"
+
+        sudo apt upgrade --yes &> "${f[fix-broken]}"
+
+        [[ ! $(grep --no-messages 'unmet dependencies' "${f[fix-broken]}") ]] \
+            && sudo apt --fix-broken --yes install &> "${f[null]}"
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -541,13 +550,13 @@ export NVM_DIR="$HOME/.nvm"
 
     if [[ ! -e "${f[pc_id]}" ]]; then
 
-        echo; show "${c[RED]}SIR${c[WHITE]}, CREATE AN ACCOUNT IN https://www.triggercmd.com/user/auth/login\nAFTER THAT, COPY TOKEN FROM ${c[RED]}INSTRUCTIONS ${c[WHITE]} PANEL AND PASTE IN GUI SCREEN"
+        echo; show "${c[RED]}SIR${c[WHITE]}, CREATE AN ACCOUNT IN https://www.triggercmd.com/user/auth/login\nAFTER THAT, COPY TOKEN FROM ${c[RED]}INSTRUCTIONS ${c[WHITE]}PANEL AND PASTE IN GUI SCREEN"
 
         ( nohup "${m[1]}" & ) &> "${f[check_token]}"
 
         for (( ; ; )); do
 
-            take_a_break
+            sleep 10s
 
             # node /usr/lib/triggercmdagent/resources/app/src/agent.js --console
             [[ $(grep --no-messages 'Now connected' "${f[check_token]}") ]] \
@@ -3704,7 +3713,7 @@ upgrade() {
     # Best data format, dd/mm/yyyy
     # date=$(date -d "${last}" +"%d/%m/%Y")
 
-    sudo apt upgrade --yes &> "${f[null]}"
+    sudo apt upgrade --assume-yes &> "${f[null]}"
 
 }
 #======================#
@@ -6155,7 +6164,7 @@ menu() {
 
         for line in "${(@k)logo}"; do
 
-            show "    ${c[RED]}${(P)logo}${line}" 1 && sleep 0.1s
+            show "    ${c[RED]}${(P)logo}${line}" 'fast' && sleep 0.1s
 
         done
 
