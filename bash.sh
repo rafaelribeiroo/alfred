@@ -440,7 +440,7 @@ alexa_stuffs() {
 
     local -a l=(
         'https://s3.amazonaws.com/triggercmdagents/triggercmdagent_1.0.1_amd64.deb'  # 0
-        'https://nodejs.org/en/'  # 1
+        'https://nodejs.dev/en/download/'  # 1
         'https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh'  # 2
     )
 
@@ -505,7 +505,7 @@ alexa_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[1]}" | grep data-version | head -1 | awk '{print $5}')
+    latest=$(curl --silent "${l[1]}" | grep --only-matching 'v[0-9]\+.[0-9]\+.[0-9]\+' | head -4 | tail -1 | sed 's|v||')
 
     local=$(apt version "${m[2]}")
 
@@ -518,7 +518,7 @@ alexa_stuffs() {
             if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
                 [[ ! -d "${d[1]}" ]] \
-                    && curl --output - "${l[2]}" | bash
+                    && curl --silent --output - "${l[2]}" | bash
 
                 [[ ! $(grep --no-messages '.nvm' "${f[bashrc]}") ]] \
                     && sudo tee "${f[bashrc]}" > "${f[null]}" <<< '
@@ -1058,6 +1058,7 @@ deemix_stuffs() {
         [cookies]="${d[0]}"cookies
         [arl_value]="${d[3]}".arl
         [cfg]="${d[3]}"config.json
+        [flac]=/usr/share/thumbnailers/ffmpegthumbnailer.thumbnailer
     )
 
     local -a l=(
@@ -1225,7 +1226,7 @@ deemix_stuffs() {
     [[ ! -e "${f[clear_garbage]}" ]] \
         && sudo tee "${f[clear_garbage]}" > "${f[null]}" <<< "#!/usr/bin/env bash
 
-rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|Ac_dc|ACDC|g' ${XDG_MUSIC_DIR}/* && rename 's/ \([A-a]o [V-v]ivo.*\)| \([L-l]ive.*\)//' ${XDG_MUSIC_DIR}/*"
+rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|Ac_dc|ACDC|g' ${XDG_MUSIC_DIR}/* && find ${XDG_MUSIC_DIR}/ -type f -regex '.*\.mp3\|.*\.flac\|.*\.lrc' -exec rename 's/ \(.*\)//' {} \;"
 
     [[ $(stat --format='%a' "${f[clear_garbage]}") -ne 755 ]] \
         && sudo chmod 755 "${f[clear_garbage]}"
@@ -1246,6 +1247,8 @@ rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|Ac_dc|ACDC|g' ${
     # MP3 320KBPS SET TO 3, FLAC 9
     sudo sed --in-place 's|"maxBitrate":.*|"maxBitrate": "3",|g' "${f[cfg]}"
 
+    sudo sed --in-place 's|"playlistTracknameTemplate":.*|"playlistTracknameTemplate": "%artist% - %title%",|g' "${f[cfg]}"
+
     sudo sed --in-place 's|"titleCasing":.*|"titleCasing": "start",|g' "${f[cfg]}"
 
     sudo sed --in-place 's|"syncedLyrics":.*|"syncedLyrics": true,|g' "${f[cfg]}"
@@ -1257,6 +1260,9 @@ rename 's/^(Dj|dj|mc|Mc)/\U$1/' ${XDG_MUSIC_DIR}/* && rename 's|Ac_dc|ACDC|g' ${
     sudo sed --in-place 's|"removeAlbumVersion":.*|"removeAlbumVersion": true,|g' "${f[cfg]}"
 
     sudo sed --in-place "s|\"executeCommand\":.*|\"executeCommand\": \"${f[clear_garbage]}\",|g" "${f[cfg]}"
+
+    [[ ! $(grep --no-messages 'flac' "${f[flac]}") ]] \
+        && sudo sed --in-place --regexp-extended 's|(MimeType.*$)|\1;audio/flac;audio/mpeg|g' "${f[flac]}"
 
     # In pt_BR language, deemix not recognizes ú from Músicas.
     if [[ $(echo "${LANG}" | awk --field-separator=. '{print $1}') = 'pt_BR' ]]; then
@@ -1491,13 +1497,13 @@ docky_stuffs() {
 
         ( nohup "${m[5]}" & ) &> "${f[null]}"
 
+        sleep 10s
+
         get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
 
         d+=(
            ~/.gconf/apps/docky-2/Docky/Interface/DockPreferences/"${get_dock}"  # 5
         )
-
-        take_a_break
 
         sudo pkill "${m[5]}"
 
@@ -3417,6 +3423,7 @@ postgres_stuffs() {
     id SERIAL PRIMARY KEY,
     title VARCHAR(150),
     url VARCHAR(50),
+    release_date INT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );" &> "${f[null]}"
 
