@@ -34,10 +34,7 @@ declare -A f=(
     [ble]=~/.local/share/blesh/ble.sh
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
-    [bookmarks]=/org/nemo/preferences/show-bookmarks-in-to-menus
-    [expand]=/org/nemo/window-state/bookmarks-expanded
-    [show]=/com/linuxmint/mintmenu/plugins/places/show-gtk-bookmarks
-    [subl]=/opt/sublime_text/sublime_text
+    [config]=/etc/minidlna.conf
 )
 
 milliseconds_to_duration() {
@@ -51,3 +48,13 @@ milliseconds_to_duration() {
     printf "%02d:%02d.%03d\n" "$mins" "$secs" "$msec"
 
 }
+
+source "${f[user_dirs]}"
+
+local -a d=(
+    "${XDG_VIDEOS_DIR}"  # 1
+    /home/"${USER}"/.config/minidlna  # 2
+    /var/lib/minidlna  # 3
+)
+
+sudo sed --in-place --null-data "s|${d[3]}\n|V,${d[1]}\n|g" ./try

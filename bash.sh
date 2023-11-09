@@ -440,7 +440,7 @@ alexa_stuffs() {
 
     local -a l=(
         'https://s3.amazonaws.com/triggercmdagents/triggercmdagent_1.0.1_amd64.deb'  # 0
-        'https://nodejs.dev/en/download/'  # 1
+        'https://nodejs.org/en/download/releases'  # 1
         'https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh'  # 2
     )
 
@@ -505,9 +505,9 @@ alexa_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[1]}" | grep --only-matching 'v[0-9]\+.[0-9]\+.[0-9]\+' | head -4 | tail -1 | sed 's|v||')
+    latest=$(curl --silent "${l[1]}" | grep --only-matching 'v[0-9]\+.[0-9]\+.[0-9]\+' | head -5 | tail -1 | sed 's|v||')
 
-    local=$(apt version "${m[2]}")
+    local=$(node --version | sed 's|v||')
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -2906,7 +2906,9 @@ minidlna_stuffs() {
 
                 sudo apt remove --purge --yes "${m[0]}" &> "${f[null]}"
 
-                sudo rm --force "${f[config]}" "${f[default_minidlna]}"
+                sudo rm --force "${f[config]}" "${f[dft]}" "${f[service]}"
+
+                sudo rm --force --recursive "${d[1]}" "${d[2]}"
 
                 remove_useless
 
@@ -2953,7 +2955,8 @@ minidlna_stuffs() {
         sudo sed --in-place "s|#log_dir=.*|log_dir=${d[1]}|g" "${f[config]}"
 
         # media dirs
-        sudo sed --in-place --null-data "s|${d[2]}|V,${d[0]}|5" "${f[config]}"
+        # sudo sed --in-place --null-data "s|${d[2]}|V,${d[0]}|5" "${f[config]}"
+        sudo sed --in-place --null-data "s|${d[3]}\n|V,${d[1]}\n|g" "${f[config]}"
 
         # user to access this database
         sudo sed --in-place "s|#USER=.*|USER=\"${USER}\"|g" "${f[dft]}"
@@ -4605,7 +4608,7 @@ sublime_stuffs() {
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON", "Sync View Scroll"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON", "Sync View Scroll", "MarkdownLivePreview"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
@@ -4761,7 +4764,11 @@ sublime_stuffs() {
             { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
         ]
     },
-    { "keys": ["ctrl+t"], "command": "toggle_sync_scroll" }
+    { "keys": ["ctrl+t"], "command": "toggle_sync_scroll" },
+    {
+        "keys": ["alt+m"],
+        "command": "open_markdown_preview"
+    }
 ]'
 
             # Removes autocomplete at runtime
@@ -4945,6 +4952,7 @@ usefull_pkgs() {
         'build-essential'  # 32
         'cprogressbar'  # 33
         'peek'  # 34
+        'filezilla'  # 35
     )
 
     [[ ! -d "${d[5]}" || $(stat --format="%U" "${d[5]}" 2>&-) != "${USER}" ]] \
@@ -5019,7 +5027,7 @@ usefull_pkgs() {
             && sudo wget --quiet "${l[3]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}" "${m[28]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[34]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}" "${m[28]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[34]}" "${m[35]}"
 
         [[ $(snap list 2>&- | grep "${m[11]}") ]] \
             && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \

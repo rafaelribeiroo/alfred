@@ -440,7 +440,7 @@ alexa_stuffs() {
 
     local -a l=(
         'https://s3.amazonaws.com/triggercmdagents/triggercmdagent_1.0.1_amd64.deb'  # 1
-        'https://nodejs.dev/en/download/'  # 2
+        'https://nodejs.org/en/download/releases'  # 2
         'https://raw.githubusercontent.com/nvm-sh/nvm/v0.38.0/install.sh'  # 3
     )
 
@@ -505,9 +505,9 @@ alexa_stuffs() {
 
     echo; show "INITIALIZING CONFIGS..."
 
-    latest=$(curl --silent "${l[2]}" | grep --only-matching 'v[0-9]\+.[0-9]\+.[0-9]\+' | head -4 | tail -1 | sed 's|v||')
+    latest=$(curl --silent "${l[2]}" | grep --only-matching 'v[0-9]\+.[0-9]\+.[0-9]\+' | head -5 | tail -1 | sed 's|v||')
 
-    local=$(apt version "${m[3]}")
+    local=$(node --version | sed 's|v||')
 
     if ( $(dpkg --compare-versions "${local}" lt "${latest}") ); then
 
@@ -2573,7 +2573,9 @@ minidlna_stuffs() {
 
                 sudo apt remove --purge --yes "${m[1]}" &> "${f[null]}"
 
-                sudo rm --force "${f[config]}" "${f[default_minidlna]}"
+                sudo rm --force "${f[config]}" "${f[dft]}" "${f[service]}"
+
+                sudo rm --force --recursive "${d[2]}" "${d[3]}"
 
                 remove_useless
 
@@ -2620,7 +2622,8 @@ minidlna_stuffs() {
         sudo sed --in-place "s|#log_dir=.*|log_dir=${d[2]}|g" "${f[config]}"
 
         # media dirs
-        sudo sed --in-place --null-data "s|${d[3]}|V,${d[1]}|5" "${f[config]}"
+        # sudo sed --in-place --null-data "s|${d[3]}|V,${d[1]}|5" "${f[config]}"
+        sudo sed --in-place --null-data "s|${d[3]}\n|V,${d[1]}\n|g" "${f[config]}"
 
         # user to access this database
         sudo sed --in-place "s|#USER=.*|USER=\"${USER}\"|g" "${f[dft]}"
@@ -3085,12 +3088,31 @@ postgres_stuffs() {
 
                     sudo --user=postgres psql --dbname="${database}" --command "GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO ${user}" &> "${f[null]}"
 
+                    # \c torrent
                     [[ "${database}" = 'rarbg' ]] \
                         && sudo --user=postgres psql --dbname="${database}" --command "CREATE TABLE IF NOT EXISTS torrent (
     id SERIAL PRIMARY KEY,
     title VARCHAR(150),
     url VARCHAR(50),
     release_date INT,
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);" &> "${f[null]}"
+
+                    [[ "${database}" = 'facebook' ]] \
+                        && sudo --user=postgres psql --dbname="${database}" --command "CREATE TABLE IF NOT EXISTS ad (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(150),
+    city VARCHAR(70),
+    price INT,
+    url VARCHAR(250),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);" &> "${f[null]}"
+
+                    [[ "${database}" = 'fofoca' ]] \
+                        && sudo --user=postgres psql --dbname="${database}" --command "CREATE TABLE IF NOT EXISTS post (
+    id SERIAL PRIMARY KEY,
+    codigo VARCHAR(150),
+    user_insta VARCHAR(50),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );" &> "${f[null]}"
 
@@ -4275,7 +4297,7 @@ sublime_stuffs() {
 
     [[ ! $(grep --no-messages packages "${f[pkgs]}") ]] \
         && sudo tee "${f[pkgs]}" > "${f[null]}" <<< '{
-    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON", "Sync View Scroll"]
+    "installed_packages": ["Anaconda", "Djaneiro", "Restart", "SublimeREPL", "Dracula Color Scheme", "AutoPEP8", "Pretty JSON", "Sync View Scroll", "MarkdownLivePreview"]
 }' \
         && sudo chown "${USER}":"${USER}" "${f[pkgs]}"
 
@@ -4431,7 +4453,11 @@ sublime_stuffs() {
             { "key": "following_text", "operator": "regex_contains", "operand": "^\"(?:\t| |\\)|]|;|\\}|\\\"|$)", "match_all": true }
         ]
     },
-    { "keys": ["ctrl+t"], "command": "toggle_sync_scroll" }
+    { "keys": ["ctrl+t"], "command": "toggle_sync_scroll" },
+    {
+        "keys": ["alt+m"],
+        "command": "open_markdown_preview"
+    }
 ]'
 
             # Removes autocomplete at runtime
@@ -4616,6 +4642,7 @@ usefull_pkgs() {
         'build-essential'  # 33
         'cprogressbar'  # 34
         'peek'  # 35
+        'filezilla'  # 36
     )
 
     [[ ! -d "${d[6]}" || $(stat --format="%U" "${d[6]}" 2>&-) != "${USER}" ]] \
@@ -4696,7 +4723,7 @@ usefull_pkgs() {
             && sudo wget --quiet "${l[4]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[25]}" "${m[26]}" "${m[27]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[33]}" "${m[35]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[25]}" "${m[26]}" "${m[27]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[33]}" "${m[35]}" "${m[36]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
