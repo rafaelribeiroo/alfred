@@ -35,6 +35,9 @@ declare -A f=(
     [user_dirs]=~/.config/user-dirs.dirs
     [try]=/workspace/alfred/try
     [config]=/etc/minidlna.conf
+
+
+    [exec]=/opt/sublime_text/sublime_text
 )
 
 milliseconds_to_duration() {
@@ -49,12 +52,25 @@ milliseconds_to_duration() {
 
 }
 
-source "${f[user_dirs]}"
+if [[ $(md5sum --check <<< "AFDEBB91F2BF42C9B491BAFD517C0A49 ${f[exec]}" 2> "${f[null]}" | grep --no-messages 'OK') ]]; then
 
-local -a d=(
-    "${XDG_VIDEOS_DIR}"  # 1
-    /home/"${USER}"/.config/minidlna  # 2
-    /var/lib/minidlna  # 3
-)
+    # https://gist.github.com/maboloshi/feaa63c35f4c2baab24c9aaf9b3f4e47
+    [[ $(xxd -postscript -seek 3813874 -len 4 "${f[exec]}") =~ 55415741 ]] \
+        && echo 003A31F2: 48 31 C0 C3 | sudo xxd -revert - "${f[exec]}"
 
-sudo sed --in-place --null-data "s|${d[3]}\n|V,${d[1]}\n|g" ./try
+    [[ $(xxd -postscript -seek 3773319 -len 5 "${f[exec]}") =~ e8080e1200 ]] \
+        && echo 00399387: 90 90 90 90 90 | sudo xxd -revert - "${f[exec]}"
+
+    [[ $(xxd -postscript -seek 3773341 -len 5 "${f[exec]}") =~ e8f20d1200 ]] \
+        && echo 0039939D: 90 90 90 90 90 | sudo xxd -revert - "${f[exec]}"
+
+    [[ $(xxd -postscript -seek 3821104 -len 7 "${f[exec]}") =~ 554156534189f6 ]] \
+        && echo 003A4E30: 48 31 C0 48 FF C0 C3 | sudo xxd -revert - "${f[exec]}"
+
+    [[ $(xxd -postscript -seek 3812994 -len 1 "${f[exec]}") =~ 41 ]] \
+        && echo 003A2E82: C3 | sudo xxd -revert - "${f[exec]}"
+
+    [[ $(xxd -postscript -seek 3721712 -len 1 "${f[exec]}") =~ 55 ]] \
+        && echo 0038C9F0: C3 | sudo xxd -revert - "${f[exec]}"
+
+fi

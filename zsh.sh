@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 
-# curl --silent --output alfred.sh --create-dirs 'https://raw.githubusercontent.com/rafaelribeiroo/alfred/build/zsh-alfred.sh'
+# curl --silent --output alfred.sh --create-dirs 'https://raw.githubusercontent.com/rafaelribeiroo/alfred/build/zsh.sh'
 
 #======================#
 # ALFRED, programa de provisionamento de distro linux.
@@ -3554,10 +3554,6 @@ Categories=Development;Code;'
 #======================#
 python_stuffs() {
 
-    local -a d=(
-        ~/.pyenv/shims/  # 1
-    )
-
     f+=(
         [python_new]=/usr/bin/python
     )
@@ -3599,7 +3595,8 @@ python_stuffs() {
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
         ~/.pyenv  # 1
-        ~/.pyenv/versions/$(curl --silent "${l[3]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 2
+        ~/.pyenv/versions/$(curl --silent "${l[3]}" | grep --no-messages external | head -4 | tail -1 | awk --field-separator=/ '{print $5}')  # 2
+        ~/.pyenv/shims/  # 3
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[1]}[[:space:]]/ {print }") \
@@ -3708,7 +3705,7 @@ eval "$(pyenv virtualenv-init -)"' \
                 sudo rm --force "${f[python_new]}"
 
                 # try python -m venv .venv after alfred pass here
-                sudo ln --force --symbolic "${d[1]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
+                sudo ln --force --symbolic "${d[3]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
 
                 break
 
@@ -4109,7 +4106,6 @@ sublime_stuffs() {
 
     f+=(
         [config]="${d[1]}"Packages/User/Preferences.sublime-settings
-        [config_merge]="${d[5]}"Packages/User/Preferences.sublime-settings
         [hosts]=/etc/hosts
         [ppa]=/etc/apt/sources.list.d/sublime-text.list
         [exec]=/opt/sublime_text/sublime_text
@@ -5119,7 +5115,7 @@ workspace_stuffs() {
 
         if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
-            [[ ! $(yes "" | ssh -T git@github.com 2>&1 | grep --no-messages "You've successfully") ]] \
+            [[ ! $(yes "" | ssh -T git@github.com 2>&- | grep --no-messages "You've successfully") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GITHUB?" \
                 && github_stuffs
 
@@ -5393,26 +5389,21 @@ zsh_stuffs() {
         [powerline_conf]="${d[3]}"10-powerline-symbols.conf
         [original]=/etc/skel/.bashrc
         [bkp_zsh]=~/.zshrc_bkp
-        [meslo]="${d[2]}"Meslo.zip
-        [color]=/var/lib/gems/3.0.0/gems/colorls-1.4.6/lib/colorls.rb
     )
 
     local -a l=(
         'https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh'  # 1
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 2
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 3
-        'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 4
-        'https://github.com/spaceship-prompt/spaceship-prompt.git'  # 5
-        'https://github.com/zsh-users/zsh-syntax-highlighting'  # 6
-        'https://github.com/zsh-users/zsh-autosuggestions'  # 7
+        'https://github.com/spaceship-prompt/spaceship-prompt.git'  # 4
+        'https://github.com/zsh-users/zsh-syntax-highlighting'  # 5
+        'https://github.com/zsh-users/zsh-autosuggestions'  # 6
     )
 
     local -a m=(
         'oh-my-zsh'  # 1
         'xdotool'  # 2
-        'ruby-dev:amd64'  # 3
-        'colorls'  # 4
-        'git'  # 5
+        'git'  # 3
     )
 
     if [[ -d "${d[1]}" ]]; then
@@ -5513,7 +5504,7 @@ zsh_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[1]:u}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
-        install_packages "${m[2]}" "${m[5]}"
+        install_packages "${m[2]}" "${m[3]}"
 
         show "\n${c[YELLOW]}${m[1]:u} ${c[WHITE]}${linen:${#m[1]}} [INSTALLING]"
 
@@ -5621,9 +5612,9 @@ alias unstaged='find -type d -name .git | sed \"s|^./||g\" | while read dir; do 
                 )
 
                 [[ ! -d "${d[4]}" || ! -d "${d[5]}" || ! -d "${d[6]}" ]] \
-                    && git clone --quiet --depth=1 "${l[5]}" "${d[4]}" \
-                    && git clone --quiet --depth=1 "${l[6]}" "${d[5]}" \
-                    && git clone --quiet --depth=1 "${l[7]}" "${d[6]}"
+                    && git clone --quiet --depth=1 "${l[4]}" "${d[4]}" \
+                    && git clone --quiet --depth=1 "${l[5]}" "${d[5]}" \
+                    && git clone --quiet --depth=1 "${l[6]}" "${d[6]}"
 
                 sudo ln --force --symbolic "${f[old_spaceship]}" "${f[new_spaceship]}"
 
@@ -5678,82 +5669,6 @@ alias unstaged='find -type d -name .git | sed \"s|^./||g\" | while read dir; do 
             else
 
                 echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t${c[WHITE]}     PLEASE, ONLY Y OR N!\n\nSR. DID U PREFER SPACESHIP?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    fi
-
-    if [[ ! -e "${f[color]}" ]]; then
-
-        echo; read $'?\033[1;37mSIR, DO U WANT TO INSTALL COLORIZED LS? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
-
-                [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
-                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY?" \
-                    && ruby_stuffs
-
-                # ruby-dev is essential
-                [[ ! $(sudo gem list 2>&- | grep --no-messages "${m[4]}") ]] \
-                    && show "\n${c[YELLOW]}${m[4]:u} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                    && sudo gem install --silent "${m[4]}"
-
-                [[ ! -d "${d[2]}" || $(stat --format="%U" "${d[2]}" 2>&-) != ${USER} ]] \
-                    && sudo mkdir --parents "${d[2]}" > "${f[null]}" \
-                    && sudo chown --recursive "${USER}":"${USER}" "${d[2]}"
-
-                [[ ! -e "${f[meslo]}" ]] \
-                    && wget --quiet "${l[4]}" --output-document "${f[meslo]}" \
-                    && unzip "${f[meslo]}" -d "${d[2]}" &> "${f[null]}" \
-                    && rm --force --recursive "${f[meslo]}" "${d[2]}"*Windows*.ttf
-
-                sudo fc-cache --force "${d[2]}"
-
-                [[ ! $(grep --no-messages "${m[4]}" "${f[zshrc]}") ]] \
-                    && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< "
-# Colorls stuffs
-source $(dirname $(sudo gem which ${m[4]}))/tab_complete.sh
-
-alias ll='${m[4]}'" \
-                    && source "${f[zshrc]}"
-
-                echo && read $'?\033[1;37mREBOOT IS REQUIRED. SHOULD I REBOOT NOW SIR? \n[Y/N] R: \033[m' option
-
-                for (( ; ; )); do
-
-                    if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
-
-                        sudo reboot
-
-                    elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
-
-                        break
-
-                    else
-
-                        echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I RESTART?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                        read option
-
-                    fi
-
-                done
-
-                break
-
-            elif [[ "${option:0:1}" =~ ^(N|n)$ ]] ; then
-
-                break
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
 
                 read option
 

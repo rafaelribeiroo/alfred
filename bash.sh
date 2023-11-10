@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# curl --silent --output alfred.sh --create-dirs 'https://raw.githubusercontent.com/rafaelribeiroo/alfred/build/alfred.sh'
+# curl --silent --output alfred.sh --create-dirs 'https://raw.githubusercontent.com/rafaelribeiroo/alfred/build/bash.sh'
 
 #======================#
 # ALFRED, programa de provisionamento de distro linux.
@@ -607,7 +607,6 @@ bash_stuffs() {
         [bkp]=~/.bashrc.pre-oh-my-bash
         [ble]=~/.local/share/blesh/ble.sh
         [blerc]=~/.blerc
-        [color]=/var/lib/gems/3.0.0/gems/colorls-1.4.6/lib/colorls.rb
     )
 
     local -a l=(
@@ -615,16 +614,13 @@ bash_stuffs() {
         'https://github.com/powerline/powerline/raw/develop/font/PowerlineSymbols.otf'  # 1
         'https://github.com/powerline/powerline/raw/develop/font/10-powerline-symbols.conf'  # 2
         'https://github.com/akinomyoga/ble.sh.git'  # 3
-        'https://github.com/ryanoasis/nerd-fonts/releases/download/v2.1.0/Meslo.zip'  # 4
     )
 
     local -a m=(
         'oh-my-bash'  # 0
         'xdotool'  # 1
         'ble.sh'  # 2
-        'ruby-dev'  # 3
-        'colorls'  # 4
-        'git'  # 5
+        'git'  # 3
     )
 
     if [[ -d "${d[0]}" ]]; then
@@ -685,7 +681,7 @@ bash_stuffs() {
 
         show "${c[GREEN]}\n\tI${c[WHITE]}NSTALLING ${c[GREEN]}${m[0]^^}${c[WHITE]} AND ${c[GREEN]}DEPENDENCIES${c[WHITE]}!" 'fast'
 
-        install_packages "${m[1]}" "${m[5]}"
+        install_packages "${m[1]}" "${m[3]}"
 
         show "\n${c[YELLOW]}${m[0]^^} ${c[WHITE]}${linen:${#m[0]}} [INSTALLING]"
 
@@ -759,61 +755,6 @@ alias unstaged='find -type d -name .git | sed \"s|^./||g\" | while read dir; do 
 
     [[ ! $(grep --no-messages 'plugins=(git' "${f[bashrc]}") ]] \
         && sudo sed --in-place --null-data 's|plugins=(\n  git\n  bashmarks\n)|plugins=(git python pip virtualenv)|g' "${f[bashrc]}"
-
-    if [[ ! -e "${f[color]}" ]]; then
-
-        echo; read -p $'\033[1;37mSIR, DO U WANT TO INSTALL COLORIZED LS? \n[Y/N] R: \033[m' option
-
-        for (( ; ; )); do
-
-            if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
-
-                [[ ! $(dpkg --list | awk "/ii  ${m[3]}[[:space:]]/ {print }") ]] \
-                    && show "\nFIRST THINGS FIRST. DO U PASS THROUGH RUBY?" \
-                    && ruby_stuffs
-
-                # ruby-dev is essential
-                [[ ! $(sudo gem list 2>&- | grep --no-messages "${m[4]}") ]] \
-                    && show "\n${c[YELLOW]}${m[4]^^} ${c[WHITE]}${linen:${#m[4]}} [INSTALLING]" \
-                    && sudo gem install --silent "${m[4]}"
-
-
-                [[ ! -d "${d[1]}" || $(stat --format="%U" "${d[1]}" 2>&-) != ${USER} ]] \
-                    && sudo mkdir --parents "${d[1]}" > "${f[null]}" \
-                    && sudo chown --recursive "${USER}":"${USER}" "${d[1]}"
-
-                [[ ! -e "${f[meslo]}" ]] \
-                    && wget --quiet "${l[4]}" --output-document "${f[meslo]}" \
-                    && unzip "${f[meslo]}" -d "${d[1]}" &> "${f[null]}" \
-                    && rm --force --recursive "${f[meslo]}" "${d[1]}"*Windows*.ttf
-
-                sudo fc-cache --force "${d[1]}"
-
-                [[ ! $(grep --no-messages "${m[4]}" "${f[bashrc]}") ]] \
-                    && sudo tee --append "${f[bashrc]}" > "${f[null]}" <<< "
-# Colorls stuffs
-source $(dirname $(sudo gem which ${m[4]}))/tab_complete.sh
-
-alias ll='${m[4]}'" \
-                    && source "${f[zshrc]}"
-
-                break
-
-            elif [[ "${option:0:1}" = @(N|n) ]] ; then
-
-                break
-
-            else
-
-                echo -ne ${c[RED]}"\n${e[flame]} SOME MEN JUST WANT TO WATCH THE WORLD BURN ${e[flame]}\n\t\t${c[WHITE]}PLEASE, ONLY Y OR N!\n\nSR. SHOULD I INSTALL?${c[END]}\n${c[WHITE]}[Y/N] R: "${c[END]}
-
-                read option
-
-            fi
-
-        done
-
-    fi
 
     echo; read -p $'\033[1;37mSIR, SHOULD I INSTALL AUTOCOMPLETE LIKE IN OH-MY-ZSH? \n[Y/N] R: \033[m' option
 
@@ -3866,10 +3807,6 @@ Categories=Development;Code;'
 #======================#
 python_stuffs() {
 
-    local -a d=(
-        ~/.pyenv/shims/  # 0
-    )
-
     f+=(
         [python_new]=/usr/bin/python
     )
@@ -3912,7 +3849,8 @@ python_stuffs() {
     # https://stackoverflow.com/questions/16703647/why-does-curl-return-error-23-failed-writing-body
     local -a d=(
         ~/.pyenv  # 0
-        ~/.pyenv/versions/$(curl --silent "${l[2]}" | grep --no-messages external | head -2 | tail -1 | awk --field-separator=/ '{print $5}')  # 1
+        ~/.pyenv/versions/$(curl --silent "${l[0]}" | grep --after-context=2 '_le' | tail -1 | awk '{print $2}')  # 1
+        ~/.pyenv/shims/  # 2
     )
 
     if [[ $(dpkg --list | awk "/ii  ${m[0]}[[:space:]]/ {print }") \
@@ -4018,7 +3956,7 @@ eval "$(pyenv virtualenv-init -)"' \
                 # check with pyenv versions
                 pyenv global "${latest}" > "${f[null]}"
 
-                sudo ln --force --symbolic "${d[0]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
+                sudo ln --force --symbolic "${d[2]}$(echo ${latest} | awk --field-separator='.' '{print $1 "." $2}')" "${f[python_new]}"
 
                 break
 
@@ -5420,7 +5358,7 @@ workspace_stuffs() {
 
         if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
-            [[ ! $(yes "" | ssh -T git@github.com 2>&1 | grep --no-messages "You've successfully") ]] \
+            [[ ! $(yes "" | ssh -T git@github.com 2>&- | grep --no-messages "You've successfully") ]] \
                 && show "\nFIRST THINGS FIRST. DO U PASS THROUGH GITHUB?" \
                 && github_stuffs
 
