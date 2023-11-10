@@ -1700,7 +1700,7 @@ github_stuffs() {
                     && show "\nFIRST THINGS FIRST. DO U PASS THROUGH PYTHON?" \
                     && python_stuffs
 
-                pip install --quiet --no-warn-script-location --upgrade "${m[3]}"
+                pip install --quiet --no-warn-script-location "${m[3]}"=="${latest}"
 
                 sudo ln --force --symbolic "$(which ${m[3]})" "${f[cola_new]}"
 
@@ -1806,7 +1806,7 @@ github_stuffs() {
 
         if [[ $(grep --no-messages "Sent from my ${NAME//Linux/}" "${f[all_title_gh]}") ]]; then
 
-            echo; read $'?\033[1;37mSIR, SHOULD I REPLACE YOUR SSH ON GITHUB? THERE\'S AN INCONSISTENCY! \n[Y/N] R: \033[m' option
+            echo; read $'?\033[1;37mSIR, SHOULD I REPLACE YOUR SSH ON GITHUB? \n[Y/N] R: \033[m' option
 
             for (( ; ; )); do
 
@@ -4251,26 +4251,20 @@ sublime_stuffs() {
 
     done
 
-    if [[ $(md5sum --check <<< "AFDEBB91F2BF42C9B491BAFD517C0A49 ${f[exec]}" 2> "${f[null]}" | grep --no-messages 'OK') ]]; then
+    if [[ $(md5sum --check <<< "7038C3B1CC79504602DA70599D4CCCE9 ${f[exec]}" 2> "${f[null]}" | grep --no-messages 'OK') ]]; then
 
         # https://gist.github.com/maboloshi/feaa63c35f4c2baab24c9aaf9b3f4e47
-        [[ $(xxd -postscript -seek 3813874 -len 4 "${f[exec]}") =~ 55415741 ]] \
-            && echo 003A31F2: 48 31 C0 C3 | sudo xxd -revert - "${f[exec]}"
+        echo 00415013: 48 31 C0 C3          | sudo xxd -revert - sublime_text
 
-        [[ $(xxd -postscript -seek 3773319 -len 5 "${f[exec]}") =~ e8080e1200 ]] \
-            && echo 00399387: 90 90 90 90 90 | sudo xxd -revert - "${f[exec]}"
+        echo 00409037: 90 90 90 90 90       | sudo xxd -revert - sublime_text
 
-        [[ $(xxd -postscript -seek 3773341 -len 5 "${f[exec]}") =~ e8f20d1200 ]] \
-            && echo 0039939D: 90 90 90 90 90 | sudo xxd -revert - "${f[exec]}"
+        echo 0040904F: 90 90 90 90 90       | sudo xxd -revert - sublime_text
 
-        [[ $(xxd -postscript -seek 3821104 -len 7 "${f[exec]}") =~ 554156534189f6 ]] \
-            && echo 003A4E30: 48 31 C0 48 FF C0 C3 | sudo xxd -revert - "${f[exec]}"
+        echo 00416CA4: 48 31 C0 48 FF C0 C3 | sudo xxd -revert - sublime_text
 
-        [[ $(xxd -postscript -seek 3812994 -len 1 "${f[exec]}") =~ 41 ]] \
-            && echo 003A2E82: C3 | sudo xxd -revert - "${f[exec]}"
+        echo 00414C82: C3                   | sudo xxd -revert - sublime_text
 
-        [[ $(xxd -postscript -seek 3721712 -len 1 "${f[exec]}") =~ 55 ]] \
-            && echo 0038C9F0: C3 | sudo xxd -revert - "${f[exec]}"
+        echo 003FA310: C3                   | sudo xxd -revert - sublime_text
 
     fi
 
