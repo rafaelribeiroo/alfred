@@ -518,7 +518,8 @@ alexa_stuffs() {
             if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
                 [[ ! -d "${d[2]}" ]] \
-                    && curl --silent --output - "${l[3]}" | zsh
+                    && 0> "${f[null]}" zsh -c "$(curl --silent --location ${l[3]})" &> "${f[null]}"
+                    # && curl --silent --output - "${l[3]}" | zsh
 
                 [[ ! $(grep --no-messages '.nvm' "${f[zshrc]}") ]] \
                     && sudo tee "${f[zshrc]}" > "${f[null]}" <<< '
@@ -1024,7 +1025,7 @@ docky_stuffs() {
         ~/.local/share/cinnamon/applets/  # 2
         ~/.local/share/cinnamon/applets/separator2@zyzz  # 3
         ~/.local/share/cinnamon/applets/force-quit@cinnamon.org  # 4
-        ~/.cinnamon/configs/calendar@cinnamon.org  # 5
+        ~/.config/cinnamon/spices/calendar@cinnamon.org  # 5
     )
 
     local -a m=(
@@ -1053,7 +1054,7 @@ docky_stuffs() {
         [docky_run]=/tmp/docky_2.2.1.1-1_all.deb
         [forceqt]=~/.local/share/cinnamon/applets/force-quit@cinnamon.org.zip
         [separator2]=~/.local/share/cinnamon/applets/separator2@zyzz.zip
-        [grouped]=~/.cinnamon/configs/grouped-window-list@cinnamon.org/2.json
+        [grouped]=~/.config/cinnamon/spices/grouped-window-list@cinnamon.org/2.json
         [panel_pos]=/org/cinnamon/panels-enabled
         [panel_size]=/org/cinnamon/panels-height
         [fix-broken]=/tmp/check_upgrade
@@ -1160,7 +1161,7 @@ docky_stuffs() {
 
         ( nohup "${m[6]}" & ) &> "${f[null]}"
 
-        sleep 10s
+        sleep 20s
 
         get_dock=$(gconftool --get "${f[get_dock]}" | sed 's/[][]//g')
 
@@ -1219,13 +1220,11 @@ docky_stuffs() {
         take_a_break
 
         f+=(
-            [calendar]=~/.cinnamon/configs/calendar@cinnamon.org/$(find "${d[5]}" -maxdepth 1 -type f | awk --field-separator=/ '{print $7}')
+            [calendar]="${d[5]}"/$(find "${d[5]}" -maxdepth 1 -type f | awk --field-separator=/ '{print $8}')
         )
 
         # use custom format
-        sudo sed --in-place --null-data 's|false|true|3' "${f[calendar]}"
-
-        sudo sed --in-place --null-data 's|false|true|4' "${f[calendar]}"
+        sudo sed --in-place 's|false|true|g' "${f[calendar]}"
 
         sudo sed --in-place --null-data 's|%A, %B %e, %H:%M|%e.  %B, %H:%M|2' "${f[calendar]}"
 
@@ -1320,6 +1319,10 @@ dualmonitor_stuffs() {
         'flatpak'  # 9
         'flathub'  # 10
     )
+
+    # http://archive.ubuntu.com/ubuntu/pool/universe/x/xapp/libxapp1_2.2.8-1_amd64.deb
+    # apt install xapp
+    # flatpak run es.estoes.wallpaperDownloader
 
     if [[ $(dpkg --list | awk "/ii  ${m[2]}[[:space:]]/ {print }") \
         && -e "${d[1]}" ]]; then
@@ -2548,7 +2551,7 @@ minidlna_stuffs() {
     which_os="${PRETTY_NAME//Linux /}"
 
     local -a d=(
-        "${XDG_VIDEOS_DIR}"  # 1
+        /home/"${USER}"/Videos/  # 1
         /home/"${USER}"/.config/minidlna  # 2
         /var/lib/minidlna  # 3
     )
@@ -3103,7 +3106,15 @@ postgres_stuffs() {
     id SERIAL PRIMARY KEY,
     title VARCHAR(150),
     city VARCHAR(70),
-    price INT,
+    price VARCHAR(20),
+    url VARCHAR(250),
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);" &> "${f[null]}" \
+                        && sudo --user=postgres psql --dbname="${database}" --command "CREATE TABLE IF NOT EXISTS price_drop (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(150),
+    old_price VARCHAR(20),
+    new_price VARCHAR(20),
     url VARCHAR(250),
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );" &> "${f[null]}"
@@ -3232,7 +3243,7 @@ VALUES
 (29,'PHP7','Curso de PHP, versão 7.0',40,20,2020),
 (30,'PHP4','Curso de PHP, versão 4.0',30,11,2010);" &> "${f[null]}"
 
-                    read $'?\033[1;37mWANT CREATE MORE DATABASES? \n[Y/N] R: \033[m' option
+                    read $'?\033[1;37m\nWANT CREATE MORE DATABASES? \n[Y/N] R: \033[m' option
 
                     if [[ "${option:0:1}" =~ ^(s|S|y|Y)$ ]] ; then
 
@@ -4251,20 +4262,18 @@ sublime_stuffs() {
 
     done
 
-    if [[ $(md5sum --check <<< "7038C3B1CC79504602DA70599D4CCCE9 ${f[exec]}" 2> "${f[null]}" | grep --no-messages 'OK') ]]; then
+    if [[ $(md5sum --check <<< "EA51D76D34A1EE908FD88CB8F0F351A6 ${f[exec]}" 2> "${f[null]}" | grep --no-messages 'OK') ]]; then
 
         # https://gist.github.com/maboloshi/feaa63c35f4c2baab24c9aaf9b3f4e47
-        echo 00415013: 48 31 C0 C3          | sudo xxd -revert - sublime_text
+        echo 00446684: 48 31 C0 C3     | sudo xxd -revert - sublime_text
 
-        echo 00409037: 90 90 90 90 90       | sudo xxd -revert - sublime_text
+        echo 0042D960: 90 90 90 90 90  | sudo xxd -revert - sublime_text
 
-        echo 0040904F: 90 90 90 90 90       | sudo xxd -revert - sublime_text
+        echo 0042D978: 90 90 90 90 90  | sudo xxd -revert - sublime_text
 
-        echo 00416CA4: 48 31 C0 48 FF C0 C3 | sudo xxd -revert - sublime_text
+        echo 004485AA: C3              | sudo xxd -revert - sublime_text
 
-        echo 00414C82: C3                   | sudo xxd -revert - sublime_text
-
-        echo 003FA310: C3                   | sudo xxd -revert - sublime_text
+        echo 004462E8: C3              | sudo xxd -revert - sublime_text
 
     fi
 
@@ -4556,9 +4565,6 @@ usefull_pkgs() {
         /etc/series-renamer/  # 5
         ~/.config/autostart/  # 6
         ~/.config/Rename\ My\ TV\ Series/  # 7
-        /tmp/coreutils-8.32  # 8
-        ~/.local/bin  # 9
-        /tmp/  # 10
     )
 
     f+=(
@@ -4580,9 +4586,6 @@ usefull_pkgs() {
         [recent_items]=/net/launchpad/diodon/clipboard/recent-items-size
         [after_torrent]=/usr/bin/torrent_completed.sh
         [cp_custom]=/tmp/coreutils-8.32.tar.xz
-        [patch]=/tmp/coreutils-8.32/advcpmv-0.8-8.32.patch
-        [new_cp]=~/.local/bin/cp
-        [old_cp]=/tmp/coreutils-8.32/src/cp
     )
 
     local -a l=(
@@ -4591,8 +4594,6 @@ usefull_pkgs() {
         'https://github.com/transmission/transmission/releases/'  # 3
         'https://github.com/linux-man/nemo-mediainfo-tab/releases/download/v1.0.4/nemo-mediainfo-tab_1.0.4_all.deb'  # 4
         'https://api.pushover.net/1/messages.json'  # 5
-        'http://ftp.gnu.org/gnu/coreutils/coreutils-8.32.tar.xz'  # 6
-        'https://raw.githubusercontent.com/jarun/advcpmv/master/advcpmv-0.8-8.32.patch'  # 7
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -4630,7 +4631,6 @@ usefull_pkgs() {
         'g++'  # 31
         'make'  # 32
         'build-essential'  # 33
-        'cprogressbar'  # 34
         'peek'  # 35
         'filezilla'  # 36
     )
@@ -4647,7 +4647,8 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[6]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[14]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[16]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[16]}[[:space:]]/ {print }") \
+        && -e "${f[series]}" ]]; then
 
         show "\n${c[GREEN]}${m[7]:u} ${c[WHITE]}${linei:${#m[7]}} [INSTALLED]" 'fast'
 
@@ -4707,13 +4708,13 @@ usefull_pkgs() {
 
         install_packages "${m[28]}"
 
-        [[ ! $(dpkg --list | awk "/ii  ${m[23]}[[:space:]]/ {print }") ]] \
+        [[ $(dpkg --list | awk "/ii  ${m[23]}[[:space:]]/ {print }") ]] \
             && show "\n${c[GREEN]}${m[23]:u} ${c[WHITE]}${linei:${#m[23]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[23]:u} ${c[WHITE]}${linen:${#m[23]}} [INSTALLING]" \
             && sudo wget --quiet "${l[4]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[25]}" "${m[26]}" "${m[27]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[33]}" "${m[35]}" "${m[36]}"
+        update && install_packages "${m[5]}" "${m[6]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[11]}" "${m[14]}" "${m[16]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[22]}" "${m[25]}" "${m[26]}" "${m[27]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[33]}" "${m[34]}" "${m[35]}"
 
         [[ $(snap list 2>&- | grep "${m[12]}") ]] \
             && show "\n${c[GREEN]}${m[12]:u} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
@@ -4729,37 +4730,6 @@ usefull_pkgs() {
             && show "\n${c[GREEN]}${m[13]:u} ${c[WHITE]}${linei:${#m[13]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[13]:u} ${c[WHITE]}${linen:${#m[13]}} [INSTALLING]" \
             && bash -c "$(curl --silent --location ${l[1]})" &> "${f[out]}"
-
-        if [[ ! -e "${f[new_cp]}" ]]; then
-
-            show "\n${c[YELLOW]}${m[34]:u} ${c[WHITE]}${linen:${#m[34]}} [INSTALLING]"
-
-            [[ ! -d "${d[8]}" ]] \
-                && wget --quiet "${l[6]}" --output-document "${f[cp_custom]}" \
-                && tar --extract --file="${f[cp_custom]}" --directory="${d[10]}"
-
-            [[ ! -e "${f[patch]}" ]] \
-                && wget --quiet "${l[7]}" --output-document "${f[patch]}" \
-                && patch --strip=1 --input="${f[patch]}" &> "${f[null]}" \
-                && cd "${d[8]}" > "${f[null]}" \
-                && sudo chmod +x configure \
-                && ./configure &> "${f[null]}" \
-                && make &> "${f[null]}" \
-                && cd - > "${f[null]}"
-
-            [[ ! -d "${d[9]}" || $(stat --format="%U" "${d[9]}" 2>&-) != "${USER}" ]] \
-                && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
-                && sudo mkdir --parents "${d[9]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[9]}"
-
-            sudo cp "${f[old_cp]}" "${f[new_cp]}"
-
-            [[ ! $(grep --no-messages '--progress-bar' "${f[zshrc]}") ]] \
-                && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< '
-alias cp="${HOME}/.local/bin/cp --progress-bar"' \
-                && source "${f[zshrc]}"
-
-        fi
 
         if [[ ! -e "${f[series]}" ]]; then
 
@@ -4789,7 +4759,7 @@ StartupNotify=true"
 
         else
 
-            show "\n${c[GREEN]}${m[17]:u} ${c[WHITE]}${linei:${#m[17]}} [INSTALLED]"
+            notify-send "Status from Alfred" "${m[17]} was installed successfully" --icon="${f[alfred]}"
 
         fi
 
@@ -5896,8 +5866,8 @@ activate-numlock=true'
         && dconf write "${f[screensaver]}" "['<Super>l', 'XF86ScreenSaver']" \
         && dconf write "${f[default_sort_order]}" "'name'" \
         && dconf write "${f[default_sort_reverse]}" false \
-        && dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Red'" \
-        && dconf write "${f[icon_theme]}" "'Mint-Y-Red'" \
+        && dconf write "${f[gtk_theme]}" "'Mint-Y-Dark-Aqua'" \
+        && dconf write "${f[icon_theme]}" "'Yaru'" \
         && dconf write "${f[delay_screensaver]}" "uint32 180" \
         && dconf write "${f[autostart_blacklist]}" "['gnome-settings-daemon', 'org.gnome.SettingsDaemon', 'gnome-fallback-mount-helper', 'gnome-screensaver', 'mate-screensaver', 'mate-keyring-daemon', 'indicator-session', 'gnome-initial-setup-copy-worker', 'gnome-initial-setup-first-login', 'gnome-welcome-tour', 'xscreensaver-autostart', 'nautilus-autostart', 'caja', 'xfce4-power-manager', 'mintwelcome']"  # END GUI
 

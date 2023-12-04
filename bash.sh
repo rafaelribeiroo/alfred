@@ -3487,7 +3487,7 @@ VALUES
 (29,'PHP7','Curso de PHP, versão 7.0',40,20,2020),
 (30,'PHP4','Curso de PHP, versão 4.0',30,11,2010);" &> "${f[null]}"
 
-                    read -p $'\033[1;37mWANT CREATE MORE DATABASES? \n[Y/N] R: \033[m' option
+                    read -p $'\033[1;37m\nWANT CREATE MORE DATABASES? \n[Y/N] R: \033[m' option
 
                     if [[ "${option:0:1}" = @(s|S|y|Y) ]] ; then
 
@@ -4809,9 +4809,6 @@ usefull_pkgs() {
         /etc/series-renamer/  # 4
         ~/.config/autostart/  # 5
         ~/.config/Rename\ My\ TV\ Series/  # 6
-        /tmp/coreutils-8.32  # 7
-        ~/.local/bin  # 8
-        /tmp/  # 9
     )
 
     f+=(
@@ -4831,10 +4828,6 @@ usefull_pkgs() {
         [rename_db]="${d[6]}"LocalData.sqlite3
         [daemon_rnm]=/usr/bin/rename-tv-series
         [after_torrent]=/usr/bin/torrent_completed.sh
-        [cp_custom]=/tmp/coreutils-8.32.tar.xz
-        [patch]=/tmp/coreutils-8.32/advcpmv-0.8-8.32.patch
-        [new_cp]=~/.local/bin/cp
-        [old_cp]=/tmp/coreutils-8.32/src/cp
     )
 
     local -a l=(
@@ -4843,8 +4836,6 @@ usefull_pkgs() {
         'https://github.com/transmission/transmission/releases/'  # 2
         'https://github.com/linux-man/nemo-mediainfo-tab/releases/download/v1.0.4/nemo-mediainfo-tab_1.0.4_all.deb'  # 3
         'https://api.pushover.net/1/messages.json'  # 4
-        'http://ftp.gnu.org/gnu/coreutils/coreutils-8.32.tar.xz'  # 5
-        'https://raw.githubusercontent.com/jarun/advcpmv/master/advcpmv-0.8-8.32.patch'  # 6
     )
 
     # Se seu vlc estiver em inglês, instale: "vlc-l10n" e remova ~/.config/vlc
@@ -4882,9 +4873,8 @@ usefull_pkgs() {
         'g++'  # 30
         'make'  # 31
         'build-essential'  # 32
-        'cprogressbar'  # 33
-        'peek'  # 34
-        'filezilla'  # 35
+        'peek'  # 33
+        'filezilla'  # 34
     )
 
     [[ ! -d "${d[5]}" || $(stat --format="%U" "${d[5]}" 2>&-) != "${USER}" ]] \
@@ -4899,7 +4889,8 @@ usefull_pkgs() {
         && $(dpkg --list | awk "/ii  ${m[4]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[5]}[[:space:]]/ {print }") \
         && $(dpkg --list | awk "/ii  ${m[13]}[[:space:]]/ {print }") \
-        && $(dpkg --list | awk "/ii  ${m[15]}[[:space:]]/ {print }") ]]; then
+        && $(dpkg --list | awk "/ii  ${m[15]}[[:space:]]/ {print }") \
+        && -e "${f[series]}" ]]; then
 
         show "\n${c[GREEN]}${m[6]^^} ${c[WHITE]}${linei:${#m[6]}} [INSTALLED]" 'fast'
 
@@ -4953,13 +4944,13 @@ usefull_pkgs() {
 
         install_packages "${m[27]}"
 
-        [[ ! $(dpkg --list | awk "/ii  ${m[22]}[[:space:]]/ {print }") ]] \
+        [[ $(dpkg --list | awk "/ii  ${m[22]}[[:space:]]/ {print }") ]] \
             && show "\n${c[GREEN]}${m[22]^^} ${c[WHITE]}${linei:${#m[22]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[22]^^} ${c[WHITE]}${linen:${#m[22]}} [INSTALLING]" \
             && sudo wget --quiet "${l[3]}" --output-document "${f[media_info]}" \
             && sudo dpkg --install "${f[media_info]}" &> "${f[null]}"
 
-        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}" "${m[28]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[34]}" "${m[35]}"
+        update && install_packages "${m[4]}" "${m[5]}" "${m[7]}" "${m[8]}" "${m[9]}" "${m[10]}" "${m[13]}" "${m[15]}" "${m[17]}" "${m[18]}" "${m[19]}" "${m[20]}" "${m[21]}" "${m[24]}" "${m[25]}" "${m[26]}" "${m[28]}" "${m[29]}" "${m[30]}" "${m[31]}" "${m[32]}" "${m[33]}" "${m[34]}"
 
         [[ $(snap list 2>&- | grep "${m[11]}") ]] \
             && show "\n${c[GREEN]}${m[11]^^} ${c[WHITE]}${linei:${#m[11]}} [INSTALLED]" \
@@ -4975,37 +4966,6 @@ usefull_pkgs() {
             && show "\n${c[GREEN]}${m[12]^^} ${c[WHITE]}${linei:${#m[12]}} [INSTALLED]" \
             || show "\n${c[YELLOW]}${m[12]^^} ${c[WHITE]}${linen:${#m[12]}} [INSTALLING]" \
             && bash -c "$(curl --silent --location ${l[0]})" &> "${f[out]}"
-
-        if [[ ! -e "${f[new_cp]}" ]]; then
-
-            show "\n${c[YELLOW]}${m[33]^^} ${c[WHITE]}${linen:${#m[33]}} [INSTALLING]"
-
-            [[ ! -d "${d[7]}" ]] \
-                && wget --quiet "${l[5]}" --output-document "${f[cp_custom]}" \
-                && tar --extract --file="${f[cp_custom]}" --directory="${d[9]}"
-
-            [[ ! -e "${f[patch]}" ]] \
-                && wget --quiet "${l[6]}" --output-document "${f[patch]}" \
-                && patch --strip=1 --input="${f[patch]}" &> "${f[null]}" \
-                && cd "${d[7]}" > "${f[null]}" \
-                && sudo chmod +x configure \
-                && ./configure &> "${f[null]}" \
-                && make &> "${f[null]}" \
-                && cd - > "${f[null]}"
-
-            [[ ! -d "${d[8]}" || $(stat --format="%U" "${d[8]}" 2>&-) != "${USER}" ]] \
-                && show "\nBEFORE PROCEED, GIVING PERMISSIONS..." \
-                && sudo mkdir --parents "${d[8]}" > "${f[null]}" \
-                && sudo chown --recursive "${USER}":"${USER}" "${d[8]}"
-
-            sudo cp "${f[old_cp]}" "${f[new_cp]}"
-
-            [[ ! $(grep --no-messages '--progress-bar' "${f[bashrc]}") ]] \
-                && sudo tee --append "${f[zshrc]}" > "${f[null]}" <<< '
-alias cp="${HOME}/.local/bin/cp --progress-bar"' \
-                && source "${f[bashrc]}"
-
-        fi
 
         if [[ ! -e "${f[series]}" ]]; then
 
@@ -5035,7 +4995,7 @@ StartupNotify=true"
 
         else
 
-            show "\n${c[GREEN]}${m[16]^^} ${c[WHITE]}${linei:${#m[16]}} [INSTALLED]"
+            notify-send "Status from Alfred" "${m[17]} was installed successfully" --icon="${f[alfred]}"
 
         fi
 
